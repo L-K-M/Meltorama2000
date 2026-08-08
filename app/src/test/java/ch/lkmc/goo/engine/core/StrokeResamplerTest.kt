@@ -102,6 +102,144 @@ class StrokeResamplerTest {
         assertEquals(1, out.size)
     }
 
+    // ---- The gap between stamps is what the picture's lag IS --------------
+
+    @Test
+    fun `the cap tightens a big brush's spacing`() {
+        // The quarter-radius rule is about kernel OVERLAP and says
+        // nothing about how far the finger travels between updates. At
+        // the largest brush that gap is 0.07 of image height — most of a
+        // centimetre of dragging during which the picture does not move.
+        val big = 0.28f
+        val cap = 0.01f
+        val r = StrokeResampler(radius = big, aspect = 1f, maxSpacing = cap)
+        r.begin(0.5f, 0.1f)
+        val out = r.extend(0.5f, 0.6f, mutableListOf())
+        assertTrue(out.size > 3)
+        out.drop(1).zipWithNext().forEach { (a, b) ->
+            assertEquals(cap, b.cy - a.cy, 1e-5f)
+        }
+    }
+
+    @Test
+    fun `the cap never coarsens a brush that is already finer`() {
+        // A small brush's own quarter-radius is tighter than the cap, so
+        // the cap must not loosen it. This is the direction that is easy
+        // to get backwards.
+        val small = 0.04f
+        val ownSpacing = StrokeResampler.SPACING_FRACTION * small
+        val r = StrokeResampler(radius = small, aspect = 1f, maxSpacing = 0.05f)
+        r.begin(0.5f, 0.1f)
+        val out = r.extend(0.5f, 0.5f, mutableListOf())
+        out.drop(1).zipWithNext().forEach { (a, b) ->
+            assertEquals(ownSpacing, b.cy - a.cy, 1e-5f)
+        }
+    }
+
+    @Test
+    fun `the floor bounds the cap, not the quality rule`() {
+        // MIN_SPACING exists so a hard zoom cannot multiply the stamp
+        // count without limit. Applied to the RESULT instead of to the
+        // cap it also floors the quarter-radius rule, which makes the
+        // smallest brushes coarser than they were — the opposite of this
+        // whole change. A test elsewhere in this file caught exactly
+        // that, so it is worth one that names it.
+        val tiny = 0.004f
+        val ownSpacing = StrokeResampler.SPACING_FRACTION * tiny
+        assertTrue(ownSpacing < StrokeResampler.MIN_SPACING, "pick a smaller radius")
+        val r = StrokeResampler(
+            radius = tiny,
+            aspect = 1f,
+            firstTravel = ownSpacing,
+            maxSpacing = 1e-9f,
+        )
+        r.begin(0.5f, 0.1f)
+        val out = r.extend(0.5f, 0.2f, mutableListOf())
+        out.drop(1).zipWithNext().forEach { (a, b) ->
+            assertEquals(ownSpacing, b.cy - a.cy, 1e-6f)
+        }
+    }
+
+    @Test
+    fun `an absurd zoom cannot multiply the stamps without limit`() {
+        val r = StrokeResampler(radius = 0.12f, aspect = 1f, maxSpacing = 1e-9f)
+        r.begin(0.5f, 0.1f)
+        val out = r.extend(0.5f, 0.2f, mutableListOf())
+        out.drop(1).zipWithNext().forEach { (a, b) ->
+            assertEquals(StrokeResampler.MIN_SPACING, b.cy - a.cy, 1e-6f)
+        }
+    }
+
+    @Test
+    fun `no cap is the behaviour every caller had before`() {
+        // The default. Existing callers, tests and replay must be
+        // untouched by a bound they never asked for.
+        val r = StrokeResampler(radius = radius, aspect = 1f)
+        r.begin(0.5f, 0.1f)
+        val out = r.extend(0.5f, 0.5f, mutableListOf())
+        out.drop(1).zipWithNext().forEach { (a, b) ->
+            assertEquals(spacing, b.cy - a.cy, 1e-5f)
+        }
+    }
+
+    @Test
+    fun `capping does not change the total displacement`() {
+        // Same telescoping property the first-stamp change rests on:
+        // denser stamps split the same travel into more pieces. More
+        // updates, not more warp — which is what makes it safe to make
+        // the brush track the finger more closely.
+        fun stamps(cap: Float): List<Stamp> {
+            val r = StrokeResampler(radius = 0.28f, aspect = 1f, maxSpacing = cap)
+            r.begin(0.2f, 0.5f)
+            return r.extend(0.8f, 0.5f, mutableListOf())
+        }
+        val loose = stamps(StrokeResampler.NO_SPACING_CAP)
+        val tight = stamps(0.005f)
+        assertTrue(tight.size > loose.size * 3, "the cap must actually bite")
+        for (out in listOf(loose, tight)) {
+            assertEquals(
+                out.last().cx - 0.2f,
+                out.sumOf { it.dx.toDouble() }.toFloat(),
+                1e-5f,
+            )
+        }
+    }
+
+    @Test
+    fun `the spacing cap converts DP the same way the gate does`() {
+        val fitted = 1100f
+        val density = 2.75f
+        val at1x = StrokeResampler.maxSpacingFor(fitted, density)
+        val at4x = StrokeResampler.maxSpacingFor(fitted * 4f, density)
+        assertEquals(at1x / 4f, at4x, 1e-9f)
+        // Constant in screen pixels, which is the property felt.
+        assertEquals(at1x * fitted, at4x * fitted * 4f, 1e-4f)
+    }
+
+    @Test
+    fun `an unknown screen means no cap rather than a divide`() {
+        for (bad in listOf(
+            0f,
+            -1f,
+            Float.NaN,
+            Float.POSITIVE_INFINITY,
+            Float.NEGATIVE_INFINITY,
+        )) {
+            assertEquals(
+                StrokeResampler.NO_SPACING_CAP,
+                StrokeResampler.maxSpacingFor(bad, 2.75f),
+                0f,
+                "image height $bad",
+            )
+            assertEquals(
+                StrokeResampler.NO_SPACING_CAP,
+                StrokeResampler.maxSpacingFor(1100f, bad),
+                0f,
+                "density $bad",
+            )
+        }
+    }
+
     // ---- The gate means a fixed number of DP, not of image ---------------
 
     @Test

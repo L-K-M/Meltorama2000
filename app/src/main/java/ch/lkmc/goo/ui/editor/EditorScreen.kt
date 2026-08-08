@@ -696,14 +696,23 @@ private fun WarpEditor(
                         // is one image height, so the conversion needs
                         // how tall the photo is drawn right now — fitted
                         // height times the live zoom.
+                        // How tall the photo is drawn right now — the
+                        // conversion both screen-space bounds need.
+                        // PointerInputScope extends Density, so `density`
+                        // is the canvas's own, not a captured one.
+                        val imageHeightPx = fit.fittedHeight * view.scale
                         val firstTravel = StrokeResampler.firstTravelFor(
-                            imageHeightPx = fit.fittedHeight * view.scale,
-                            // PointerInputScope extends Density, so this
-                            // is the canvas's own, not a captured one.
+                            imageHeightPx = imageHeightPx,
+                            density = density,
+                        )
+                        // And the gap BETWEEN stamps, which is what the
+                        // picture's lag behind the finger actually is.
+                        val maxSpacing = StrokeResampler.maxSpacingFor(
+                            imageHeightPx = imageHeightPx,
                             density = density,
                         )
                         var stroking = outside <= viewModel.uiState.value.brushRadius &&
-                            viewModel.beginStroke(u0, v0, firstTravel)
+                            viewModel.beginStroke(u0, v0, firstTravel, maxSpacing)
                         // Whip needs the release velocity, and only the
                         // platform tracker gets that right across event
                         // batching and irregular sample timing.
