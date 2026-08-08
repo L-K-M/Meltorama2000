@@ -56,6 +56,33 @@ class StrokeResampler(
         }
     }
 
+    /**
+     * The gap between stamps — derived once, because every input is
+     * an immutable constructor parameter and a `fun` would imply this
+     * varies with something at runtime. It does not.
+     *
+     * The gap is: a quarter of the brush radius, but never
+     * more than [maxSpacing].
+     *
+     * The quarter-radius rule is about KERNEL OVERLAP — dense enough
+     * that smoothstep discs merge into a crease-free trough. It says
+     * nothing about how far the finger travels between updates, and on a
+     * big brush those are very different numbers: 0.07 of image height
+     * at the largest size, which is most of a centimetre of dragging
+     * during which the picture does not move at all.
+     *
+     * The image lags the finger by up to one spacing for the WHOLE
+     * stroke, not just at the start, which is what reads as the brush
+     * having a lower resolution than the screen.
+     *
+     * [MIN_SPACING] floors the CAP, not the result. Written the other
+     * way round it also floored the quarter-radius rule, which made the
+     * smallest brushes COARSER than before — the opposite of the whole
+     * change, and caught by a test that had nothing to do with it.
+     */
+    private val spacing: Float =
+        minOf(spacingFraction * radius, maxOf(maxSpacing, MIN_SPACING))
+
     private var lastU = 0f
     private var lastV = 0f
     private var lastStampU = 0f
@@ -103,10 +130,10 @@ class StrokeResampler(
         // asked for: it can, and that is the rule this line already
         // encodes — the first stamp must never wait longer than the
         // second would. In practice it never bites, because the gate is
-        // 2dp and the cap is 4dp; the case where spacing() wins needs a
+        // 2dp and the cap is 4dp; the case where the spacing wins needs a
         // brush whose own quarter-radius is under 2dp, and the smallest
         // the editor offers is 4dp.
-        toNext = minOf(spacing(), firstTravel)
+        toNext = minOf(spacing, firstTravel)
     }
 
     /**
@@ -126,7 +153,6 @@ class StrokeResampler(
         // measured from the previous emitted center, not inferred from this
         // segment alone: one interval can straddle a path corner, and both
         // sides of that corner must contribute to the displacement.
-        val spacing = spacing()
         var travelled = 0f
         while (travelled + toNext <= segment) {
             travelled += toNext
@@ -151,28 +177,6 @@ class StrokeResampler(
         return out
     }
 
-    /**
-     * The gap between stamps: a quarter of the brush radius, but never
-     * more than [maxSpacing].
-     *
-     * The quarter-radius rule is about KERNEL OVERLAP — dense enough
-     * that smoothstep discs merge into a crease-free trough. It says
-     * nothing about how far the finger travels between updates, and on a
-     * big brush those are very different numbers: 0.07 of image height
-     * at the largest size, which is most of a centimetre of dragging
-     * during which the picture does not move at all.
-     *
-     * The image lags the finger by up to one spacing for the WHOLE
-     * stroke, not just at the start, which is what reads as the brush
-     * having a lower resolution than the screen.
-     *
-     * [MIN_SPACING] floors the CAP, not the result. Written the other
-     * way round it also floored the quarter-radius rule, which made the
-     * smallest brushes COARSER than before — the opposite of the whole
-     * change, and caught by a test that had nothing to do with it.
-     */
-    private fun spacing(): Float =
-        minOf(spacingFraction * radius, maxOf(maxSpacing, MIN_SPACING))
 
     companion object {
         /**
