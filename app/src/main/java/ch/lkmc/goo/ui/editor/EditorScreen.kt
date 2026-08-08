@@ -688,22 +688,31 @@ private fun WarpEditor(
                         val du = (u0.coerceIn(0f, 1f) - u0) * aspect
                         val dv = v0.coerceIn(0f, 1f) - v0
                         val outside = sqrt(du * du + dv * dv)
+                        // Both stroke bounds are aspect-space numbers
+                        // that MEAN a fixed number of DP, so both need
+                        // the same conversion: one aspect unit is one
+                        // image height, and an image height is this many
+                        // screen pixels right now — the fitted height
+                        // times the live zoom.
+                        //
+                        // PointerInputScope extends Density, so `density`
+                        // below is the canvas's own, not a captured one.
+                        val imageHeightPx = fit.fittedHeight * view.scale
+                        val firstTravel = StrokeResampler.firstTravelFor(
+                            imageHeightPx = imageHeightPx,
+                            density = density,
+                        )
+                        // The gap BETWEEN stamps: the distance the
+                        // picture lags the finger by, all stroke long.
+                        val maxSpacing = StrokeResampler.maxSpacingFor(
+                            imageHeightPx = imageHeightPx,
+                            density = density,
+                        )
                         // beginStroke has the final say: it refuses while a
                         // movie render owns the GL thread, and a ring drawn
                         // over a canvas that can't paint is a lie.
-                        // The first-stamp gate, in aspect space but
-                        // MEANING a fixed number of DP: one aspect unit
-                        // is one image height, so the conversion needs
-                        // how tall the photo is drawn right now — fitted
-                        // height times the live zoom.
-                        val firstTravel = StrokeResampler.firstTravelFor(
-                            imageHeightPx = fit.fittedHeight * view.scale,
-                            // PointerInputScope extends Density, so this
-                            // is the canvas's own, not a captured one.
-                            density = density,
-                        )
                         var stroking = outside <= viewModel.uiState.value.brushRadius &&
-                            viewModel.beginStroke(u0, v0, firstTravel)
+                            viewModel.beginStroke(u0, v0, firstTravel, maxSpacing)
                         // Whip needs the release velocity, and only the
                         // platform tracker gets that right across event
                         // batching and irregular sample timing.

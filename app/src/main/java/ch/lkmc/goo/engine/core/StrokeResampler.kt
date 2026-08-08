@@ -28,6 +28,13 @@ class StrokeResampler(
      * when the screen geometry is unknown.
      */
     private val firstTravel: Float = FALLBACK_FIRST_TRAVEL,
+    /**
+     * Upper bound on the gap between stamps, in aspect space. Compute it
+     * with [maxSpacingFor] so it means a constant number of DP on
+     * screen; the default is no cap at all, which is the behaviour every
+     * caller had before this existed.
+     */
+    private val maxSpacing: Float = NO_SPACING_CAP,
 ) {
     init {
         // A non-positive radius would make the spacing walk in extend()
@@ -40,7 +47,41 @@ class StrokeResampler(
         require(firstTravel > 0f && firstTravel.isFinite()) {
             "first travel must be positive: $firstTravel"
         }
+        // isFinite too, matching firstTravel above. NO_SPACING_CAP is
+        // Float.MAX_VALUE and passes; an Infinity would also behave as
+        // "no cap" and so would slip through silently, which is a caller
+        // bug wearing the right answer's clothes.
+        require(maxSpacing > 0f && maxSpacing.isFinite()) {
+            "max spacing must be positive and finite: $maxSpacing"
+        }
     }
+
+    /**
+     * The gap between stamps — derived once, because every input is
+     * an immutable constructor parameter and a `fun` would imply this
+     * varies with something at runtime. It does not.
+     *
+     * The gap is: a quarter of the brush radius, but never
+     * more than [maxSpacing].
+     *
+     * The quarter-radius rule is about KERNEL OVERLAP — dense enough
+     * that smoothstep discs merge into a crease-free trough. It says
+     * nothing about how far the finger travels between updates, and on a
+     * big brush those are very different numbers: 0.07 of image height
+     * at the largest size, which is most of a centimetre of dragging
+     * during which the picture does not move at all.
+     *
+     * The image lags the finger by up to one spacing for the WHOLE
+     * stroke, not just at the start, which is what reads as the brush
+     * having a lower resolution than the screen.
+     *
+     * [MIN_SPACING] floors the CAP, not the result. Written the other
+     * way round it also floored the quarter-radius rule, which made the
+     * smallest brushes COARSER than before — the opposite of the whole
+     * change, and caught by a test that had nothing to do with it.
+     */
+    private val spacing: Float =
+        minOf(spacingFraction * radius, maxOf(maxSpacing, MIN_SPACING))
 
     private var lastU = 0f
     private var lastV = 0f
@@ -84,7 +125,15 @@ class StrokeResampler(
         // fraction of image height, which meant the dead zone GREW with
         // zoom — four times its size at 4x, exactly when the user is
         // working precisely.
-        toNext = minOf(spacingFraction * radius, firstTravel)
+        // minOf against the CAPPED spacing, deliberately. Review asked
+        // whether the cap can shrink the gate below what the caller
+        // asked for: it can, and that is the rule this line already
+        // encodes — the first stamp must never wait longer than the
+        // second would. In practice it never bites, because the gate is
+        // 2dp and the cap is 4dp; the case where the spacing wins needs a
+        // brush whose own quarter-radius is under 2dp, and the smallest
+        // the editor offers is 4dp.
+        toNext = minOf(spacing, firstTravel)
     }
 
     /**
@@ -104,7 +153,6 @@ class StrokeResampler(
         // measured from the previous emitted center, not inferred from this
         // segment alone: one interval can straddle a path corner, and both
         // sides of that corner must contribute to the displacement.
-        val spacing = spacingFraction * radius
         var travelled = 0f
         while (travelled + toNext <= segment) {
             travelled += toNext
@@ -129,6 +177,7 @@ class StrokeResampler(
         return out
     }
 
+
     companion object {
         /**
          * Stamp every quarter radius: dense enough that smoothstep kernels
@@ -136,6 +185,47 @@ class StrokeResampler(
          * (research-standard ~25% for Liquify-style brushes).
          */
         const val SPACING_FRACTION = 0.25f
+
+        /**
+         * Largest gap between stamps, in DP — see [spacing].
+         *
+         * Picked so a deliberate drag lands roughly one stamp per frame:
+         * 300-1500 px/s is 5-25px per frame at 60Hz, and 4dp is about
+         * 11px on a typical phone. Below that the stamps cost more than
+         * the eye can collect; above it the picture visibly steps.
+         */
+        const val MAX_SPACING_DP = 4f
+
+        /**
+         * Floor on the gap, in aspect space, whatever the cap asks for.
+         *
+         * The cap is a SCREEN distance, so zooming in shrinks it in
+         * image space and multiplies the stamps along the same path.
+         * This bounds that: roughly five hundred stamps per image height
+         * is already far denser than any kernel needs, and every stamp
+         * is stored, replayed on rebuild, and replayed again on export.
+         *
+         * It bounds the CAP only. A brush whose own quarter-radius is
+         * finer than this still gets what it asks for — the floor exists
+         * to stop zoom multiplying the stamp count, not to overrule a
+         * small brush.
+         */
+        const val MIN_SPACING = 0.002f
+
+        /** The spacing cap for callers that have no screen. */
+        const val NO_SPACING_CAP = Float.MAX_VALUE
+
+        /**
+         * [MAX_SPACING_DP] in aspect space, given how tall the photo is
+         * drawn right now — same conversion as [firstTravelFor], same
+         * reason.
+         */
+        fun maxSpacingFor(imageHeightPx: Float, density: Float): Float {
+            if (!imageHeightPx.isFinite() || imageHeightPx <= 0f) return NO_SPACING_CAP
+            if (!density.isFinite() || density <= 0f) return NO_SPACING_CAP
+            val cap = MAX_SPACING_DP * density / imageHeightPx
+            return if (cap.isFinite() && cap > 0f) cap else NO_SPACING_CAP
+        }
 
         /**
          * How far the finger must travel before the FIRST stamp, in DP.

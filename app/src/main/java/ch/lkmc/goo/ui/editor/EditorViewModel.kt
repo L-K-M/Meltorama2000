@@ -779,6 +779,10 @@ class EditorViewModel @Inject constructor(
      * the screen's density, neither of which a ViewModel should know —
      * and frozen at begin, like every other live parameter.
      *
+     * @param maxSpacing upper bound on the gap between stamps, from
+     * [StrokeResampler.maxSpacingFor]. Same story as [firstTravel]: a
+     * screen distance the ViewModel forwards without interpreting.
+     *
      * Deliberately NOT defaulted. Review suggested a test that this
      * value reaches the resampler, so a refactor cannot silently drop
      * the wiring; a required parameter is the same protection enforced
@@ -790,7 +794,7 @@ class EditorViewModel @Inject constructor(
      *
      * @return true when a stroke actually started; false = canvas locked.
      */
-    fun beginStroke(u: Float, v: Float, firstTravel: Float): Boolean {
+    fun beginStroke(u: Float, v: Float, firstTravel: Float, maxSpacing: Float): Boolean {
         val bitmap = _uiState.value.bitmap ?: return false
         val state = _uiState.value
         // A movie render owns the GL thread for seconds; stamps queued
@@ -888,6 +892,7 @@ class EditorViewModel @Inject constructor(
                 radius = radius,
                 aspect = aspect,
                 firstTravel = firstTravel,
+                maxSpacing = maxSpacing,
             ).also { it.begin(u, v) }
         }
         if (tool.stampsOnDown) {
