@@ -47,7 +47,13 @@ class StrokeResampler(
         require(firstTravel > 0f && firstTravel.isFinite()) {
             "first travel must be positive: $firstTravel"
         }
-        require(maxSpacing > 0f) { "max spacing must be positive: $maxSpacing" }
+        // isFinite too, matching firstTravel above. NO_SPACING_CAP is
+        // Float.MAX_VALUE and passes; an Infinity would also behave as
+        // "no cap" and so would slip through silently, which is a caller
+        // bug wearing the right answer's clothes.
+        require(maxSpacing > 0f && maxSpacing.isFinite()) {
+            "max spacing must be positive and finite: $maxSpacing"
+        }
     }
 
     private var lastU = 0f
@@ -92,6 +98,14 @@ class StrokeResampler(
         // fraction of image height, which meant the dead zone GREW with
         // zoom — four times its size at 4x, exactly when the user is
         // working precisely.
+        // minOf against the CAPPED spacing, deliberately. Review asked
+        // whether the cap can shrink the gate below what the caller
+        // asked for: it can, and that is the rule this line already
+        // encodes — the first stamp must never wait longer than the
+        // second would. In practice it never bites, because the gate is
+        // 2dp and the cap is 4dp; the case where spacing() wins needs a
+        // brush whose own quarter-radius is under 2dp, and the smallest
+        // the editor offers is 4dp.
         toNext = minOf(spacing(), firstTravel)
     }
 

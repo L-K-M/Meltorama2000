@@ -330,6 +330,40 @@ class StrokeResamplerTest {
     }
 
     @Test
+    fun `the cap does not shrink the gate at any brush the editor offers`() {
+        // Review asked whether the spacing cap can override the
+        // first-travel gate. It can — the first stamp must never wait
+        // longer than the second would — but not at any real brush: the
+        // gate is 2dp and the cap is 4dp, so the gate always wins.
+        val fitted = 1100f
+        val density = 2.75f
+        val gate = StrokeResampler.firstTravelFor(fitted, density)
+        val cap = StrokeResampler.maxSpacingFor(fitted, density)
+        assertTrue(gate < cap, "gate $gate should be tighter than cap $cap")
+        for (r in listOf(0.04f, 0.12f, 0.28f)) {
+            val res = StrokeResampler(
+                radius = r,
+                aspect = 1f,
+                firstTravel = gate,
+                maxSpacing = cap,
+            )
+            res.begin(0.5f, 0.2f)
+            val out = res.extend(0.5f, 0.2f + gate * 1.01f, mutableListOf())
+            assertEquals(1, out.size, "radius $r did not open on the gate")
+            assertEquals(0.2f + gate, out.single().cy, 1e-6f)
+        }
+    }
+
+    @Test
+    fun `an infinite cap is refused rather than read as no cap`() {
+        kotlin.test.assertFailsWith<IllegalArgumentException> {
+            StrokeResampler(radius = 0.1f, aspect = 1f, maxSpacing = Float.POSITIVE_INFINITY)
+        }
+        // The documented "no cap" value is finite and must still pass.
+        StrokeResampler(radius = 0.1f, aspect = 1f, maxSpacing = StrokeResampler.NO_SPACING_CAP)
+    }
+
+    @Test
     fun `a non-positive gate is refused at construction`() {
         // Same reasoning as the radius check: a zero would drop a
         // zero-delta stamp at the touch point on every stroke.
