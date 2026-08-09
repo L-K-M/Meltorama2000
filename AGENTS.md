@@ -4,6 +4,18 @@ The operational source of truth for agents (and humans) working on Goo.
 When you learn something durable about how this repo behaves — a quirk, a
 footgun, a changed convention — **update this document** in the same PR.
 
+## Name
+
+**Meltorama 2000** — shortened to **Meltorama** where length matters (the
+launcher label, where Android ellipsizes past ~12 characters). "Goo"
+survives as the verb, the material, and the name of the animations
+(GOOvies), which is why the claim is *Goo Your Photos*.
+
+The applicationId stays `ch.lkmc.goo`, and so do the package and the
+repository: changing an applicationId breaks upgrades for everyone who
+sideloaded a build, and no user ever sees it. PLAN.md's *Renaming* section
+lists every file a future rename would touch.
+
 ## What this app is
 
 A KPT-Goo-style real-time photo-warping app. Read [PLAN.md](PLAN.md) first;
