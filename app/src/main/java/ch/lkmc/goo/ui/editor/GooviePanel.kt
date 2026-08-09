@@ -7,11 +7,9 @@ import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyRow
@@ -51,7 +49,6 @@ import ch.lkmc.goo.R
 import ch.lkmc.goo.engine.core.GoovieHint
 import ch.lkmc.goo.engine.core.Keyframe
 import ch.lkmc.goo.engine.core.goovieHint
-import ch.lkmc.goo.ui.components.chromePanel
 import ch.lkmc.goo.engine.core.Easing
 import ch.lkmc.goo.ui.components.ChromeIconButton
 import ch.lkmc.goo.ui.components.darken
@@ -102,10 +99,10 @@ fun GooviePanel(
     onExport: () -> Unit,
 ) {
     Column(
+        // The plate and the insets belong to the dock that hosts this
+        // panel; a second plate here would draw a seam under the tab row.
         modifier = Modifier
             .fillMaxWidth()
-            .chromePanel(RoundedCornerShape(topStart = 18.dp, topEnd = 18.dp))
-            .navigationBarsPadding()
             .padding(horizontal = 16.dp, vertical = 8.dp),
         verticalArrangement = Arrangement.spacedBy(4.dp),
     ) {

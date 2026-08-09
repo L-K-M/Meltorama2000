@@ -93,7 +93,15 @@
     <string name="tool_portals_place_a">Portals: tap A</string>
     <string name="tool_portals_place_b">Portals: tap B</string>
 
-    <string name="editor_levers">Global effects</string>
+    <!-- The dock's mode tabs; icon-only until selected, so keep them
+         to one short word each. -->
+    <string name="dock_tab_brush">Brush</string>
+    <string name="dock_tab_levers">Levers</string>
+    <string name="dock_tab_lenses">Lenses</string>
+    <string name="dock_tab_goovies">GOOvies</string>
+    <string name="dock_collapse">Hide the tool tray</string>
+    <string name="dock_expand">Show the tool tray</string>
+
     <string name="editor_hint_smear">Drag on the photo to goo it</string>
     <string name="editor_reset_view">Reset view</string>
 
@@ -105,10 +113,7 @@
     <string name="crop_confirm_body">A new frame means new goo: brush strokes, keyframes and levers start over. This can\'t be undone.</string>
     <string name="crop_confirm_go">Crop</string>
 
-    <string name="editor_goovies">GOOvies</string>
     <string name="goovie_capture">Punch a keyframe</string>
-    <string name="goovie_punch">Punch</string>
-    <string name="goovie_punch_count">Punch (%1$d)</string>
     <string name="goovie_play">Play</string>
     <string name="goovie_pause">Pause</string>
     <string name="goovie_delete">Delete keyframe</string>
@@ -178,7 +183,6 @@
     <string name="error_project_missing">That project isn\'t here any more.</string>
     <string name="error_project_damaged">That project\'s goo can\'t be read.</string>
     <string name="error_gpu_unsupported">This device\'s GPU can\'t render goo (no float render targets).</string>
-    <string name="funhouse">Funhouse lenses</string>
     <string name="funhouse_empty">Tap the photo to drop a lens</string>
     <string name="funhouse_full">No room — throw one away first</string>
     <string name="funhouse_bulge">Bulge</string>

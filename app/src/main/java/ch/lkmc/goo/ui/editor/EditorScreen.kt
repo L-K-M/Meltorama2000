@@ -5,14 +5,13 @@ import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.spring
 import androidx.compose.animation.fadeIn
+import androidx.compose.animation.scaleIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
-import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.animation.core.Animatable
@@ -33,55 +32,21 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBarsPadding
-import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.Redo
 import androidx.compose.material.icons.automirrored.filled.Undo
-import androidx.annotation.StringRes
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.material.icons.filled.AcUnit
-import androidx.compose.material.icons.filled.AddAPhoto
-import androidx.compose.material.icons.filled.AutoFixHigh
-import androidx.compose.material.icons.filled.BlurOn
-import androidx.compose.material.icons.filled.Bolt
-import androidx.compose.material.icons.filled.Cached
 import androidx.compose.material.icons.filled.CenterFocusStrong
-import androidx.compose.material.icons.filled.Collections
-import androidx.compose.material.icons.filled.CompareArrows
 import androidx.compose.material.icons.filled.Casino
-import androidx.compose.material.icons.filled.ContentCopy
 import androidx.compose.material.icons.filled.Crop
-import androidx.compose.material.icons.filled.FilterTiltShift
-import androidx.compose.material.icons.filled.Dehaze
 import androidx.compose.material.icons.filled.DeleteSweep
-import androidx.compose.material.icons.filled.Details
-import androidx.compose.material.icons.filled.Flip
-import androidx.compose.material.icons.filled.Gesture
-import androidx.compose.material.icons.filled.History
-import androidx.compose.material.icons.filled.PushPin
-import androidx.compose.material.icons.filled.HideImage
 import androidx.compose.material.icons.filled.IosShare
-import androidx.compose.material.icons.filled.Movie
-import androidx.compose.material.icons.filled.OpenWith
-import androidx.compose.material.icons.filled.PhotoLibrary
-import androidx.compose.material.icons.filled.RadioButtonChecked
-import androidx.compose.material.icons.filled.RotateLeft
-import androidx.compose.material.icons.filled.RotateRight
 import androidx.compose.material.icons.filled.Save
-import androidx.compose.material.icons.filled.SouthEast
-import androidx.compose.material.icons.filled.SwapHoriz
-import androidx.compose.material.icons.filled.TouchApp
-import androidx.compose.material.icons.filled.Tune
-import androidx.compose.material.icons.filled.Waves
-import androidx.compose.material.icons.filled.ZoomIn
-import androidx.compose.material.icons.filled.ZoomOut
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Slider
-import androidx.compose.material3.SliderDefaults
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Surface
@@ -105,19 +70,15 @@ import androidx.compose.ui.Modifier
 import androidx.compose.animation.core.VisibilityThreshold
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.Stroke
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.input.pointer.util.VelocityTracker
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -142,7 +103,6 @@ import kotlinx.coroutines.launch
 import ch.lkmc.goo.engine.gl.WarpSurfaceView
 import ch.lkmc.goo.ui.components.ChromeIconButton
 import ch.lkmc.goo.ui.components.chromePanel
-import ch.lkmc.goo.ui.components.ChromeToolChip
 import ch.lkmc.goo.ui.export.ExportSheet
 import ch.lkmc.goo.ui.export.MovieExportSheet
 import ch.lkmc.goo.ui.theme.NeonCyan
@@ -206,6 +166,14 @@ private fun WarpEditor(
     // globals, and a selection is not document state.
     var selectedLens by remember { mutableIntStateOf(-1) }
     var pendingCrop by remember { mutableStateOf<CropAction?>(null) }
+    // The tool tray starts open (first-run discoverability) and melts
+    // into the puck on the first stroke of every sitting.
+    var dockExpanded by remember { mutableStateOf(true) }
+    val panel = resolvePanel(
+        goovieMode = state.goovieMode,
+        showFunhouse = showFunhouse,
+        showLevers = showLevers,
+    )
     // Leaving writes the document, then goes. There is no "are you sure":
     // nothing is lost by leaving, so there is nothing to ask about (the
     // old guard existed only because the session lived in memory alone —
@@ -581,42 +549,6 @@ private fun WarpEditor(
             },
             cropActive = showCrop,
             cropEnabled = !state.exporting && !state.exportingMovie,
-            funhouseActive = showFunhouse,
-            onFunhouse = {
-                showCrop = false
-                showLevers = false
-                if (state.goovieMode) viewModel.toggleGoovie()
-                // Commit any in-flight stroke, same policy as setTool:
-                // its stamps are already on the field.
-                viewModel.endStroke()?.let { st -> surface?.engine { commit(st) } }
-                strokePos = null
-                showFunhouse = !showFunhouse
-                if (!showFunhouse) selectedLens = -1
-            },
-            onLevers = {
-                // From the strip, the levers bead OPENS levers (not a blind
-                // toggle — showLevers may already be true underneath).
-                showCrop = false
-                // Funhouse outranks levers in the panel switch, so leaving
-                // it open would show the Funhouse bench — and its overlay
-                // would still own the canvas — after a tap on Levers.
-                showFunhouse = false
-                selectedLens = -1
-                showLevers = if (state.goovieMode) true else !showLevers
-                if (state.goovieMode) viewModel.toggleGoovie()
-            },
-            leversActive = !state.goovieMode && (showLevers || !state.globals.isIdentity),
-            onGoovie = {
-                showCrop = false
-                // The strip's panel outranks Funhouse's, but the OVERLAY
-                // is gated only on showFunhouse — so leaving it open put
-                // the GOOvie panel on screen with lens rings still drawn
-                // over the photo and still swallowing every touch.
-                showFunhouse = false
-                selectedLens = -1
-                viewModel.toggleGoovie()
-            },
-            goovieActive = state.goovieMode,
             onSave = { viewModel.saveProject(EditorViewModel.SaveReason.EXPLICIT) },
             // Dark once everything on screen is on disk — including
             // straight after a save, which is how the bead answers
@@ -713,6 +645,9 @@ private fun WarpEditor(
                         // over a canvas that can't paint is a lie.
                         var stroking = outside <= viewModel.uiState.value.brushRadius &&
                             viewModel.beginStroke(u0, v0, firstTravel, maxSpacing)
+                        // Painting always gets the full canvas: the tray
+                        // melts into the puck the moment a stroke lands.
+                        if (stroking) dockExpanded = false
                         // Whip needs the release velocity, and only the
                         // platform tracker gets that right across event
                         // batching and irregular sample timing.
@@ -855,7 +790,7 @@ private fun WarpEditor(
             // never fires for a slider that left composition).
             state.bitmap?.let { bmp ->
                 BrushPreviewOverlay(
-                    visible = adjustingBrush && !state.goovieMode && !showLevers,
+                    visible = adjustingBrush && panel == EditorPanel.BRUSH,
                     imageWidth = bmp.width,
                     imageHeight = bmp.height,
                     radius = state.brushRadius,
@@ -961,15 +896,17 @@ private fun WarpEditor(
             }
 
             // First-run hint: floats until the first stroke lands, ever.
+            // Hidden while the tray is open (it covers this spot); the
+            // padding lifts the pill clear of the puck's corner.
             // Fully qualified on purpose: this Box nests inside the screen
             // Column, whose ColumnScope member extension AnimatedVisibility
             // captures the unqualified name (no `visible` overload here —
             // it doesn't compile). The import would not help.
             androidx.compose.animation.AnimatedVisibility(
-                visible = state.showHint && state.bitmap != null,
+                visible = state.showHint && state.bitmap != null && !dockExpanded,
                 modifier = Modifier
                     .align(Alignment.BottomCenter)
-                    .padding(bottom = 32.dp),
+                    .padding(bottom = 84.dp),
                 enter = fadeIn() + slideInVertically(
                     spring(
                         dampingRatio = Spring.DampingRatioMediumBouncy,
@@ -1047,28 +984,46 @@ private fun WarpEditor(
             }
         }
 
-        val panel = when {
-            state.goovieMode -> EditorPanel.GOOVIE
-            showFunhouse -> EditorPanel.FUNHOUSE
-            showLevers -> EditorPanel.LEVERS
-            else -> EditorPanel.BRUSH
-        }
-        AnimatedContent(
-            targetState = panel,
-            transitionSpec = {
-                val springIn = spring(
-                    dampingRatio = Spring.DampingRatioMediumBouncy,
-                    stiffness = Spring.StiffnessMediumLow,
-                    visibilityThreshold = IntOffset.VisibilityThreshold,
-                )
-                // `using null` kills the default SizeTransform: animating the
-                // panel height would re-measure the weight(1f) canvas — and
-                // resize the GLSurfaceView — every frame of the spring. The
-                // height snaps (as the old if/else did); content slides.
-                (slideInVertically(springIn) { it / 3 } + fadeIn()) togetherWith
-                    (slideOutVertically { it / 3 } + fadeOut()) using null
+    }
+
+    // The dock floats over the canvas instead of pushing it: the
+    // GLSurfaceView never re-measures — not on a panel swap, not on a
+    // collapse — and melting into the puck hands the whole screen back
+    // to the photo. Crop is the one mode that owns the entire canvas
+    // including this corner, so the tray sits out its turn.
+    androidx.compose.animation.AnimatedVisibility(
+        visible = dockExpanded && !showCrop,
+        modifier = Modifier.align(Alignment.BottomCenter),
+        enter = slideInVertically(
+            spring(
+                dampingRatio = Spring.DampingRatioMediumBouncy,
+                stiffness = Spring.StiffnessMediumLow,
+                visibilityThreshold = IntOffset.VisibilityThreshold,
+            ),
+        ) { it / 2 } + fadeIn(),
+        exit = slideOutVertically { it / 3 } + fadeOut(),
+    ) {
+        ToolDock(
+            panel = panel,
+            leversHot = !state.globals.isIdentity,
+            onTabSelect = { target ->
+                // Tabs are explicit targets, not blind toggles: picking
+                // GOOvies from the levers must not leave showLevers set
+                // underneath, and leaving Lenses always puts its rings
+                // away.
+                if (target == EditorPanel.FUNHOUSE && !showFunhouse) {
+                    // Same mid-gesture policy as setTool: a second finger
+                    // can tap the tab — commit, don't drop.
+                    viewModel.endStroke()?.let { st -> surface?.engine { commit(st) } }
+                    strokePos = null
+                }
+                showLevers = target == EditorPanel.LEVERS
+                showFunhouse = target == EditorPanel.FUNHOUSE
+                if (target != EditorPanel.FUNHOUSE) selectedLens = -1
+                val wantGoovie = target == EditorPanel.GOOVIE
+                if (state.goovieMode != wantGoovie) viewModel.toggleGoovie()
             },
-            label = "panelSwap",
+            onCollapse = { dockExpanded = false },
         ) { which ->
             when (which) {
                 EditorPanel.LEVERS -> LeversPanel(
@@ -1114,15 +1069,15 @@ private fun WarpEditor(
                     onPlayToggle = { viewModel.setPlaying(!state.playing) },
                     onExport = { showMovieSheet = true },
                 )
-                EditorPanel.BRUSH -> BrushRail(
+                EditorPanel.BRUSH -> BrushDockContent(
                     tool = state.tool,
                     mirrored = state.mirrored,
                     radius = state.brushRadius,
                     strength = state.brushStrength,
-                    showFusionPick = state.tool == BrushTool.FUSE && state.bitmapB != null,
+                    showFusionActions = state.tool == BrushTool.FUSE && state.bitmapB != null,
                     fusionLoading = state.importingPhotoB,
                     keyframeCount = state.keyframes.size,
-                    // 1-based, or 0 to hide: the chip appears exactly while
+                    // 1-based, or 0 to hide: the bead appears exactly while
                     // the selected pin lags the goo on screen, which is the
                     // moment "why didn't my keyframe change?" gets asked.
                     updateKeyframe = if (state.selectedKeyframeStale) {
@@ -1159,6 +1114,29 @@ private fun WarpEditor(
                 )
             }
         }
+    }
+
+    // The collapsed tray. Bottom END, not center: the puck must not sit
+    // on the photo's chin where a Melt run or a Whip tail is headed.
+    androidx.compose.animation.AnimatedVisibility(
+        visible = !dockExpanded && !showCrop,
+        modifier = Modifier
+            .align(Alignment.BottomEnd)
+            .navigationBarsPadding()
+            .padding(12.dp),
+        enter = fadeIn() + scaleIn(
+            spring(
+                dampingRatio = Spring.DampingRatioLowBouncy,
+                stiffness = Spring.StiffnessMediumLow,
+            ),
+        ),
+        exit = fadeOut(),
+    ) {
+        ToolPuck(
+            panel = panel,
+            tool = state.tool,
+            onExpand = { dockExpanded = true },
+        )
     }
     // The write on the way out. Usually a blink — but the first save of a
     // session copies the source photo, and on a 50 MP picture that is long
@@ -1265,12 +1243,6 @@ private fun TopRail(
     onCrop: () -> Unit,
     cropActive: Boolean,
     cropEnabled: Boolean,
-    funhouseActive: Boolean,
-    onFunhouse: () -> Unit,
-    onLevers: () -> Unit,
-    leversActive: Boolean,
-    onGoovie: () -> Unit,
-    goovieActive: Boolean,
     onSave: () -> Unit,
     canSave: Boolean,
     onExport: () -> Unit,
@@ -1347,33 +1319,6 @@ private fun TopRail(
                 enabled = cropEnabled,
                 onClick = onCrop,
             )
-            // Beside the levers on purpose: a lens IS a lever with a
-            // position, and the two rooms are the same idea at different
-            // scales — one glued to the frame, one you put where you want.
-            ChromeIconButton(
-                icon = Icons.Filled.FilterTiltShift,
-                contentDescription = stringResource(R.string.funhouse),
-                color = NeonViolet,
-                selected = funhouseActive,
-                selectable = true,
-                onClick = onFunhouse,
-            )
-            ChromeIconButton(
-                icon = Icons.Filled.Tune,
-                contentDescription = stringResource(R.string.editor_levers),
-                color = NeonCyan,
-                selected = leversActive,
-                selectable = true,
-                onClick = onLevers,
-            )
-            ChromeIconButton(
-                icon = Icons.Filled.Movie,
-                contentDescription = stringResource(R.string.editor_goovies),
-                color = NeonAmber,
-                selected = goovieActive,
-                selectable = true,
-                onClick = onGoovie,
-            )
             // Save the DOCUMENT, next to (not inside) the Out tray that
             // saves pictures — two different verbs, so two beads. Lit only
             // when there is something new to write, which also makes it
@@ -1397,253 +1342,6 @@ private fun TopRail(
         }
     }
 }
-
-@Composable
-private fun BrushRail(
-    tool: BrushTool,
-    mirrored: Boolean,
-    sectors: Int,
-    /** A keyframe is selected, so Rewind has something to read from. */
-    rewindReady: Boolean,
-    portalsOn: Boolean,
-    /** 0 = link live or off; 1 = waiting for ring A; 2 = waiting for B. */
-    portalsPlacing: Int,
-    radius: Float,
-    strength: Float,
-    showFusionPick: Boolean,
-    fusionLoading: Boolean,
-    keyframeCount: Int,
-    /** 1-based keyframe the Update chip would re-pin; 0 hides the chip. */
-    updateKeyframe: Int,
-    onToolChange: (BrushTool) -> Unit,
-    onMirrorToggle: () -> Unit,
-    onCycleSectors: () -> Unit,
-    onPortalsToggle: () -> Unit,
-    onRadiusChange: (Float) -> Unit,
-    onStrengthChange: (Float) -> Unit,
-    onPunch: () -> Unit,
-    onRepunch: () -> Unit,
-    onFusionPick: () -> Unit,
-    onAdjustingChange: (Boolean) -> Unit,
-    onFusionRemove: () -> Unit,
-) {
-    // A slider dragged off-screen (panel swap) never delivers its
-    // onValueChangeFinished — clear the adjusting flag on the way out.
-    DisposableEffect(Unit) {
-        onDispose { onAdjustingChange(false) }
-    }
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .chromePanel(RoundedCornerShape(topStart = 18.dp, topEnd = 18.dp))
-            .navigationBarsPadding()
-            .padding(horizontal = 16.dp, vertical = 8.dp),
-        verticalArrangement = Arrangement.spacedBy(2.dp),
-    ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .horizontalScroll(rememberScrollState()),
-            horizontalArrangement = Arrangement.spacedBy(10.dp),
-            verticalAlignment = Alignment.Top,
-        ) {
-            BrushTool.entries.forEach { entry ->
-                ChromeToolChip(
-                    icon = entry.icon(),
-                    label = stringResource(entry.labelRes()),
-                    color = entry.neonColor(),
-                    selected = tool == entry,
-                    // Rewind reads FROM a keyframe, so without one
-                    // selected there is nothing for it to paint. Greying
-                    // the chip is the whole of the "arming Chrono has to
-                    // open the strip" problem the proposal left open: it
-                    // reuses the selection the strip already has instead
-                    // of adding a second picker, which is what makes the
-                    // tool teach the strip.
-                    enabled = when (entry) {
-                        BrushTool.FUSE -> !fusionLoading
-                        BrushTool.REWIND -> rewindReady
-                        else -> true
-                    },
-                    onClick = { onToolChange(entry) },
-                )
-            }
-            ChromeToolChip(
-                icon = Icons.Filled.Flip,
-                label = stringResource(R.string.tool_mirror),
-                color = NeonViolet,
-                selected = mirrored,
-                onClick = onMirrorToggle,
-            )
-            // The kaleidoscope dial sits beside Mirror because the two
-            // compose: sectors alone give a pinwheel, sectors with Mirror
-            // give the mirror lines a real kaleidoscope has.
-            ChromeToolChip(
-                icon = Icons.Filled.Details,
-                label = if (sectors > 1) {
-                    stringResource(R.string.tool_sectors_count, sectors)
-                } else {
-                    stringResource(R.string.tool_sectors)
-                },
-                color = NeonTangerine,
-                selected = sectors > 1,
-                onClick = onCycleSectors,
-            )
-            // Portals sits with the other two stamp-fanning modifiers,
-            // because that is what it is: Mirror without the assumption
-            // that the relation is centred, vertical and reflective.
-            // The label carries the placement prompt — a mode that
-            // silently eats the next two taps needs to say so somewhere,
-            // and the chip that armed it is where the user is looking.
-            ChromeToolChip(
-                icon = Icons.Filled.SwapHoriz,
-                label = stringResource(
-                    when (portalsPlacing) {
-                        1 -> R.string.tool_portals_place_a
-                        2 -> R.string.tool_portals_place_b
-                        else -> R.string.tool_portals
-                    },
-                ),
-                color = NeonMagenta,
-                selected = portalsOn,
-                onClick = onPortalsToggle,
-            )
-            // The KPT loop is goo → punch → goo → punch; punching never
-            // needed the strip open (pins are stroke counts, safe to grab
-            // mid-edit), so the bead lives on the rail. The count in the
-            // label is the punch confirmation.
-            ChromeToolChip(
-                icon = Icons.Filled.AddAPhoto,
-                label = if (keyframeCount > 0) {
-                    stringResource(R.string.goovie_punch_count, keyframeCount)
-                } else {
-                    stringResource(R.string.goovie_punch)
-                },
-                color = NeonAmber,
-                selected = false,
-                enabled = keyframeCount < EditorViewModel.MAX_KEYFRAMES,
-                onClick = onPunch,
-            )
-            // Re-punch, on the rail for the same reason Punch is: taking a
-            // pin is just snapshotting the log, safe mid-edit, and the
-            // strip shouldn't have to be open. This is the only way goo
-            // made AFTER a punch reaches an existing keyframe.
-            if (updateKeyframe > 0) {
-                ChromeToolChip(
-                    icon = Icons.Filled.Cached,
-                    label = stringResource(R.string.goovie_update_count, updateKeyframe),
-                    color = NeonAmber,
-                    selected = false,
-                    onClick = onRepunch,
-                )
-            }
-            if (showFusionPick) {
-                ChromeToolChip(
-                    icon = Icons.Filled.Collections,
-                    label = stringResource(R.string.fusion_change_photo),
-                    color = NeonViolet,
-                    selected = false,
-                    enabled = !fusionLoading,
-                    onClick = onFusionPick,
-                )
-                ChromeToolChip(
-                    icon = Icons.Filled.HideImage,
-                    label = stringResource(R.string.fusion_remove_photo),
-                    color = NeonTangerine,
-                    selected = false,
-                    enabled = !fusionLoading,
-                    onClick = onFusionRemove,
-                )
-            }
-        }
-        if (fusionLoading) {
-            Text(
-                text = stringResource(R.string.fusion_loading_photo),
-                style = MaterialTheme.typography.labelSmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-        }
-        val sizeLabel = stringResource(R.string.editor_brush_size)
-        val strengthLabel = stringResource(R.string.editor_brush_strength)
-        // One label column, measured from the labels themselves rather
-        // than pinned at a width that happened to fit "Size": at 64dp,
-        // "Strength" wrapped to "Strengt" + "h". Measuring keeps the two
-        // sliders aligned in every language and at every font scale —
-        // German and Chinese set these words at very different widths.
-        val measurer = rememberTextMeasurer()
-        val labelStyle = MaterialTheme.typography.labelLarge
-        val density = LocalDensity.current
-        val labelWidth = remember(sizeLabel, strengthLabel, labelStyle, density) {
-            with(density) {
-                listOf(sizeLabel, strengthLabel)
-                    .maxOf { measurer.measure(it, labelStyle).size.width }
-                    .toDp()
-            }
-        }
-        LabeledSlider(
-            label = sizeLabel,
-            labelWidth = labelWidth,
-            value = radius,
-            onValueChange = onRadiusChange,
-            valueRange = EditorViewModel.MIN_RADIUS..EditorViewModel.MAX_RADIUS,
-            onAdjustingChange = onAdjustingChange,
-        )
-        LabeledSlider(
-            label = strengthLabel,
-            labelWidth = labelWidth,
-            value = strength,
-            onValueChange = onStrengthChange,
-            valueRange = 0.05f..1f,
-            onAdjustingChange = onAdjustingChange,
-        )
-    }
-}
-
-@Composable
-private fun LabeledSlider(
-    label: String,
-    labelWidth: Dp,
-    value: Float,
-    onValueChange: (Float) -> Unit,
-    valueRange: ClosedFloatingPointRange<Float>,
-    onAdjustingChange: (Boolean) -> Unit = {},
-) {
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(16.dp),
-    ) {
-        Text(
-            text = label,
-            modifier = Modifier.width(labelWidth),
-            style = MaterialTheme.typography.labelLarge,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            // The column is measured to fit, so wrapping can only mean
-            // the measurement disagreed with the layout — clip a hair
-            // rather than break a word across two lines again.
-            maxLines = 1,
-            softWrap = false,
-        )
-        Slider(
-            modifier = Modifier.weight(1f),
-            value = value,
-            onValueChange = {
-                onAdjustingChange(true)
-                onValueChange(it)
-            },
-            onValueChangeFinished = { onAdjustingChange(false) },
-            valueRange = valueRange,
-            colors = SliderDefaults.colors(
-                thumbColor = NeonMagenta,
-                activeTrackColor = NeonMagenta.copy(alpha = 0.6f),
-                inactiveTrackColor = MeltVoid,
-            ),
-        )
-    }
-}
-
-/** Which bottom panel the editor shows; GOOVIE follows the ViewModel. */
-private enum class EditorPanel { BRUSH, LEVERS, FUNHOUSE, GOOVIE }
 
 /**
  * A crop request awaiting the "start fresh" confirm. rect is relative to
@@ -1675,85 +1373,6 @@ private fun appendWhipTail(
         velU = canvasX / fit.fittedWidth,
         velV = canvasY / fit.fittedHeight,
     )
-}
-
-@StringRes
-private fun BrushTool.labelRes(): Int = when (this) {
-    BrushTool.SMEAR -> R.string.tool_smear
-    BrushTool.MOVE -> R.string.tool_move
-    BrushTool.SMUDGE -> R.string.tool_smudge
-    BrushTool.NUDGE -> R.string.tool_nudge
-    BrushTool.GROW -> R.string.tool_grow
-    BrushTool.SHRINK -> R.string.tool_shrink
-    BrushTool.SMOOTH -> R.string.tool_smooth
-    BrushTool.UNGOO -> R.string.tool_ungoo
-    BrushTool.FUSE -> R.string.tool_fuse
-    BrushTool.VORTEX -> R.string.tool_vortex
-    BrushTool.UNWIND -> R.string.tool_unwind
-    BrushTool.MELT -> R.string.tool_melt
-    BrushTool.COMB -> R.string.tool_comb
-    BrushTool.POND -> R.string.tool_pond
-    BrushTool.FAULT -> R.string.tool_fault
-    BrushTool.ECHO -> R.string.tool_echo
-    BrushTool.FREEZE -> R.string.tool_freeze
-    BrushTool.WHIP -> R.string.tool_whip
-    BrushTool.REWIND -> R.string.tool_rewind
-    BrushTool.PINS -> R.string.tool_pins
-}
-
-private fun BrushTool.icon(): ImageVector = when (this) {
-    BrushTool.SMEAR -> Icons.Filled.Gesture
-    BrushTool.MOVE -> Icons.Filled.OpenWith
-    BrushTool.SMUDGE -> Icons.Filled.BlurOn
-    BrushTool.NUDGE -> Icons.Filled.TouchApp
-    BrushTool.GROW -> Icons.Filled.ZoomIn
-    BrushTool.SHRINK -> Icons.Filled.ZoomOut
-    BrushTool.SMOOTH -> Icons.Filled.Waves
-    BrushTool.UNGOO -> Icons.Filled.AutoFixHigh
-    BrushTool.FUSE -> Icons.Filled.PhotoLibrary
-    BrushTool.VORTEX -> Icons.Filled.RotateRight
-    BrushTool.UNWIND -> Icons.Filled.RotateLeft
-    BrushTool.MELT -> Icons.Filled.SouthEast
-    BrushTool.COMB -> Icons.Filled.Dehaze
-    BrushTool.POND -> Icons.Filled.RadioButtonChecked
-    BrushTool.FAULT -> Icons.Filled.CompareArrows
-    BrushTool.ECHO -> Icons.Filled.ContentCopy
-    BrushTool.FREEZE -> Icons.Filled.AcUnit
-    BrushTool.WHIP -> Icons.Filled.Bolt
-    BrushTool.REWIND -> Icons.Filled.History
-    BrushTool.PINS -> Icons.Filled.PushPin
-}
-
-/** Each tool wears its own tube of neon — families share a color. */
-private fun BrushTool.neonColor(): Color = when (this) {
-    BrushTool.SMEAR -> NeonMagenta
-    BrushTool.MOVE -> NeonCyan
-    BrushTool.SMUDGE -> NeonMagenta
-    BrushTool.NUDGE -> NeonCyan
-    BrushTool.GROW -> NeonTangerine
-    BrushTool.SHRINK -> NeonAmber
-    BrushTool.SMOOTH -> NeonLime
-    BrushTool.UNGOO -> NeonLime
-    BrushTool.FUSE -> NeonViolet
-    BrushTool.VORTEX -> NeonTangerine
-    BrushTool.UNWIND -> NeonAmber
-    BrushTool.MELT -> NeonMagenta
-    BrushTool.COMB -> NeonLime
-    BrushTool.POND -> NeonCyan
-    BrushTool.FAULT -> NeonViolet
-    BrushTool.ECHO -> NeonCyan
-    // Its own tube: the varnish is the palette's only brake, and a
-    // brake that looks like the accelerators is a brake nobody reaches
-    // for.
-    BrushTool.FREEZE -> NeonViolet
-    BrushTool.WHIP -> NeonTangerine
-    // Lime, with Smooth and UnGoo: Rewind is the third dissolver, and
-    // the only difference between them is WHAT they dissolve toward.
-    BrushTool.REWIND -> NeonLime
-    // Its own tube, like Freeze: Pins is the only row that is a MODE
-    // rather than a brush, and a mode that looks like a brush is a mode
-    // people tap expecting to paint.
-    BrushTool.PINS -> NeonViolet
 }
 
 @Composable

@@ -68,6 +68,17 @@ lives in `engine/core` as pure JVM classes.
   pin the semantics.
 - Brush geometry is computed in normalized source coordinates, never screen
   pixels — preview/export parity depends on it (PLAN.md §5.4).
+- The editor's bottom controls are a **floating dock, not a rail**
+  (`ui/editor/ToolDock.kt`): mode tabs (Brush/Levers/Lenses/GOOvies) own
+  the bottom slot, the brush tab is a family-grouped palette grid plus a
+  contextual strip (only what the active tool can use), and the whole
+  tray collapses into a `ToolPuck` on stroke start. This refines PLAN.md
+  §6.2's "candy-button arc" — the puck is the arc's seed, the dock its
+  expanded form. Families derive from stamp *behavior* (drag the path /
+  hold to pump / leave a mark), so a new `BrushTool` lands in its row
+  with no UI edit; panel/tab/family logic is pure JVM in
+  `ui/editor/DockState.kt` — keep it that way (tested by `DockStateTest`,
+  which also caps any row at eight beads so nothing ever scrolls).
 - **A GOOvie keyframe is a pin, not a canvas.** It stores
   `(revision, globals)` — the immutable `StrokeRevision` it was punched
   from — so there is no "editing keyframe 2" in place: you goo the photo

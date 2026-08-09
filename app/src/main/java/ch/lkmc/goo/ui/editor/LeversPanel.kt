@@ -15,10 +15,8 @@ import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.role
 import androidx.compose.ui.semantics.selected
 import androidx.compose.ui.semantics.semantics
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.material3.MaterialTheme
@@ -36,7 +34,6 @@ import ch.lkmc.goo.engine.core.GlobalParams
 import ch.lkmc.goo.engine.core.GlobalWobble
 import ch.lkmc.goo.engine.core.LeverWobble
 import ch.lkmc.goo.ui.components.PanelLabelWidth
-import ch.lkmc.goo.ui.components.chromePanel
 import ch.lkmc.goo.ui.components.ChromeLever
 import ch.lkmc.goo.ui.theme.NeonCyan
 import ch.lkmc.goo.ui.theme.NeonViolet
@@ -68,10 +65,10 @@ fun LeversPanel(
     onStillAll: () -> Unit,
 ) {
     Column(
+        // The plate and the insets belong to the dock that hosts this
+        // panel; a second plate here would draw a seam under the tab row.
         modifier = Modifier
             .fillMaxWidth()
-            .chromePanel(RoundedCornerShape(topStart = 18.dp, topEnd = 18.dp))
-            .navigationBarsPadding()
             .padding(horizontal = 16.dp, vertical = 8.dp),
         verticalArrangement = Arrangement.spacedBy(0.dp),
     ) {
