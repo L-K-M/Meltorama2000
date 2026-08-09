@@ -52,11 +52,3 @@ fun chromeSweep(): Brush = Brush.sweepGradient(
     1.00f to ChromeMid,
 )
 
-/** Top-lit chrome for flat runs: type, plates, hairlines. */
-fun chromePlate(): Brush = Brush.verticalGradient(
-    0.00f to ChromeHi,
-    0.42f to ChromeMid,
-    0.52f to ChromeLo,
-    0.62f to ChromeMid,
-    1.00f to ChromeHi,
-)

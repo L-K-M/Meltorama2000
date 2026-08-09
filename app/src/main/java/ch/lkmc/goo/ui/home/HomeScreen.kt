@@ -61,6 +61,7 @@ import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.CustomAccessibilityAction
@@ -83,7 +84,6 @@ import ch.lkmc.goo.data.ProjectStore
 import ch.lkmc.goo.ui.components.ChromeButton
 import ch.lkmc.goo.ui.components.ChromeIconButton
 import ch.lkmc.goo.ui.components.GridBackdrop
-import ch.lkmc.goo.ui.components.Wordmark
 import ch.lkmc.goo.ui.components.chromePanel
 import ch.lkmc.goo.ui.theme.MeltPanel
 import ch.lkmc.goo.ui.theme.NeonCyan
@@ -308,9 +308,17 @@ private fun Console(
             modifier = Modifier.padding(horizontal = 20.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
-            Wordmark(
-                name = stringResource(R.string.app_name_full),
-                model = stringResource(R.string.app_model),
+            // The real logo, not the code-drawn stand-in it replaced:
+            // a transparent WebP in drawable-nodpi (density-independent;
+            // the layout decides how big it draws), cut and scaled from
+            // media-sources/logo.png. One label to TalkBack, the way the
+            // wordmark before it read.
+            Image(
+                painter = painterResource(R.drawable.logo_wordmark),
+                contentDescription = stringResource(R.string.app_name_full) +
+                    " " + stringResource(R.string.app_model),
+                contentScale = ContentScale.FillWidth,
+                modifier = Modifier.fillMaxWidth(0.8f),
             )
             Spacer(modifier = Modifier.height(8.dp))
             Text(

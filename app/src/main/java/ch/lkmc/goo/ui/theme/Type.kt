@@ -14,10 +14,10 @@ import androidx.compose.ui.unit.sp
 // (PLAN.md §9); FontFamily.SansSerif is condensed-ish and heavy enough on
 // every OEM to carry the look on its own.
 val MeltoramaTypography = Typography(
-    // The wordmark's ceiling, not its fixed size: 9 wide-tracked caps at
-    // 36sp need ~250dp, which fits a 360dp screen but not a 320dp one and
-    // not a 200% font scale. Wordmark measures and steps this down until
-    // it fits — see its `fitted` loop.
+    // Display type for anything poster-sized. The code-drawn wordmark
+    // that used to wear it (stepping the size down until nine tracked
+    // caps fit the screen) retired when the drawn logo arrived; the
+    // style stays for the next big statement.
     displayMedium = TextStyle(
         fontFamily = FontFamily.SansSerif,
         fontWeight = FontWeight.Black,
