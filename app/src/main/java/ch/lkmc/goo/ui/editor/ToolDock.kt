@@ -83,6 +83,7 @@ import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -377,7 +378,9 @@ fun BrushDockContent(
     DisposableEffect(Unit) {
         onDispose { onAdjustingChange(false) }
     }
-    var showInfo by remember { mutableStateOf(false) }
+    // Saveable for the same reason the tray's own state is: a rotation
+    // mid-read must not swallow the dialog.
+    var showInfo by rememberSaveable { mutableStateOf(false) }
     if (showInfo) {
         AlertDialog(
             onDismissRequest = { showInfo = false },
