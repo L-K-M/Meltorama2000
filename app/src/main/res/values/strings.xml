@@ -79,6 +79,37 @@
     <string name="tool_rewind">Rewind</string>
     <string name="tool_pins">Pins</string>
 
+    <!-- The strip's (i) dialog: one breath per brush — what THIS one
+         does, in the hand's terms, not the shader's — then one line per
+         bead currently on the strip. -->
+    <string name="dock_tool_info">About this brush</string>
+    <string name="tool_info_smear">Drag to smear the picture like wet paint — it follows your finger.</string>
+    <string name="tool_info_move">Drag to carry a patch in one piece; the edges blend back behind it.</string>
+    <string name="tool_info_smudge">A soft, feathered smear at partial strength.</string>
+    <string name="tool_info_nudge">A fine-adjustment smear — the picture moves a fraction of your drag.</string>
+    <string name="tool_info_grow">Hold down to bulge the picture outward under your finger.</string>
+    <string name="tool_info_shrink">Hold down to pinch the picture inward.</string>
+    <string name="tool_info_smooth">Hold down to relax the goo until it settles smooth.</string>
+    <string name="tool_info_ungoo">Hold down to erase the goo back to the original photo.</string>
+    <string name="tool_info_fuse">Paints a second photo through this one — brush where it should show.</string>
+    <string name="tool_info_vortex">Hold down to wind a whirlpool, clockwise.</string>
+    <string name="tool_info_unwind">The whirlpool\'s twin — hold down to wind it the other way.</string>
+    <string name="tool_info_melt">Hold down and the picture runs downward like warm wax.</string>
+    <string name="tool_info_comb">Drag to pull parallel strands — hair, fur, fire.</string>
+    <string name="tool_info_pond">Tap to drop rings on a still pond; drag for a wake.</string>
+    <string name="tool_info_fault">Draw a line and the two sides slide past each other along it.</string>
+    <string name="tool_info_echo">Clone: the first touch plants an anchor, then paint copies from there.</string>
+    <string name="tool_info_freeze">Paint varnish over what should stay put — the other brushes slide off it. UnGoo takes it back.</string>
+    <string name="tool_info_whip">Flick and lift — the goo keeps flying after your finger leaves.</string>
+    <string name="tool_info_rewind">Hold down to dissolve the picture back toward the selected keyframe.</string>
+    <string name="tool_info_pins">A mode, not a brush: tap to pin what must hold still, then pull — the picture stretches between the pins like taffy.</string>
+    <string name="info_mirror">Mirror — every stroke lands twice, reflected across the centerline.</string>
+    <string name="info_sectors">Kaleido — fans each stroke around the center; tap to cycle how many arms.</string>
+    <string name="info_portals">Portals — two linked rings: paint by one and it happens at the other too.</string>
+    <string name="info_punch">Punch — pin this moment as a GOOvie keyframe.</string>
+    <string name="info_update">Update — re-pin the selected keyframe to the goo as it is now.</string>
+    <string name="info_fusion">Swap or remove the Fusion photo showing through.</string>
+
     <string name="home_about">About</string>
     <string name="about_title" translatable="false">Meltorama 2000 %1$s</string>
     <string name="about_body">Squish, smear and stretch your photos like wet paint — a loving homage to Kai\'s Power Goo (1996), in the retro-future livery it always deserved. Fully offline: no permissions, no network, nothing leaves your device.\n\nBuilt almost entirely by LLM agents. Public domain (Unlicense). Unaffiliated with the rights holders of Kai\'s Power Goo or KPT.</string>
