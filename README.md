@@ -13,6 +13,12 @@ Latest release: v<!-- version -->2.0.0<!-- /version -->
 
 </div>
 
+<div align="center">
+    <img height="500" src="media-sources/screenshot1.jpeg">
+    &nbsp;
+    <img height="500" src="media-sources/screenshot2.jpeg">
+</div>
+
 Meltorama 2000 is a fun photo-warping app for Android in the spirit
 of Kai's Power Goo, the 1996 "Realtime Liquid Image Funware". Open a photo, drag a
 finger through it like wet paint, balloon an eye, shrink a chin, twirl the
