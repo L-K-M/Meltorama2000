@@ -14,35 +14,40 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.navigationBarsPadding
-import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.lazy.LazyRow
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.GridItemSpan
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.PhotoCamera
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.Icon
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -56,10 +61,6 @@ import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.PhotoCamera
-import androidx.compose.foundation.layout.width
-import ch.lkmc.goo.data.CameraCapture
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
@@ -70,6 +71,7 @@ import androidx.compose.ui.semantics.customActions
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.core.net.toUri
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -77,10 +79,13 @@ import androidx.lifecycle.compose.LifecycleResumeEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import ch.lkmc.goo.BuildConfig
 import ch.lkmc.goo.R
+import ch.lkmc.goo.data.CameraCapture
 import ch.lkmc.goo.data.ProjectStore
 import ch.lkmc.goo.ui.components.ChromeButton
+import ch.lkmc.goo.ui.components.ChromeIconButton
 import ch.lkmc.goo.ui.components.GridBackdrop
 import ch.lkmc.goo.ui.components.Wordmark
+import ch.lkmc.goo.ui.components.chromePanel
 import ch.lkmc.goo.ui.theme.MeltPanel
 import ch.lkmc.goo.ui.theme.NeonCyan
 import ch.lkmc.goo.ui.theme.NeonMagenta
@@ -91,12 +96,21 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
 /**
- * The In room: a console standing on a neon horizon, with one giant
- * button into the goo. The system Photo Picker needs no permission and no
- * gallery UI of our own — Meltorama is an editor, not a browser
- * (PLAN.md §1). Below the door: saved projects to pick back up, then
- * bundled samples for instant play (PLAN.md §6.1), procedurally generated
- * by scripts/generate_samples.py.
+ * The In room, laid out the way the Goo room is: a chrome plate holds
+ * the controls, and the work surface scrolls beneath it.
+ *
+ * The plate is the **console** — every way to START a goo in one place:
+ * the wordmark, the GOO! dome (system Photo Picker; no permission, no
+ * gallery UI of our own — Meltorama is an editor, not a browser,
+ * PLAN.md §1), the snap bead, and the two bundled samples as port-hole
+ * dials (procedurally generated by scripts/generate_samples.py). It
+ * never scrolls away, so the door into the goo is always one tap from
+ * anywhere on the shelf.
+ *
+ * Below it, the **shelf**: every saved goo as a grid standing on the
+ * neon horizon — a browsable surface, not a three-visible-of-thirty
+ * peephole. Its readout (count, cost, space left) heads the grid; the
+ * destructive sweep and About sit quietly at its far end.
  */
 @Composable
 fun HomeScreen(
@@ -213,179 +227,55 @@ fun HomeScreen(
     Surface(modifier = Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
         Box(modifier = Modifier.fillMaxSize()) {
             GridBackdrop()
-            Column(
-                modifier = Modifier
-                    .align(Alignment.Center)
-                    .fillMaxWidth()
-                    // The console centers on a tall screen and scrolls on
-                    // a short one — the shelf of saved goo grows, and it
-                    // must never push the door off the bottom edge.
-                    .verticalScroll(rememberScrollState())
-                    // Edge-to-edge (MainActivity): once the shelf makes
-                    // the console taller than the room, the ends of the
-                    // scroll sit under the system bars without these.
-                    .statusBarsPadding()
-                    .navigationBarsPadding()
-                    .padding(horizontal = 32.dp, vertical = 24.dp),
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.Center,
-            ) {
-                Wordmark(
-                    name = stringResource(R.string.app_name_full),
-                    model = stringResource(R.string.app_model),
-                )
-                Spacer(modifier = Modifier.height(10.dp))
-                // The claim, set like a slogan stamped on the bezel.
-                Text(
-                    text = stringResource(R.string.home_tagline),
-                    style = MaterialTheme.typography.titleMedium,
-                    color = NeonCyan,
-                    textAlign = TextAlign.Center,
-                )
-                Spacer(modifier = Modifier.height(6.dp))
-                Text(
-                    text = stringResource(R.string.home_subtagline),
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    textAlign = TextAlign.Center,
-                )
-                Spacer(modifier = Modifier.height(36.dp))
-                ChromeButton(
-                    label = stringResource(R.string.home_enter_goo),
-                    color = NeonMagenta,
-                    onClick = {
+            Column(modifier = Modifier.fillMaxSize()) {
+                Console(
+                    // The empty room is a poster and gets the full pitch;
+                    // a room with work in it is a workbench, and the
+                    // pitch would only push the shelf down.
+                    showPitch = state.projects.isEmpty(),
+                    hasCamera = hasCamera,
+                    onGoo = {
                         pickImage.launch(
-                            PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly),
+                            PickVisualMediaRequest(
+                                ActivityResultContracts.PickVisualMedia.ImageOnly,
+                            ),
                         )
                     },
-                    size = 128.dp,
-                    breathe = true,
+                    onSnap = {
+                        val file = CameraCapture.nextFile(context)
+                        val uri = CameraCapture.uriFor(context, file)
+                        pendingCapture = uri
+                        takePicture.launch(uri)
+                    },
+                    onOpenImage = onOpenImage,
                 )
-                // Secondary, and smaller, on purpose: the dome IS the
-                // screen's identity and the shortest path to gooing is
-                // still a photo you already have. Hidden entirely where
-                // nothing can answer the intent, rather than offered and
-                // then failing.
-                if (hasCamera) {
-                    Spacer(modifier = Modifier.height(18.dp))
-                    TextButton(
-                        onClick = {
-                            val file = CameraCapture.nextFile(context)
-                            val uri = CameraCapture.uriFor(context, file)
-                            pendingCapture = uri
-                            takePicture.launch(uri)
-                        },
-                    ) {
-                        Icon(
-                            imageVector = Icons.Filled.PhotoCamera,
-                            contentDescription = null,
-                            tint = NeonCyan,
-                        )
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Text(
-                            text = stringResource(R.string.home_take_photo),
-                            style = MaterialTheme.typography.labelLarge,
-                            color = NeonCyan,
-                        )
-                    }
-                }
-                if (state.projects.isNotEmpty()) {
-                    Spacer(modifier = Modifier.height(32.dp))
-                    Text(
-                        text = stringResource(R.string.home_projects_label),
-                        style = MaterialTheme.typography.labelMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        textAlign = TextAlign.Center,
-                    )
-                    Spacer(modifier = Modifier.height(12.dp))
-                    // Lazy on purpose: the shelf holds every goo ever saved,
-                    // and a plain Row would decode every preview on the
-                    // shelf just to show the three that fit the screen.
-                    LazyRow(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(
-                            space = 16.dp,
-                            alignment = Alignment.CenterHorizontally,
-                        ),
-                    ) {
-                        // Keyed by id: deleting a tile from the middle
-                        // must not hand its decoded preview to the
-                        // project that slides into its slot.
-                        items(state.projects, key = { it.id }) { project ->
-                            ProjectTile(
-                                project = project,
-                                onOpen = { onOpenProject(project.id) },
-                                onDelete = { pendingDelete = project.id },
+                Box(modifier = Modifier.weight(1f)) {
+                    if (state.projects.isEmpty()) {
+                        Column(
+                            modifier = Modifier
+                                .align(Alignment.Center)
+                                .padding(horizontal = 40.dp),
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                        ) {
+                            Text(
+                                text = stringResource(R.string.home_shelf_empty),
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                textAlign = TextAlign.Center,
                             )
+                            AboutButton { showAbout = true }
                         }
-                    }
-                    Spacer(modifier = Modifier.height(10.dp))
-                    // The instrument readout: what the shelf holds, what it
-                    // costs, and what is left. Nothing evicts on its own,
-                    // so this is the number the decision is made on — and
-                    // labelSmall is the console's monospace readout face,
-                    // which is exactly what these are.
-                    Text(
-                        text = pluralStringResource(
-                            R.plurals.home_projects_usage,
-                            state.projects.size,
-                            state.projects.size,
-                            formatBytes(state.usedBytes),
-                            formatBytes(state.freeBytes),
-                        ),
-                        style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        textAlign = TextAlign.Center,
-                    )
-                    // The one gesture the tiles don't show is spelled out
-                    // here, in the readout's own quiet voice — not in the
-                    // section title, which was wrapping onto two lines to
-                    // hold a footnote.
-                    Text(
-                        text = stringResource(R.string.home_projects_hint),
-                        style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        textAlign = TextAlign.Center,
-                    )
-                    TextButton(onClick = { confirmDeleteAll = true }) {
-                        Text(
-                            text = stringResource(R.string.project_delete_all),
-                            style = MaterialTheme.typography.labelMedium,
-                            color = NeonTangerine,
+                    } else {
+                        ShelfGrid(
+                            projects = state.projects,
+                            usedBytes = state.usedBytes,
+                            freeBytes = state.freeBytes,
+                            onOpenProject = onOpenProject,
+                            onDelete = { pendingDelete = it },
+                            onDeleteAll = { confirmDeleteAll = true },
+                            onAbout = { showAbout = true },
                         )
                     }
-                }
-                Spacer(modifier = Modifier.height(32.dp))
-                Text(
-                    text = stringResource(R.string.home_samples_label),
-                    style = MaterialTheme.typography.labelMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
-                Spacer(modifier = Modifier.height(12.dp))
-                Row(horizontalArrangement = Arrangement.spacedBy(20.dp)) {
-                    SampleThumb(
-                        assetPath = "samples/goo-guy.png",
-                        labelRes = R.string.sample_goo_guy,
-                        glow = NeonMagenta,
-                        onOpenImage = onOpenImage,
-                    )
-                    SampleThumb(
-                        assetPath = "samples/candy-blobs.png",
-                        labelRes = R.string.sample_candy_blobs,
-                        glow = NeonCyan,
-                        onOpenImage = onOpenImage,
-                    )
-                }
-                // Last on the console, in the scroll like everything else:
-                // floated over the column it kept landing on whatever
-                // scrolled underneath — usually the samples.
-                Spacer(modifier = Modifier.height(24.dp))
-                TextButton(onClick = { showAbout = true }) {
-                    Text(
-                        text = stringResource(R.string.home_about),
-                        style = MaterialTheme.typography.labelMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    )
                 }
             }
         }
@@ -393,9 +283,212 @@ fun HomeScreen(
 }
 
 /**
+ * The console plate: identity on top, then one row of instruments —
+ * snap bead · GOO! dome · two sample port-holes — with the dome dead
+ * center whatever flanks it (the side slots share the leftover width).
+ */
+@Composable
+private fun Console(
+    showPitch: Boolean,
+    hasCamera: Boolean,
+    onGoo: () -> Unit,
+    onSnap: () -> Unit,
+    onOpenImage: (Uri) -> Unit,
+) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .chromePanel(RoundedCornerShape(bottomStart = 18.dp, bottomEnd = 18.dp))
+            .statusBarsPadding()
+            // 20dp, not the poster's 32: each side slot of the dome row
+            // gets (width − padding − dome) / 2, and both port-holes
+            // must fit one slot on a 360dp phone.
+            .padding(horizontal = 20.dp)
+            .padding(top = 10.dp, bottom = 14.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+    ) {
+        Wordmark(
+            name = stringResource(R.string.app_name_full),
+            model = stringResource(R.string.app_model),
+        )
+        Spacer(modifier = Modifier.height(8.dp))
+        Text(
+            text = stringResource(R.string.home_tagline),
+            style = MaterialTheme.typography.titleSmall,
+            color = NeonCyan,
+            textAlign = TextAlign.Center,
+        )
+        if (showPitch) {
+            Spacer(modifier = Modifier.height(4.dp))
+            Text(
+                text = stringResource(R.string.home_subtagline),
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                textAlign = TextAlign.Center,
+            )
+        }
+        Spacer(modifier = Modifier.height(12.dp))
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            // Camera on the input side of the dome, samples on the demo
+            // side. Both side slots weight the same, so the dome stays
+            // centered even when there is no camera to show.
+            Box(modifier = Modifier.weight(1f), contentAlignment = Alignment.Center) {
+                if (hasCamera) {
+                    ChromeIconButton(
+                        icon = Icons.Filled.PhotoCamera,
+                        contentDescription = stringResource(R.string.home_take_photo),
+                        color = NeonCyan,
+                        selected = false,
+                        onClick = onSnap,
+                    )
+                }
+            }
+            ChromeButton(
+                label = stringResource(R.string.home_enter_goo),
+                color = NeonMagenta,
+                onClick = onGoo,
+                size = 112.dp,
+                breathe = true,
+            )
+            BoxWithConstraints(
+                modifier = Modifier.weight(1f),
+                contentAlignment = Alignment.Center,
+            ) {
+                // Both port-holes must fit whatever the slot turns out to
+                // be — 46dp dials on a 360dp phone, smaller on the 320dp
+                // screens SOL-23 keeps honest (same adaptive-slot trick
+                // as the dock's palette grid).
+                val thumb = ((maxWidth - 4.dp) / 2).coerceIn(34.dp, 46.dp)
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(4.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    SampleThumb(
+                        assetPath = "samples/goo-guy.png",
+                        labelRes = R.string.sample_goo_guy,
+                        glow = NeonMagenta,
+                        size = thumb,
+                        onOpenImage = onOpenImage,
+                    )
+                    SampleThumb(
+                        assetPath = "samples/candy-blobs.png",
+                        labelRes = R.string.sample_candy_blobs,
+                        glow = NeonCyan,
+                        size = thumb,
+                        onOpenImage = onOpenImage,
+                    )
+                }
+            }
+        }
+    }
+}
+
+/** The shelf: every saved goo, newest first, standing on the horizon. */
+@Composable
+private fun ShelfGrid(
+    projects: List<ProjectStore.Summary>,
+    usedBytes: Long,
+    freeBytes: Long,
+    onOpenProject: (String) -> Unit,
+    onDelete: (String) -> Unit,
+    onDeleteAll: () -> Unit,
+    onAbout: () -> Unit,
+) {
+    // Tiles scroll under the transparent nav bar and the last row clears
+    // it — inset as content padding, not as a wall.
+    val navBottom = WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding()
+    LazyVerticalGrid(
+        columns = GridCells.Adaptive(minSize = 100.dp),
+        modifier = Modifier.fillMaxSize(),
+        contentPadding = PaddingValues(
+            start = 20.dp,
+            end = 20.dp,
+            top = 10.dp,
+            bottom = navBottom + 8.dp,
+        ),
+        horizontalArrangement = Arrangement.spacedBy(12.dp),
+        verticalArrangement = Arrangement.spacedBy(12.dp),
+    ) {
+        item(span = { GridItemSpan(maxLineSpan) }) {
+            // The instrument readout: what the shelf holds, what it
+            // costs, and what is left. Nothing evicts on its own, so
+            // this is the number the decision is made on — and
+            // labelSmall is the console's monospace readout face,
+            // which is exactly what these are.
+            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                Text(
+                    text = pluralStringResource(
+                        R.plurals.home_projects_usage,
+                        projects.size,
+                        projects.size,
+                        formatBytes(usedBytes),
+                        formatBytes(freeBytes),
+                    ),
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    textAlign = TextAlign.Center,
+                )
+                // The one gesture the tiles don't show, in the readout's
+                // own quiet voice.
+                Text(
+                    text = stringResource(R.string.home_projects_hint),
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    textAlign = TextAlign.Center,
+                )
+            }
+        }
+        // Keyed by id: deleting a tile from the middle must not hand its
+        // decoded preview to the project that slides into its slot.
+        items(projects, key = { it.id }) { project ->
+            ProjectTile(
+                project = project,
+                onOpen = { onOpenProject(project.id) },
+                onDelete = { onDelete(project.id) },
+            )
+        }
+        item(span = { GridItemSpan(maxLineSpan) }) {
+            // The sweep and the fine print, past everything they refer
+            // to — the bottom of the shelf, not the middle of the room.
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                // Daylight between the sweep and About: one throws the
+                // whole shelf away, the other is fine print.
+                horizontalArrangement = Arrangement.spacedBy(12.dp, Alignment.CenterHorizontally),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                TextButton(onClick = onDeleteAll) {
+                    Text(
+                        text = stringResource(R.string.project_delete_all),
+                        style = MaterialTheme.typography.labelMedium,
+                        color = NeonTangerine,
+                    )
+                }
+                AboutButton(onClick = onAbout)
+            }
+        }
+    }
+}
+
+@Composable
+private fun AboutButton(onClick: () -> Unit) {
+    TextButton(onClick = onClick) {
+        Text(
+            text = stringResource(R.string.home_about),
+            style = MaterialTheme.typography.labelMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+    }
+}
+
+/**
  * One saved project as a screen in a chrome bezel — a rectangle, not the
  * samples' port-hole, because this is a document you were working on
- * rather than a picture on the shelf.
+ * rather than a picture on the shelf. Sized by its grid cell; the 96:84
+ * screen proportion rides along.
  *
  * Tap resumes it; a long press (or the TalkBack action) offers to throw
  * it away. The preview is the goo as it was saved, not the source photo:
@@ -425,19 +518,20 @@ private fun ProjectTile(
     val context = LocalContext.current
     val label = stringResource(R.string.project_open)
     val deleteLabel = stringResource(R.string.project_delete_confirm)
-    // The Context-taking variant on purpose: it formats in the CONTEXT's
-    // locale, so a per-app language override (locales_config) reaches this
-    // label too — the static overloads read the system locale instead.
     val age = remember(project.updatedAtMillis, context) {
         // The span alone ("Yesterday", "26 min. ago"), not date-and-time:
-        // the caption is 96dp wide, and the longer form ellipsized every
-        // tile on the shelf to an identical "Yesterday, …".
+        // a tile caption is narrow, and the longer form ellipsized every
+        // tile on the shelf to an identical "Yesterday, …". Still the
+        // Context-taking variant: it formats in the CONTEXT's locale, so
+        // a per-app language override (locales_config) reaches this
+        // label too — the static overloads read the system locale.
         DateUtils.getRelativeTimeSpanString(context, project.updatedAtMillis).toString()
     }
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
         Box(
             modifier = Modifier
-                .size(width = 96.dp, height = 84.dp)
+                .fillMaxWidth()
+                .aspectRatio(96f / 84f)
                 .semantics {
                     contentDescription = "$label, $age"
                     // Long-press is invisible to TalkBack; the same verb
@@ -487,7 +581,7 @@ private fun ProjectTile(
         Spacer(modifier = Modifier.height(4.dp))
         Text(
             text = age,
-            modifier = Modifier.width(96.dp),
+            modifier = Modifier.fillMaxWidth(),
             style = MaterialTheme.typography.labelSmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             textAlign = TextAlign.Center,
@@ -522,6 +616,7 @@ private fun SampleThumb(
     assetPath: String,
     labelRes: Int,
     glow: Color,
+    size: Dp,
     onOpenImage: (Uri) -> Unit,
 ) {
     val context = LocalContext.current
@@ -546,7 +641,7 @@ private fun SampleThumb(
     val label = stringResource(labelRes)
     Box(
         modifier = Modifier
-            .size(84.dp)
+            .size(size)
             .semantics { contentDescription = label }
             .clickable(role = Role.Button) {
                 onOpenImage("file:///android_asset/$assetPath".toUri())
@@ -554,8 +649,8 @@ private fun SampleThumb(
         contentAlignment = Alignment.Center,
     ) {
         Canvas(modifier = Modifier.fillMaxSize()) {
-            val outer = size.minDimension / 2f
-            val c = Offset(size.width / 2f, size.height / 2f)
+            val outer = this.size.minDimension / 2f
+            val c = Offset(this.size.width / 2f, this.size.height / 2f)
             drawCircle(
                 brush = Brush.radialGradient(
                     colors = listOf(glow.copy(alpha = 0.35f), Color.Transparent),
@@ -577,7 +672,7 @@ private fun SampleThumb(
         // empty port-hole in panel gunmetal rather than a hole in the UI.
         Box(
             modifier = Modifier
-                .size(64.dp)
+                .size(size * 0.76f)
                 .clip(CircleShape)
                 .background(MeltPanel),
         ) {
