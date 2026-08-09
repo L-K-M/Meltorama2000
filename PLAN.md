@@ -326,8 +326,12 @@ places a display name lives, for the next time:
 - the MediaStore folders in `ImageSaver`/`MovieSaver` (`Pictures/…`,
   `Movies/…`);
 - README title and prose, PLAN/AGENTS/GLOSSARY headers;
-- `RELEASE_APP_NAME` in `scripts/release.sh` and the APK artifact names
-  in `.github/workflows/release.yml`;
+- `RELEASE_APP_NAME` in `scripts/release.sh`, and in
+  `.github/workflows/release.yml` BOTH the APK artifact names and the
+  `name:` given to `action-gh-release` — that title is what the Releases
+  sidebar shows, it was the one place the Goo → Meltorama rename missed,
+  and nothing fails when it is wrong: the build stays green and the APKs
+  keep the right filenames while the release wears the old name;
 - the launcher icon, if the mark is tied to the name.
 
 The applicationId (`ch.lkmc.goo`), the package, `rootProject.name` and

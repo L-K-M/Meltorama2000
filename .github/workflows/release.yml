@@ -93,7 +93,11 @@ jobs:
       - name: Create GitHub Release
         uses: softprops/action-gh-release@3d0d9888cb7fd7b750713d6e236d1fcb99157228 # v3.0.2
         with:
-          name: Goo ${{ github.ref_name }}
+          # Display name, so it is the product name — "Meltorama", matching
+          # RELEASE_APP_NAME in scripts/release.sh and the APK filenames
+          # above. Not "Meltorama 2000": the model number next to a version
+          # number reads as two versions.
+          name: Meltorama ${{ github.ref_name }}
           generate_release_notes: true
           prerelease: ${{ contains(github.ref_name, '-') }}
           fail_on_unmatched_files: true

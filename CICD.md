@@ -30,10 +30,10 @@ an explicit `concurrency:` group, `timeout-minutes:` on every job, and
 - Two-job trust split: a read-only build job checks out without persisted
   credentials, validates the wrapper, enforces the tag↔versionName gate,
   re-proves `testDebugUnitTest lintDebug`, runs `assembleRelease`, and uploads
-  `dist/goo-vX.Y.Z.apk` + `.sha256`. A separate write-capable publish job
-  downloads only those artifacts and creates the GitHub Release with generated
-  notes. Every action in this privileged workflow is pinned to a verified
-  immutable commit. `vX.Y.Z-rc.1`-style tags auto-mark as pre-release.
+  `dist/meltorama-vX.Y.Z.apk` + `.sha256`. A separate write-capable publish job
+  downloads only those artifacts and creates the GitHub Release, titled
+  `Meltorama vX.Y.Z`, with generated notes. Every action in this privileged
+  workflow is pinned to a verified immutable commit. `vX.Y.Z-rc.1`-style tags auto-mark as pre-release.
 - **Signing:** both build types use the checked-in `app/debug.keystore`
   (see `docs/decisions/0002`). No signing secrets exist. Sideload-only by
   design; a future switch to a real key breaks upgrades for every
