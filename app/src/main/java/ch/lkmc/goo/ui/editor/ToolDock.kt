@@ -16,6 +16,8 @@ import androidx.compose.animation.slideOutVertically
 import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.awaitEachGesture
+import androidx.compose.foundation.gestures.awaitFirstDown
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -81,6 +83,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.stringResource
@@ -124,6 +127,16 @@ fun ToolDock(
     Column(
         modifier = modifier
             .fillMaxWidth()
+            // The tray floats over the canvas, and the canvas paints on
+            // touch: without a hit target of its own, every dead spot on
+            // the plate — label texts, bead gaps, the inset strip — would
+            // pass the finger through to beginStroke underneath. Awaiting
+            // the down (same trick as the leaving scrim) makes the whole
+            // plate opaque to touch while leaving its beads and sliders,
+            // which hit-test first, exactly as they were.
+            .pointerInput(Unit) {
+                awaitEachGesture { awaitFirstDown(requireUnconsumed = false) }
+            }
             .chromePanel(RoundedCornerShape(topStart = 18.dp, topEnd = 18.dp))
             .navigationBarsPadding(),
     ) {
