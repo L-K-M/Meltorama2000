@@ -1,6 +1,6 @@
 <div align="center">
 
-# Meltorama 2000
+<img src="media-sources/logo.png" alt="Meltorama 2000" width="480">
 
 **Goo Your Photos.**
 
