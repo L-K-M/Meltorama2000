@@ -17,7 +17,8 @@
     <string name="sample_goo_guy">样图：黏糊小人</string>
     <string name="sample_candy_blobs">样图：糖果球</string>
 
-    <string name="home_projects_label">接着上次继续捏——长按黏糊可以丢掉它：</string>
+    <string name="home_projects_label">接着上次继续捏：</string>
+    <string name="home_projects_hint">长按黏糊可以丢掉它。</string>
     <!-- Chinese has one grammatical number, so "other" is the whole set. -->
     <plurals name="home_projects_usage">
         <item quantity="other">%1$d 团黏糊 · 已用 %2$s · 剩余 %3$s</item>
@@ -72,6 +73,12 @@
     <string name="fusion_change_photo">换一张照片</string>
     <string name="fusion_remove_photo">移除照片</string>
     <string name="fusion_loading_photo">正在把新的融合照片融进来…</string>
+    <string name="dock_tab_brush">笔刷</string>
+    <string name="dock_tab_levers">拉杆</string>
+    <string name="dock_tab_lenses">镜头</string>
+    <string name="dock_tab_goovies">GOOvie</string>
+    <string name="dock_collapse">收起工具盘</string>
+    <string name="dock_expand">展开工具盘</string>
     <string name="tool_mirror">镜像</string>
     <string name="tool_sectors">万花筒</string>
     <string name="tool_sectors_count">万花筒 ×%1$d</string>
@@ -79,7 +86,6 @@
     <string name="tool_portals_place_a">传送门：点选 A</string>
     <string name="tool_portals_place_b">传送门：点选 B</string>
 
-    <string name="editor_levers">整体效果</string>
     <string name="editor_hint_smear">在照片上拖动就能捏它</string>
     <string name="editor_reset_view">重置视图</string>
 
@@ -91,10 +97,8 @@
     <string name="crop_confirm_body">换了取景框就得重新捏：笔触、关键帧和推杆都会从头开始。此操作无法撤销。</string>
     <string name="crop_confirm_go">裁剪</string>
 
-    <string name="editor_goovies">GOOvie</string>
     <string name="goovie_capture">打一个关键帧</string>
-    <string name="goovie_punch">打帧</string>
-    <string name="goovie_punch_count">打帧（%1$d）</string>
+    <string name="goovie_punch_count">打一个关键帧（已有 %1$d 个）</string>
     <string name="goovie_play">播放</string>
     <string name="goovie_pause">暂停</string>
     <string name="goovie_delete">删除关键帧</string>
@@ -150,7 +154,6 @@
     <string name="error_project_missing">这个项目已经不在了。</string>
     <string name="error_project_damaged">这个项目里的黏糊读不出来。</string>
     <string name="error_gpu_unsupported">这台设备的 GPU 渲染不了黏糊（不支持浮点渲染目标）。</string>
-    <string name="funhouse">哈哈镜</string>
     <string name="funhouse_empty">点击照片放置镜片</string>
     <string name="funhouse_full">没有空位 — 先扔掉一个</string>
     <string name="funhouse_bulge">凸镜</string>

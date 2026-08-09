@@ -1096,7 +1096,7 @@ class EditorViewModel @Inject constructor(
     }
 
     fun setBrushStrength(value: Float) {
-        _uiState.update { it.copy(brushStrength = value.coerceIn(0.05f, 1f)) }
+        _uiState.update { it.copy(brushStrength = value.coerceIn(MIN_STRENGTH, MAX_STRENGTH)) }
     }
 
     fun toggleMirror() {
@@ -2214,6 +2214,10 @@ class EditorViewModel @Inject constructor(
         const val DEFAULT_RADIUS = 0.12f
         const val MIN_RADIUS = 0.04f
         const val MAX_RADIUS = 0.28f
+
+        /** Strength floor: 0 would stamp nothing while looking armed. */
+        const val MIN_STRENGTH = 0.05f
+        const val MAX_STRENGTH = 1f
 
         /** Strength slider default: strong but shy of finger-lock 1:1. */
         const val DEFAULT_STRENGTH = 0.85f
