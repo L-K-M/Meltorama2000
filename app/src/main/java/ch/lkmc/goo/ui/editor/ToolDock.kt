@@ -16,6 +16,8 @@ import androidx.compose.animation.slideOutVertically
 import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.gestures.awaitEachGesture
 import androidx.compose.foundation.gestures.awaitFirstDown
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -65,18 +67,23 @@ import androidx.compose.material.icons.filled.Tune
 import androidx.compose.material.icons.filled.Waves
 import androidx.compose.material.icons.filled.ZoomIn
 import androidx.compose.material.icons.filled.ZoomOut
+import androidx.compose.material.icons.outlined.Info
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LocalMinimumInteractiveComponentSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Slider
 import androidx.compose.material3.SliderDefaults
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.minimumInteractiveComponentSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -91,6 +98,7 @@ import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.selected
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.IntOffset
@@ -369,6 +377,51 @@ fun BrushDockContent(
     DisposableEffect(Unit) {
         onDispose { onAdjustingChange(false) }
     }
+    var showInfo by remember { mutableStateOf(false) }
+    if (showInfo) {
+        AlertDialog(
+            onDismissRequest = { showInfo = false },
+            title = { Text(stringResource(tool.labelRes())) },
+            text = {
+                Column(
+                    // Seven lines at a 200% font scale outgrow a dialog;
+                    // the glossary scrolls rather than clips.
+                    modifier = Modifier.verticalScroll(rememberScrollState()),
+                    verticalArrangement = Arrangement.spacedBy(8.dp),
+                ) {
+                    Text(
+                        text = stringResource(tool.infoRes()),
+                        style = MaterialTheme.typography.bodyMedium,
+                    )
+                    // Only the beads actually on the strip right now:
+                    // explaining a control that is not there is how a
+                    // glossary lies.
+                    val beadLines = buildList {
+                        if (!tool.isPinWarp) {
+                            add(R.string.info_mirror)
+                            add(R.string.info_sectors)
+                            add(R.string.info_portals)
+                        }
+                        if (showFusionActions) add(R.string.info_fusion)
+                        add(R.string.info_punch)
+                        if (updateKeyframe > 0) add(R.string.info_update)
+                    }
+                    beadLines.forEach { line ->
+                        Text(
+                            text = stringResource(line),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                    }
+                }
+            },
+            confirmButton = {
+                TextButton(onClick = { showInfo = false }) {
+                    Text(stringResource(R.string.about_close))
+                }
+            },
+        )
+    }
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -420,23 +473,61 @@ fun BrushDockContent(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(4.dp),
         ) {
-            Text(
-                // A mode that silently eats the next two taps has to say
-                // so where the user is looking — the strip's name slot.
-                // Except under Pins, whose overlay owns the canvas: a
-                // prompt to tap rings no tap can place is worse than none.
-                text = stringResource(
-                    when (if (tool.isPinWarp) 0 else portalsPlacing) {
-                        1 -> R.string.tool_portals_place_a
-                        2 -> R.string.tool_portals_place_b
-                        else -> tool.labelRes()
-                    },
-                ),
-                style = MaterialTheme.typography.titleSmall,
-                color = tool.neonColor(),
-                maxLines = 1,
+            Row(
                 modifier = Modifier.weight(1f),
-            )
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Text(
+                    // A mode that silently eats the next two taps has to
+                    // say so where the user is looking — the strip's name
+                    // slot. Except under Pins, whose overlay owns the
+                    // canvas: a prompt to tap rings no tap can place is
+                    // worse than none.
+                    text = stringResource(
+                        when (if (tool.isPinWarp) 0 else portalsPlacing) {
+                            1 -> R.string.tool_portals_place_a
+                            2 -> R.string.tool_portals_place_b
+                            else -> tool.labelRes()
+                        },
+                    ),
+                    style = MaterialTheme.typography.titleSmall,
+                    color = tool.neonColor(),
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                    // fill=false: the name yields to the (i) beside it
+                    // instead of shoving it into the beads, and the (i)
+                    // rides the name's end instead of drifting right.
+                    modifier = Modifier.weight(1f, fill = false),
+                )
+                // The glossary, on the name it glosses: what this brush
+                // does, and what the beads beside it do. Quiet ink, not a
+                // chrome bead — it is a label, not an instrument.
+                CompositionLocalProvider(
+                    LocalMinimumInteractiveComponentSize provides STRIP_SLOT,
+                ) {
+                    val haptics = LocalHapticFeedback.current
+                    Icon(
+                        imageVector = Icons.Outlined.Info,
+                        contentDescription = stringResource(R.string.dock_tool_info),
+                        tint = MeltOnDarkDim,
+                        modifier = Modifier
+                            .minimumInteractiveComponentSize()
+                            .clip(CircleShape)
+                            .clickable(
+                                interactionSource = remember { MutableInteractionSource() },
+                                indication = null,
+                                role = Role.Button,
+                                onClick = {
+                                    haptics.performHapticFeedback(
+                                        HapticFeedbackType.TextHandleMove,
+                                    )
+                                    showInfo = true
+                                },
+                            )
+                            .padding(9.dp),
+                    )
+                }
+            }
             CompositionLocalProvider(LocalMinimumInteractiveComponentSize provides STRIP_SLOT) {
                 // Pins is the one row that is a mode, not a brush: it
                 // emits no stamps, so the stamp-fanning modifiers would
@@ -661,6 +752,31 @@ private val BEAD_SIZE = 36.dp
 /** Strip beads keep a fixed near-minimum slot — the strip never holds
  *  more than seven, so it is never the row that decides the width. */
 private val STRIP_SLOT = 40.dp
+
+/** One breath per brush for the strip's (i) dialog. */
+@StringRes
+internal fun BrushTool.infoRes(): Int = when (this) {
+    BrushTool.SMEAR -> R.string.tool_info_smear
+    BrushTool.MOVE -> R.string.tool_info_move
+    BrushTool.SMUDGE -> R.string.tool_info_smudge
+    BrushTool.NUDGE -> R.string.tool_info_nudge
+    BrushTool.GROW -> R.string.tool_info_grow
+    BrushTool.SHRINK -> R.string.tool_info_shrink
+    BrushTool.SMOOTH -> R.string.tool_info_smooth
+    BrushTool.UNGOO -> R.string.tool_info_ungoo
+    BrushTool.FUSE -> R.string.tool_info_fuse
+    BrushTool.VORTEX -> R.string.tool_info_vortex
+    BrushTool.UNWIND -> R.string.tool_info_unwind
+    BrushTool.MELT -> R.string.tool_info_melt
+    BrushTool.COMB -> R.string.tool_info_comb
+    BrushTool.POND -> R.string.tool_info_pond
+    BrushTool.FAULT -> R.string.tool_info_fault
+    BrushTool.ECHO -> R.string.tool_info_echo
+    BrushTool.FREEZE -> R.string.tool_info_freeze
+    BrushTool.WHIP -> R.string.tool_info_whip
+    BrushTool.REWIND -> R.string.tool_info_rewind
+    BrushTool.PINS -> R.string.tool_info_pins
+}
 
 @StringRes
 internal fun BrushTool.labelRes(): Int = when (this) {
