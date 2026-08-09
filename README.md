@@ -9,7 +9,7 @@
 
 [![CI](https://github.com/L-K-M/Meltorama2000/actions/workflows/ci.yml/badge.svg)](https://github.com/L-K-M/Meltorama2000/actions/workflows/ci.yml)
 
-Latest release: v<!-- version -->2.0.0<!-- /version -->
+Latest release: v<!-- version -->2.0.0<!-- /version --> · [Download](https://github.com/L-K-M/Meltorama2000/releases/latest)
 
 </div>
 
