@@ -14,7 +14,6 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -300,51 +299,54 @@ private fun Console(
             .fillMaxWidth()
             .chromePanel(RoundedCornerShape(bottomStart = 18.dp, bottomEnd = 18.dp))
             .statusBarsPadding()
-            // 20dp, not the poster's 32: each side slot of the dome row
-            // gets (width − padding − dome) / 2, and both port-holes
-            // must fit one slot on a 360dp phone.
-            .padding(horizontal = 20.dp)
             .padding(top = 10.dp, bottom = 14.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
-        Wordmark(
-            name = stringResource(R.string.app_name_full),
-            model = stringResource(R.string.app_model),
-        )
-        Spacer(modifier = Modifier.height(8.dp))
-        Text(
-            text = stringResource(R.string.home_tagline),
-            style = MaterialTheme.typography.titleSmall,
-            color = NeonCyan,
-            textAlign = TextAlign.Center,
-        )
-        if (showPitch) {
-            Spacer(modifier = Modifier.height(4.dp))
+        // Only the type gets side padding: the instrument row below
+        // measures its gaps from the plate's true edges.
+        Column(
+            modifier = Modifier.padding(horizontal = 20.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+        ) {
+            Wordmark(
+                name = stringResource(R.string.app_name_full),
+                model = stringResource(R.string.app_model),
+            )
+            Spacer(modifier = Modifier.height(8.dp))
             Text(
-                text = stringResource(R.string.home_subtagline),
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                text = stringResource(R.string.home_tagline),
+                style = MaterialTheme.typography.titleSmall,
+                color = NeonCyan,
                 textAlign = TextAlign.Center,
             )
+            if (showPitch) {
+                Spacer(modifier = Modifier.height(4.dp))
+                Text(
+                    text = stringResource(R.string.home_subtagline),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    textAlign = TextAlign.Center,
+                )
+            }
         }
         Spacer(modifier = Modifier.height(12.dp))
+        // One even rhythm across the whole plate: edge · snap · dome ·
+        // sample · sample · edge, every gap the same. SpaceEvenly also
+        // absorbs narrow screens by shrinking the gaps, not the dials —
+        // the instruments sum to 252dp, inside even a 320dp plate.
         Row(
             modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceEvenly,
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            // Camera on the input side of the dome, samples on the demo
-            // side. Both side slots weight the same, so the dome stays
-            // centered even when there is no camera to show.
-            Box(modifier = Modifier.weight(1f), contentAlignment = Alignment.Center) {
-                if (hasCamera) {
-                    ChromeIconButton(
-                        icon = Icons.Filled.PhotoCamera,
-                        contentDescription = stringResource(R.string.home_take_photo),
-                        color = NeonCyan,
-                        selected = false,
-                        onClick = onSnap,
-                    )
-                }
+            if (hasCamera) {
+                ChromeIconButton(
+                    icon = Icons.Filled.PhotoCamera,
+                    contentDescription = stringResource(R.string.home_take_photo),
+                    color = NeonCyan,
+                    selected = false,
+                    onClick = onSnap,
+                )
             }
             ChromeButton(
                 label = stringResource(R.string.home_enter_goo),
@@ -353,35 +355,20 @@ private fun Console(
                 size = 112.dp,
                 breathe = true,
             )
-            BoxWithConstraints(
-                modifier = Modifier.weight(1f),
-                contentAlignment = Alignment.Center,
-            ) {
-                // Both port-holes must fit whatever the slot turns out to
-                // be — 46dp dials on a 360dp phone, smaller on the 320dp
-                // screens SOL-23 keeps honest (same adaptive-slot trick
-                // as the dock's palette grid).
-                val thumb = ((maxWidth - 4.dp) / 2).coerceIn(34.dp, 46.dp)
-                Row(
-                    horizontalArrangement = Arrangement.spacedBy(4.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    SampleThumb(
-                        assetPath = "samples/goo-guy.png",
-                        labelRes = R.string.sample_goo_guy,
-                        glow = NeonMagenta,
-                        size = thumb,
-                        onOpenImage = onOpenImage,
-                    )
-                    SampleThumb(
-                        assetPath = "samples/candy-blobs.png",
-                        labelRes = R.string.sample_candy_blobs,
-                        glow = NeonCyan,
-                        size = thumb,
-                        onOpenImage = onOpenImage,
-                    )
-                }
-            }
+            SampleThumb(
+                assetPath = "samples/goo-guy.png",
+                labelRes = R.string.sample_goo_guy,
+                glow = NeonMagenta,
+                size = 46.dp,
+                onOpenImage = onOpenImage,
+            )
+            SampleThumb(
+                assetPath = "samples/candy-blobs.png",
+                labelRes = R.string.sample_candy_blobs,
+                glow = NeonCyan,
+                size = 46.dp,
+                onOpenImage = onOpenImage,
+            )
         }
     }
 }
