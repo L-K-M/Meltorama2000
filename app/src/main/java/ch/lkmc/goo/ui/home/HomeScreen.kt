@@ -14,6 +14,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -352,25 +353,34 @@ private fun Console(
                 size = 112.dp,
                 breathe = true,
             )
-            Row(
+            BoxWithConstraints(
                 modifier = Modifier.weight(1f),
-                horizontalArrangement = Arrangement.spacedBy(4.dp, Alignment.CenterHorizontally),
-                verticalAlignment = Alignment.CenterVertically,
+                contentAlignment = Alignment.Center,
             ) {
-                SampleThumb(
-                    assetPath = "samples/goo-guy.png",
-                    labelRes = R.string.sample_goo_guy,
-                    glow = NeonMagenta,
-                    size = 46.dp,
-                    onOpenImage = onOpenImage,
-                )
-                SampleThumb(
-                    assetPath = "samples/candy-blobs.png",
-                    labelRes = R.string.sample_candy_blobs,
-                    glow = NeonCyan,
-                    size = 46.dp,
-                    onOpenImage = onOpenImage,
-                )
+                // Both port-holes must fit whatever the slot turns out to
+                // be — 46dp dials on a 360dp phone, smaller on the 320dp
+                // screens SOL-23 keeps honest (same adaptive-slot trick
+                // as the dock's palette grid).
+                val thumb = ((maxWidth - 4.dp) / 2).coerceIn(34.dp, 46.dp)
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(4.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    SampleThumb(
+                        assetPath = "samples/goo-guy.png",
+                        labelRes = R.string.sample_goo_guy,
+                        glow = NeonMagenta,
+                        size = thumb,
+                        onOpenImage = onOpenImage,
+                    )
+                    SampleThumb(
+                        assetPath = "samples/candy-blobs.png",
+                        labelRes = R.string.sample_candy_blobs,
+                        glow = NeonCyan,
+                        size = thumb,
+                        onOpenImage = onOpenImage,
+                    )
+                }
             }
         }
     }
