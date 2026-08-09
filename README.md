@@ -7,7 +7,7 @@
 
 **Goo Your Photos.**
 
-[![CI](https://github.com/L-K-M/Goo/actions/workflows/ci.yml/badge.svg)](https://github.com/L-K-M/Goo/actions/workflows/ci.yml)
+[![CI](https://github.com/L-K-M/Meltorama2000/actions/workflows/ci.yml/badge.svg)](https://github.com/L-K-M/Meltorama2000/actions/workflows/ci.yml)
 
 Latest release: v<!-- version -->2.0.0<!-- /version -->
 

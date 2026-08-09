@@ -11,10 +11,12 @@ launcher label, where Android ellipsizes past ~12 characters). "Goo"
 survives as the verb, the material, and the name of the animations
 (GOOvies), which is why the claim is *Goo Your Photos*.
 
-The applicationId stays `ch.lkmc.goo`, and so do the package and the
-repository: changing an applicationId breaks upgrades for everyone who
-sideloaded a build, and no user ever sees it. PLAN.md's *Renaming* section
-lists every file a future rename would touch.
+The applicationId stays `ch.lkmc.goo`, and so does the package: changing
+an applicationId breaks upgrades for everyone who sideloaded a build, and
+no user ever sees it. The repository did get renamed, to
+`L-K-M/Meltorama2000` — old links redirect, so hard-coded URLs go stale
+silently. PLAN.md's *Renaming* section lists every file a future rename
+would touch.
 
 ## What this app is
 

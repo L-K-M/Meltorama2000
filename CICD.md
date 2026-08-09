@@ -60,7 +60,7 @@ an explicit `concurrency:` group, `timeout-minutes:` on every job, and
 
 | Secret | Used by | Purpose |
 | ------ | ------- | ------- |
-| `ZAI_API_KEY` | zai-code-review.yml | Z.ai API key for GLM 5.2 reviews. Set with `gh secret set ZAI_API_KEY --repo L-K-M/Goo`. Absent ⇒ reviews skip, everything else unaffected. |
+| `ZAI_API_KEY` | zai-code-review.yml | Z.ai API key for GLM 5.2 reviews. Set with `gh secret set ZAI_API_KEY --repo L-K-M/Meltorama2000`. Absent ⇒ reviews skip, everything else unaffected. |
 
 No release-signing secrets exist, deliberately (decision 0002).
 

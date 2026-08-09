@@ -243,7 +243,8 @@ fix and continues as crop-only.
 - **SOL-28: Export feedback is hidden or misleading.** Show failures inside
   Out rather than behind its scrim, freeze options while busy, display actual
   capped dimensions/downscaling, explain API 26-28 app-private Save before the
-  operation, and distinguish `Pictures/Goo` from `Movies/Goo` in success UI.
+  operation, and distinguish `Pictures/Meltorama` from `Movies/Meltorama` in
+  success UI.
 
 - **SOL-29: Export events can be consumed while stopped.** Collect one-shot UI
   effects only while STARTED/RESUMED, retain pending effects, and do not lose a

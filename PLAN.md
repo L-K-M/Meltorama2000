@@ -217,7 +217,7 @@ so the JVM test suite covers it — composables and the GL renderer stay thin.
    palette as a candy-button arc; size/strength levers; Mirror toggle;
    undo/redo; Reset (confirmed); global-effects drawer; keyframe strip
    (animation phase); Export button.
-3. **Export (Out)** — format (JPEG quality / PNG), save to `Pictures/Goo`
+3. **Export (Out)** — format (JPEG quality / PNG), save to `Pictures/Meltorama`
    via MediaStore (`IS_PENDING` flow, API 29+); on 26–28 the legacy branch
    writes to app-owned storage and hands off via the share sheet, because
    shared-collection writes there would need `WRITE_EXTERNAL_STORAGE`,
@@ -332,11 +332,20 @@ places a display name lives, for the next time:
   sidebar shows, it was the one place the Goo → Meltorama rename missed,
   and nothing fails when it is wrong: the build stays green and the APKs
   keep the right filenames while the release wears the old name;
+- hard-coded repository URLs, which are display names in disguise: the CI
+  badge in README.md and the `gh secret set` example in CICD.md;
 - the launcher icon, if the mark is tied to the name.
 
-The applicationId (`ch.lkmc.goo`), the package, `rootProject.name` and
-the repository name stay fixed — changing the appId breaks upgrades for
-every sideloaded install, and none of them is user-visible.
+The applicationId (`ch.lkmc.goo`), the package and `rootProject.name`
+stay fixed — changing the appId breaks upgrades for every sideloaded
+install, and none of them is user-visible.
+
+The repository name is NOT fixed, whatever earlier drafts of this list
+said: it went `L-K-M/Goo` → `L-K-M/Meltorama2000`. GitHub redirects the
+old slug forever, so every stale URL keeps working and nothing ever
+prompts you to fix one — which is how the README went on rendering a
+green CI badge from an address the repo no longer answers to. On a
+rename, grep for the old repo slug as well as the old display name.
 
 ## Appendix A — name ideas
 
