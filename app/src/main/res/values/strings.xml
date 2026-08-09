@@ -116,6 +116,9 @@
     <string name="crop_confirm_go">Crop</string>
 
     <string name="goovie_capture">Punch a keyframe</string>
+    <!-- The punch bead's spoken name once keyframes exist: the visual
+         badge is decorative, so the count must ride the description. -->
+    <string name="goovie_punch_count">Punch a keyframe (%1$d so far)</string>
     <string name="goovie_play">Play</string>
     <string name="goovie_pause">Pause</string>
     <string name="goovie_delete">Delete keyframe</string>

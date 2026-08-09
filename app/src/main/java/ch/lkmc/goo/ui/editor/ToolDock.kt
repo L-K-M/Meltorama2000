@@ -504,7 +504,11 @@ fun BrushDockContent(
                 BadgedBead(badge = if (keyframeCount > 0) "$keyframeCount" else null, color = NeonAmber) {
                     ChromeIconButton(
                         icon = Icons.Filled.AddAPhoto,
-                        contentDescription = stringResource(R.string.goovie_capture),
+                        contentDescription = if (keyframeCount > 0) {
+                            stringResource(R.string.goovie_punch_count, keyframeCount)
+                        } else {
+                            stringResource(R.string.goovie_capture)
+                        },
                         color = NeonAmber,
                         selected = false,
                         enabled = keyframeCount < EditorViewModel.MAX_KEYFRAMES,

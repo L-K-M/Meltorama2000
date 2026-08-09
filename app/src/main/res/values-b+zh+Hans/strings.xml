@@ -98,6 +98,7 @@
     <string name="crop_confirm_go">裁剪</string>
 
     <string name="goovie_capture">打一个关键帧</string>
+    <string name="goovie_punch_count">打一个关键帧（已有 %1$d 个）</string>
     <string name="goovie_play">播放</string>
     <string name="goovie_pause">暂停</string>
     <string name="goovie_delete">删除关键帧</string>
