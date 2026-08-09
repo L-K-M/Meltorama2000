@@ -62,6 +62,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.withFrameNanos
 import androidx.compose.ui.geometry.Offset
@@ -167,8 +168,11 @@ private fun WarpEditor(
     var selectedLens by remember { mutableIntStateOf(-1) }
     var pendingCrop by remember { mutableStateOf<CropAction?>(null) }
     // The tool tray starts open (first-run discoverability) and melts
-    // into the puck on the first stroke of every sitting.
-    var dockExpanded by remember { mutableStateOf(true) }
+    // into the puck on the first stroke of every sitting. Saveable,
+    // unlike its sibling flags: their false defaults make a reset
+    // invisible, but this one's true default would spring the tray
+    // back over the photo on every rotation.
+    var dockExpanded by rememberSaveable { mutableStateOf(true) }
     val panel = resolvePanel(
         goovieMode = state.goovieMode,
         showFunhouse = showFunhouse,
