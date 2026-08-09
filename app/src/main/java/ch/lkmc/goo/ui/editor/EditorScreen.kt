@@ -896,24 +896,26 @@ private fun WarpEditor(
             }
 
             // First-run hint: floats until the first stroke lands, ever.
-            // Hidden while the tray is open (it covers this spot); the
-            // padding lifts the pill clear of the puck's corner.
+            // At the TOP of the photo, because the bottom now belongs to
+            // the tray — which starts open on a first run, and a hint
+            // that only shows once the tray is out of the way is a hint
+            // the first stroke retires unread.
             // Fully qualified on purpose: this Box nests inside the screen
             // Column, whose ColumnScope member extension AnimatedVisibility
             // captures the unqualified name (no `visible` overload here —
             // it doesn't compile). The import would not help.
             androidx.compose.animation.AnimatedVisibility(
-                visible = state.showHint && state.bitmap != null && !dockExpanded,
+                visible = state.showHint && state.bitmap != null,
                 modifier = Modifier
-                    .align(Alignment.BottomCenter)
-                    .padding(bottom = 84.dp),
+                    .align(Alignment.TopCenter)
+                    .padding(top = 16.dp),
                 enter = fadeIn() + slideInVertically(
                     spring(
                         dampingRatio = Spring.DampingRatioMediumBouncy,
                         stiffness = Spring.StiffnessLow,
                         visibilityThreshold = IntOffset.VisibilityThreshold,
                     ),
-                ) { it / 2 },
+                ) { -it / 2 },
                 exit = fadeOut(),
             ) {
                 Text(
