@@ -417,8 +417,10 @@ fun BrushDockContent(
             Text(
                 // A mode that silently eats the next two taps has to say
                 // so where the user is looking — the strip's name slot.
+                // Except under Pins, whose overlay owns the canvas: a
+                // prompt to tap rings no tap can place is worse than none.
                 text = stringResource(
-                    when (portalsPlacing) {
+                    when (if (tool.isPinWarp) 0 else portalsPlacing) {
                         1 -> R.string.tool_portals_place_a
                         2 -> R.string.tool_portals_place_b
                         else -> tool.labelRes()
