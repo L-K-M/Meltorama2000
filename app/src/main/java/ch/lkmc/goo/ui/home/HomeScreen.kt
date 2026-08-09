@@ -455,7 +455,9 @@ private fun ShelfGrid(
             // to — the bottom of the shelf, not the middle of the room.
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.Center,
+                // Daylight between the sweep and About: one throws the
+                // whole shelf away, the other is fine print.
+                horizontalArrangement = Arrangement.spacedBy(12.dp, Alignment.CenterHorizontally),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 TextButton(onClick = onDeleteAll) {
