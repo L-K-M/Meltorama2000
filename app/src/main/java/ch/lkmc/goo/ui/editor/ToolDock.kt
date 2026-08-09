@@ -268,7 +268,13 @@ private fun DockTab(
         targetValue = if (selected) color else Color.Transparent,
         label = "dockTabBackground",
     )
-    val content = if (selected) MeltVoid else MeltOnDarkDim
+    // The content rides the same animation as the plate behind it — a
+    // snapped switch leaves a dark icon on a still-transparent pill for
+    // the first frames of the spring.
+    val content by animateColorAsState(
+        targetValue = if (selected) MeltVoid else MeltOnDarkDim,
+        label = "dockTabContent",
+    )
     val haptics = LocalHapticFeedback.current
     Row(
         verticalAlignment = Alignment.CenterVertically,
