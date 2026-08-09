@@ -1,6 +1,9 @@
 <div align="center">
 
-<img src="media-sources/logo.png" alt="Meltorama 2000" width="480">
+<!-- The logo IS the h1: the landmark stays for screen readers and
+     indexing (named by the alt text), without a duplicate visible
+     title under the artwork. -->
+<h1><img src="media-sources/logo.png" alt="Meltorama 2000" width="480"></h1>
 
 **Goo Your Photos.**
 
