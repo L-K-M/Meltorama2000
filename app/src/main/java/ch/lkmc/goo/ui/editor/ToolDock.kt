@@ -573,7 +573,7 @@ fun BrushDockContent(
             labelWidth = labelWidth,
             value = strength,
             onValueChange = onStrengthChange,
-            valueRange = 0.05f..1f,
+            valueRange = EditorViewModel.MIN_STRENGTH..EditorViewModel.MAX_STRENGTH,
             onAdjustingChange = onAdjustingChange,
         )
         Spacer(modifier = Modifier.size(4.dp))
