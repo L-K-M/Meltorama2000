@@ -13,7 +13,8 @@
     <string name="home_tagline">GOO YOUR PHOTOS</string>
     <string name="home_subtagline">Squish, smear and stretch your photos\nlike wet paint.</string>
     <string name="home_enter_goo">GOO!</string>
-    <string name="home_samples_label">No photo handy? Goo a sample:</string>
+    <!-- Fills the shelf area of the In room until the first save. -->
+    <string name="home_shelf_empty">Nothing on the shelf yet — goo a photo and it lands right here.</string>
     <!-- Secondary action under the GOO! dome. "Snap" rather than "Take a
          photo" because the dome above it is already the long way in. -->
     <string name="home_take_photo">Snap one now</string>
@@ -24,7 +25,6 @@
          place the long press is announced, so it stays in the label.
          A tile is a goo, not a "screen": the bezel is how it is drawn,
          but what the user holds is their work. -->
-    <string name="home_projects_label">Pick up where you left off:</string>
     <!-- Under the shelf's readout: the one tile gesture nothing shows. -->
     <string name="home_projects_hint">Hold a goo to throw it away.</string>
     <!-- The shelf's instrument readout. Nothing evicts on its own, so
