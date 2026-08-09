@@ -12,7 +12,6 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
-import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -22,10 +21,13 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
@@ -37,7 +39,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.produceState
@@ -212,21 +213,6 @@ fun HomeScreen(
     Surface(modifier = Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
         Box(modifier = Modifier.fillMaxSize()) {
             GridBackdrop()
-            TextButton(
-                onClick = { showAbout = true },
-                modifier = Modifier
-                    .align(Alignment.BottomCenter)
-                    // Edge-to-edge (MainActivity): without the inset the
-                    // 3-button nav bar would cover most of this button.
-                    .navigationBarsPadding()
-                    .padding(bottom = 24.dp),
-            ) {
-                Text(
-                    text = stringResource(R.string.home_about),
-                    style = MaterialTheme.typography.labelMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
-            }
             Column(
                 modifier = Modifier
                     .align(Alignment.Center)
@@ -235,7 +221,12 @@ fun HomeScreen(
                     // a short one — the shelf of saved goo grows, and it
                     // must never push the door off the bottom edge.
                     .verticalScroll(rememberScrollState())
-                    .padding(horizontal = 32.dp, vertical = 32.dp),
+                    // Edge-to-edge (MainActivity): once the shelf makes
+                    // the console taller than the room, the ends of the
+                    // scroll sit under the system bars without these.
+                    .statusBarsPadding()
+                    .navigationBarsPadding()
+                    .padding(horizontal = 32.dp, vertical = 24.dp),
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.Center,
             ) {
@@ -307,26 +298,25 @@ fun HomeScreen(
                         textAlign = TextAlign.Center,
                     )
                     Spacer(modifier = Modifier.height(12.dp))
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .horizontalScroll(rememberScrollState()),
+                    // Lazy on purpose: the shelf holds every goo ever saved,
+                    // and a plain Row would decode every preview on the
+                    // shelf just to show the three that fit the screen.
+                    LazyRow(
+                        modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.spacedBy(
                             space = 16.dp,
                             alignment = Alignment.CenterHorizontally,
                         ),
                     ) {
-                        for (project in state.projects) {
-                            // Keyed by id: deleting a tile from the middle
-                            // must not hand its decoded preview to the
-                            // project that slides into its slot.
-                            key(project.id) {
-                                ProjectTile(
-                                    project = project,
-                                    onOpen = { onOpenProject(project.id) },
-                                    onDelete = { pendingDelete = project.id },
-                                )
-                            }
+                        // Keyed by id: deleting a tile from the middle
+                        // must not hand its decoded preview to the
+                        // project that slides into its slot.
+                        items(state.projects, key = { it.id }) { project ->
+                            ProjectTile(
+                                project = project,
+                                onOpen = { onOpenProject(project.id) },
+                                onDelete = { pendingDelete = project.id },
+                            )
                         }
                     }
                     Spacer(modifier = Modifier.height(10.dp))
@@ -343,6 +333,16 @@ fun HomeScreen(
                             formatBytes(state.usedBytes),
                             formatBytes(state.freeBytes),
                         ),
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        textAlign = TextAlign.Center,
+                    )
+                    // The one gesture the tiles don't show is spelled out
+                    // here, in the readout's own quiet voice — not in the
+                    // section title, which was wrapping onto two lines to
+                    // hold a footnote.
+                    Text(
+                        text = stringResource(R.string.home_projects_hint),
                         style = MaterialTheme.typography.labelSmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         textAlign = TextAlign.Center,
@@ -376,9 +376,17 @@ fun HomeScreen(
                         onOpenImage = onOpenImage,
                     )
                 }
-                // Clearance for the About button, which floats over this
-                // column at the bottom of the room.
-                Spacer(modifier = Modifier.height(48.dp))
+                // Last on the console, in the scroll like everything else:
+                // floated over the column it kept landing on whatever
+                // scrolled underneath — usually the samples.
+                Spacer(modifier = Modifier.height(24.dp))
+                TextButton(onClick = { showAbout = true }) {
+                    Text(
+                        text = stringResource(R.string.home_about),
+                        style = MaterialTheme.typography.labelMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
             }
         }
     }
@@ -421,13 +429,10 @@ private fun ProjectTile(
     // locale, so a per-app language override (locales_config) reaches this
     // label too — the static overloads read the system locale instead.
     val age = remember(project.updatedAtMillis, context) {
-        DateUtils.getRelativeDateTimeString(
-            context,
-            project.updatedAtMillis,
-            DateUtils.MINUTE_IN_MILLIS,
-            DateUtils.WEEK_IN_MILLIS,
-            DateUtils.FORMAT_ABBREV_ALL,
-        ).toString()
+        // The span alone ("Yesterday", "26 min. ago"), not date-and-time:
+        // the caption is 96dp wide, and the longer form ellipsized every
+        // tile on the shelf to an identical "Yesterday, …".
+        DateUtils.getRelativeTimeSpanString(context, project.updatedAtMillis).toString()
     }
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
         Box(
