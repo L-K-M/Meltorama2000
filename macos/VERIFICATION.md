@@ -90,7 +90,7 @@ both GIF and MP4 after rendering starts. Cancellation preserves existing
 destination bytes and removes staging files. GPU-less processes explicitly
 skip these integration checks instead of reporting encoder verification.
 
-The integrated native suite passed all 106 tests on 30 September 2026 on Apple
+The integrated native suite passed all 111 tests on 30 September 2026 on Apple
 silicon, macOS 26.7, with zero failures and zero skips. Actual GPU and encoding
 tests ran. Android's unit tests, lint, and debug assembly also passed.
 
@@ -99,6 +99,12 @@ parity, unique owner-only staging directories, cancellation and failure cleanup,
 picker dismissal, retained file lifetime after closing the source window,
 selected-service cancellation, interrupted presentation, and flipped-view
 popover placement. Lifecycle tests use inert services and send nothing.
+
+Five canvas keyboard tests cover international Option-generated brackets,
+Command/Control responder routing, non-bracket Option combinations, and normal
+tool, pan, Escape, and Delete commands. International brackets and modified
+letters reproduced failures before their fixes and passed afterward. Native
+document and field-editor undo-routing regressions also remained green.
 
 The universal release bundle contains arm64 and x86_64 executables with a
 macOS 13 minimum deployment target and only Apple/system dynamic dependencies.
@@ -143,6 +149,10 @@ The installed app was launched and exercised through its real windows:
   Rechecked the final inspector at 1240 × 820 and approximately 904 × 614 with
   an expanded effect and persistent scrollbar; percentage labels and controls
   stayed visible. Tab committed Strength and moved to the next number field.
+- On the Swiss keyboard, Option-5 reduced brush size from 12% to 10.43% and
+  Option-6 restored 12%. Command-C and Option-C kept Brush selected, while
+  ordinary H/C/L/B selected Hand/Crop/Lenses/Brush. The bracket and Command-C
+  failures were reproduced in the app before the fix and passed afterward.
 
 The UI automation connection timed out at a native save panel. A process
 sample showed the application's main thread normally waiting for events.

@@ -123,8 +123,13 @@ final class PhotoCanvas: NSView {
         needsDisplay=true
     }
     override func keyDown(with event:NSEvent) {
+        guard event.modifierFlags.intersection([.command, .control]).isEmpty else { super.keyDown(with: event); return }
         guard let session else {return}
-        switch event.charactersIgnoringModifiers {
+        let generated = event.characters
+        let generatedBracket = generated == "[" || generated == "]"
+        guard !event.modifierFlags.contains(.option) || generatedBracket else { super.keyDown(with: event); return }
+        let key = generatedBracket ? generated : event.charactersIgnoringModifiers
+        switch key {
         case " ":if !spaceDown {spaceDown=true;NSCursor.openHand.push()}
         case "[":session.radius=max(0.01,session.radius/1.15)
         case "]":session.radius=min(0.28,session.radius*1.15)

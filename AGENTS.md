@@ -226,6 +226,10 @@ lives in `engine/core` as pure JVM classes.
   Canvas zoom is fit-relative internally; its readout and Actual Size use
   `CanvasGeometry` and the window's backing scale to measure display pixels.
   Do not present the internal fit multiplier as a document zoom percentage.
+- Canvas keys forward Command/Control combinations through AppKit's responder
+  chain instead of treating them as tool letters. Brush-size brackets use the
+  generated character, including Option-generated brackets on international
+  keyboards; other Option combinations remain available to native commands.
 - The Mac renderer's GOOvie endpoint cache must touch a cached A before
   materializing B. Otherwise a FIFO eviction can delete A while the current
   draw still holds it, corrupting nonadjacent or reordered frame previews.
