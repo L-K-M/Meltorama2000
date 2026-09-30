@@ -143,6 +143,9 @@ struct EditorView: View {
                     if let message=session.exportMessage {Text(message).font(.caption).foregroundStyle(.secondary)}
                 }.padding(14)
             }
+            .frame(maxWidth: .infinity, alignment: .leading)
+            // Keep native field suffixes clear when a persistent scroller appears.
+            .padding(.trailing, NSScroller.scrollerWidth(for: .regular, scrollerStyle: .legacy))
         }.background(Color(nsColor:.controlBackgroundColor)).disabled(!session.hasPhoto)
     }
     private var brushInspector: some View {

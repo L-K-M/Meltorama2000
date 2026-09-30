@@ -127,6 +127,9 @@ The installed app was launched and exercised through its real windows:
   Settings. Native document tabs kept two open projects distinct. Command-1
   reported 100% on the Retina display. The Android fixture's fractional crop
   opened as exactly 960 × 720 pixels, matching Android's rounding.
+  Rechecked the final inspector at 1240 × 820 and approximately 904 × 614 with
+  an expanded effect and persistent scrollbar; percentage labels and controls
+  stayed visible. Tab committed Strength and moved to the next number field.
 
 The UI automation connection timed out at a native save panel. A process
 sample showed the application's main thread normally waiting for events.

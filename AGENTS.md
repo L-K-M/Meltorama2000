@@ -272,6 +272,9 @@ lives in `engine/core` as pure JVM classes.
   leave serialization one value behind. Background autosave serializes only the
   committed model and must not clamp partial text or move focus. Successful
   Revert discards drafts after validation; failed reads preserve them.
+  Inspector content reserves a legacy scroller's width. Without that space,
+  SwiftUI's scrollable layout can put percentage suffixes under the scrollbar
+  when expanded sections or document tabs reduce the available height.
 - Named Mac documents autosave through `NSDocument`. Unnamed work also writes
   durable recovery packages; recovery is never silently evicted. Mac document
   close/save behavior follows AppKit conventions, a deliberate adaptation of
