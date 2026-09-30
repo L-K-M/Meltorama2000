@@ -56,15 +56,21 @@ an explicit `concurrency:` group, `timeout-minutes:` on every job, and
   push access effectively hands `ZAI_API_KEY` and a write token to the
   pinned action. That is why the commit pin matters.
 
-The reviewer starts requests at 12500 patch characters with a 300-minute step
-budget and a 310-minute job backstop. Native Mac port PR #116 timed out after
+The reviewer starts requests at 12500 patch characters with a 330-minute step
+budget and a 340-minute job backstop. Native Mac port PR #116 timed out after
 170 minutes while reaching only chunk 11 of 23: repeated 25000-character
 requests exhausted the output budget before retrying smaller sections.
 Completed chunks are not checkpointed. The first full scan must finish before
 hybrid follow-ups can reuse its baseline; scope/model labels cannot change
 chunk size or reasoning effort. Those inputs belong to the trusted base
 workflow, so changing them on an open PR's branch does not adjust that PR's
-`pull_request_target` run.
+`pull_request_target` run. The pinned splitter plans 49 requests for the
+final port; eleven successful smaller fallback requests averaged 5.9 minutes,
+projecting about 289 minutes. The budget includes about 41 minutes of margin,
+without guaranteeing completion. The workflow is the source of truth for these
+values; keep this explanation in step when tuning it. After merging a tuning
+change, push or reopen the affected PR. Changing labels alone does not trigger
+this workflow.
 
 ## Secrets
 

@@ -29,7 +29,7 @@ jobs:
     # failure, which the reporting step can act on, and leaves "cancelled" to
     # mean only what the concurrency group above means by it: a newer push took
     # over.
-    timeout-minutes: 310
+    timeout-minutes: 340
     # pull_request_target exposes repository secrets and a write-capable token.
     # Never run this privileged job for branches from untrusted forks.
     if: >-
@@ -48,10 +48,13 @@ jobs:
         # Requests run sequentially. Native Mac port PR #116 planned 23 chunks
         # at 25000 patch characters, but several exhausted the 32768-token
         # output budget before retrying as 12500-character sections. Only chunk
-        # 11 was reached before the 170-minute timeout. Start with smaller
-        # sections and allow 300 minutes for the initial full scan; the job
+        # 11 was reached before the 170-minute timeout. The pinned splitter
+        # plans 49 requests for the final port's 486814 patch characters. Eleven
+        # successful smaller fallback requests averaged 5.9 minutes (max 11.5),
+        # projecting 289 minutes. Allow 330 minutes with about 41 minutes of
+        # margin; this is an estimate, not a completion guarantee. The job
         # backstop leaves another 10 minutes to report an unfinished review.
-        timeout-minutes: 300
+        timeout-minutes: 330
         # Pin privileged third-party actions to an immutable commit.
         # ed5d384 = v0.0.14. Verify before bumping:
         #   git ls-remote https://github.com/L-K-M/zai-code-review 'refs/tags/v0.0.14^{}'
@@ -91,7 +94,7 @@ jobs:
           PR_NUMBER: ${{ github.event.pull_request.number }}
           RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}/attempts/${{ github.run_attempt }}
           # Keep in step with the review step's timeout-minutes above.
-          REVIEW_BUDGET_MINUTES: "300"
+          REVIEW_BUDGET_MINUTES: "330"
         run: |
           set -euo pipefail
 

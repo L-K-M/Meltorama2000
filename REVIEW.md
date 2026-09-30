@@ -108,6 +108,22 @@ Legend: 🐞 bug · 🔧 improvement · ✨ idea · ⬜ open · 🟢 done · ⏸
 
 ## Sol PR review dispositions
 
+- **PR #117: shrink the bootstrap or retrigger with labels — refuted.** The
+  pinned action has no completed-chunk checkpoint. Incremental/hybrid scope
+  requires a completed baseline; PR #116's failed bootstrap has none and
+  therefore restarts full coverage. The workflow does not subscribe to the
+  `labeled` event, so a label alone cannot retrigger it. Push or reopen after
+  the trusted workflow update merges. The port had one completed timeout;
+  superseded cancellations are not failed review rounds.
+- **PR #117: lower reasoning effort instead of smaller chunks — declined.**
+  The input already exists and is set to high. Keep the established review
+  depth, start with sections the failed run successfully completed, and budget
+  for their measured timing. The pinned splitter plans 49 requests for the
+  final port. Eleven successful fallback requests averaged 5.903 minutes;
+  their projection is 289.27 minutes, so the revised 330-minute step leaves
+  about 41 minutes. This estimate is not a completed port review. Chunk size
+  and reasoning are trusted workflow inputs, not per-PR label overrides.
+
 - **PR #24: per-revision lazy materialized lists — declined.** The repeated
   active-state read concern was valid and fixed with one active-revision cache.
   Caching every historical prefix would restore the quadratic retained-reference
