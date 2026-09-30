@@ -15,3 +15,7 @@ captures/
 *.keystore
 *.p12
 !app/debug.keystore
+
+# Native Swift package build products.
+macos/.build/
+macos/.swiftpm/

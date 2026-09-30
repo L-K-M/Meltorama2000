@@ -211,6 +211,91 @@ lives in `engine/core` as pure JVM classes.
   this repo, license is the project's (Unlicense). Regenerate with
   `python3 scripts/generate_samples.py`.
 
+## Native macOS port
+
+- `macos/Package.swift` builds the Foundation `MeltoramaCore` library and
+  AppKit/SwiftUI `MeltoramaMac` application. `scripts/build-macos.sh` creates
+  an independent `.app` and zip; `scripts/test-macos.sh --smoke` exercises
+  package tests and the installed app's GPU/save pipeline. No third-party
+  runtime dependencies are bundled.
+- The native renderer uses the existing GLSL in an isolated desktop OpenGL
+  context. `scripts/sync-macos-shaders.py` translates version/precision/layout
+  syntax only; regenerate after editing `GlShaders.kt`. CI checks drift.
+  Source UV remains top-left. Image upload and readback row orientation must
+  stay paired; identity and asymmetric-color export tests catch inversions.
+  Canvas zoom is fit-relative internally; its readout and Actual Size use
+  `CanvasGeometry` and the window's backing scale to measure display pixels.
+  Do not present the internal fit multiplier as a document zoom percentage.
+- The Mac renderer's GOOvie endpoint cache must touch a cached A before
+  materializing B. Otherwise a FIFO eviction can delete A while the current
+  draw still holds it, corrupting nonadjacent or reordered frame previews.
+  `WarpEngineTests` reproduces this with an already cached A and an uncached B.
+  Revision IDs belong to one document. A shared thumbnail renderer also checks
+  revision records for conflicts when another project uses identical photo
+  bytes; direct stroke equality misses a Rewind's changed detached target.
+  Stage source and Fusion decode/upload before replacing textures or their
+  identity keys. Failed decoding must preserve the previous revision identity;
+  a successful source/crop change invalidates Fusion's cover geometry until B
+  is rebuilt. Undo or retry after a bad image must match a fresh replay.
+- Pin replay mirrors Android `PinWarp.sanitized`: finite document values can
+  still be outside solver bounds. Clamp controls and weights, reach, and rubber
+  at shader upload so imported projects and pulls dragged beyond the photo
+  reproduce Android's result in preview and export.
+- SwiftUI may read a retained `Binding` after its inspector disappears.
+  Keyframe and lens bindings validate selection and array bounds inside every
+  getter and setter (`EditorBindings`), not just the surrounding view's `if`.
+  Deleting a selected frame, cropping, removing a lens, and undo can otherwise
+  crash during the next SwiftUI update. Neutral getters and no-op stale writes
+  are presentation recovery; they never change the document.
+- `.meltorama` is a Finder package around Android's existing project folder
+  format. `ProjectPackage` strictly validates local names, regular assets,
+  schema, and revision DAG before accepting it. Saved source bytes remain
+  original. Native controls are not serialized into the Android document.
+  Crop pixel bounds use Android's Float products followed by independent
+  nearest rounding and clamping of origin and size (`CropRect.pixelRect`).
+  Double multiplication, truncation, or `CGRect.integral` changes imported
+  pixels. Near-full-frame edge jitter is ignored on both platforms.
+  Validate pixel decoding before native read/Revert replaces a live document.
+  Image dimensions alone do not establish successful pixel decoding. A decode
+  error must leave drafts, gestures, undo, and recovery intact.
+- Mac undo is AppKit's document undo manager, including native effect and
+  timeline actions. Revision IDs remain monotonic across undo branches;
+  existing animation pins retain their immutable revisions. Crop resets
+  coordinate-dependent edits, but native Undo restores the prior document.
+- Inspector number fields buffer text until Return or focus leaves, then parse
+  and clamp once. Clamping each keystroke turns a partial `0` into the minimum
+  before the user can finish typing. Normalized size/strength/effect values
+  display percentages without changing document units. Slider drags group undo
+  across input events and balance the group on save, close, or panel removal.
+  Native `NSTextField` delegates commit synchronously before explicit Save,
+  Close, Capture, Copy, and Export; deferred SwiftUI focus callbacks can otherwise
+  leave serialization one value behind. Background autosave serializes only the
+  committed model and must not clamp partial text or move focus. Successful
+  Revert discards drafts after validation; failed reads preserve them.
+- Named Mac documents autosave through `NSDocument`. Unnamed work also writes
+  durable recovery packages; recovery is never silently evicted. Mac document
+  close/save behavior follows AppKit conventions, a deliberate adaptation of
+  the phone's private always-saved shelf. Export stages a sibling file and
+  replaces its destination only after successful encoding.
+  Finish active brush and lens gestures in `canClose`, before AppKit decides
+  whether saving is needed. Waiting until `close` lets a clean saved document
+  pass that decision, then lose the gesture it commits on the way out.
+- The macOS icon reuses the app's hand-authored droplet vector via
+  `scripts/generate-macos-icon.swift`. Samples are the same repo-generated
+  public-domain assets documented above.
+- Native user-facing copy lives in `en.lproj` and `zh-Hans.lproj`, accessed
+  through `L` and `LF`; tool terminology follows Android's Chinese resources.
+  Samples, shaders, and localization use `ResourceBundle`, which resolves the
+  installed app's `Contents/Resources` bundle before SwiftPM's `Bundle.module`.
+  SwiftPM's generated accessor can fall back to an absolute build directory,
+  masking incomplete packaging on the development Mac. The installed smoke
+  test refuses resources outside the app bundle.
+  Resolve resource bundles physically under `Contents/Resources`; flat SwiftPM
+  and Xcode `Contents/Resources` layouts are both supported. Installed apps
+  never use the development fallback. Compare containment after resolving
+  symlinks: Foundation can normalize `/private/tmp` to `/tmp` for a nested
+  bundle while retaining `/private/tmp` for the application's main bundle.
+
 ## CI/CD
 
 Three workflows (details: [CICD.md](CICD.md)): `ci.yml` (tests + lint +
@@ -416,4 +501,3 @@ may waive review; report that waiver rather than claiming review passed.
   status, review rounds completed, and whether it is merged.
 
 <!-- shared-rules:end -->
-

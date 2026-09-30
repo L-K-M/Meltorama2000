@@ -357,3 +357,14 @@ the verb (appId stays `ch.lkmc.goo` regardless):
 **Gooify**, **Blorb**, **PicPutty**. Current favorite: **Taffy** or
 **Squidge** — both read as playful without leaning on the KPT trademark
 history.
+
+## Native macOS adaptation
+
+The macOS editor keeps the revision graph, original-image package format,
+normalized input geometry, shader kernels, and preview/export replay model.
+Swift ports the pure Kotlin rules; AppKit owns documents, undo, files, and
+canvas gestures; SwiftUI owns the tool palette, contextual inspectors, and
+GOOvie timeline. Mac windows use system typography and adaptive appearance
+with a central workspace. The native toolbar and standard menus replace the
+phone dock, and named project packages plus recovery replace the In-room
+private shelf. See [macos/README.md](macos/README.md).

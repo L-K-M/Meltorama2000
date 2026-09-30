@@ -72,6 +72,17 @@ values; keep this explanation in step when tuning it. After merging a tuning
 change, push or reopen the affected PR. Changing labels alone does not trigger
 this workflow.
 
+## Native macOS CI
+
+`ci.yml` also runs a `macos` job on the hosted Mac runner. It verifies the
+mechanical GLSL translation, runs Swift document/input/session/renderer/export
+tests, and builds an independent ad-hoc-signed application zip. GPU tests
+explicitly skip when the runner has no accelerated display context; actual
+Mac smoke checks are recorded in `macos/VERIFICATION.md`. The native zip and
+SHA-256 sidecar are uploaded as PR/main artifacts. Local Developer ID signing
+is available through `MELTORAMA_SIGN_IDENTITY`; distribution notarization
+requires the developer's Apple credentials.
+
 ## Secrets
 
 | Secret | Used by | Purpose |
