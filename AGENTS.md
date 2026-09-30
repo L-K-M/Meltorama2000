@@ -220,6 +220,15 @@ per [CLAUDE.md](CLAUDE.md)). Family contract on every workflow:
 least-privilege permissions, explicit concurrency, timeouts, wrapper
 validation.
 
+The pinned reviewer has no completed-chunk checkpoint. Its initial full scan
+must finish before hybrid follow-ups can use a completed baseline; a timed-out
+bootstrap starts over. PR labels select scope or model tier, not chunk size or
+reasoning effort. Those settings come from the trusted base-branch workflow.
+The active chunk size and budgets live in
+`.github/workflows/zai-code-review.yml`; keep CICD.md in step when tuning them.
+Changing a scope/model label alone does not trigger this workflow. Push or
+reopen an affected PR after the trusted workflow change merges.
+
 ## Releasing
 
 `scripts/release.sh X.Y.Z --push` (shared lkm-release engine) bumps
