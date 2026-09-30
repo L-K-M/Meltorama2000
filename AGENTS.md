@@ -295,6 +295,10 @@ lives in `engine/core` as pure JVM classes.
   never use the development fallback. Compare containment after resolving
   symlinks: Foundation can normalize `/private/tmp` to `/tmp` for a nested
   bundle while retaining `/private/tmp` for the application's main bundle.
+  SwiftPM's native build system can lowercase localization directories.
+  Specific-language tests derive their `.lproj` bundle from the localized
+  strings URL; direct lookup of a case-sensitive language folder can fail even
+  when Foundation resolves its strings correctly.
 
 ## CI/CD
 

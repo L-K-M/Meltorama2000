@@ -38,8 +38,8 @@ final class LocalizationTests: XCTestCase {
         for key in ["File", "Open…", "Save…", "Revert to Saved…", "Return to Full Photo", "Whole Photo Effects", "Export…", "Loop forever", "Enter Full Screen", "Exit Full Screen"] {
             XCTAssertNotEqual(chinese[key], key)
         }
-        let url = try XCTUnwrap(ResourceBundle.url(forResource: "zh-Hans", withExtension: "lproj"))
-        let bundle = try XCTUnwrap(Bundle(url: url))
+        let url = try XCTUnwrap(ResourceBundle.url(forResource: "Localizable", withExtension: "strings", subdirectory: "zh-Hans.lproj"))
+        let bundle = try XCTUnwrap(Bundle(url: url.deletingLastPathComponent()))
         XCTAssertEqual(NSLocalizedString("File", bundle: bundle, comment: ""), "文件")
         XCTAssertEqual(String(format: NSLocalizedString("Frame %d", bundle: bundle, comment: ""), 3), "第 3 帧")
     }
