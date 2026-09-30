@@ -220,6 +220,13 @@ per [CLAUDE.md](CLAUDE.md)). Family contract on every workflow:
 least-privilege permissions, explicit concurrency, timeouts, wrapper
 validation.
 
+The pinned reviewer has no completed-chunk checkpoint. Its initial full scan
+must finish before hybrid follow-ups can use a completed baseline; a timed-out
+bootstrap starts over. PR labels select scope or model tier, not chunk size or
+reasoning effort. Those settings come from the trusted base-branch workflow.
+Start requests at 12500 patch characters; the review step has a 300-minute
+budget and the job has a 310-minute backstop for failure reporting.
+
 ## Releasing
 
 `scripts/release.sh X.Y.Z --push` (shared lkm-release engine) bumps

@@ -29,7 +29,7 @@ jobs:
     # failure, which the reporting step can act on, and leaves "cancelled" to
     # mean only what the concurrency group above means by it: a newer push took
     # over.
-    timeout-minutes: 180
+    timeout-minutes: 310
     # pull_request_target exposes repository secrets and a write-capable token.
     # Never run this privileged job for branches from untrusted forks.
     if: >-
@@ -45,15 +45,13 @@ jobs:
       - name: Z.ai Code Review
         id: review
         if: ${{ env.ZAI_API_KEY != '' }}
-        # Wall clock here is the sum of the model requests: the action sends one
-        # request per chunk of patch and waits each one out, so it tracks diff
-        # size. Measured on Seance PR #89 (29 reviewed files, +5856/-205): a clean
-        # revision took 16 chunks at a 4.7 min mean, 76 min total; the next one
-        # needed 17 chunks at a 6.2 min mean, about 105 min, and overran the
-        # former 90 min budget twice in a row while posting nothing. 170 min
-        # covers roughly 27 chunks at that mean, so a diff half again the size
-        # of #89 still fits.
-        timeout-minutes: 170
+        # Requests run sequentially. Native Mac port PR #116 planned 23 chunks
+        # at 25000 patch characters, but several exhausted the 32768-token
+        # output budget before retrying as 12500-character sections. Only chunk
+        # 11 was reached before the 170-minute timeout. Start with smaller
+        # sections and allow 300 minutes for the initial full scan; the job
+        # backstop leaves another 10 minutes to report an unfinished review.
+        timeout-minutes: 300
         # Pin privileged third-party actions to an immutable commit.
         # ed5d384 = v0.0.14. Verify before bumping:
         #   git ls-remote https://github.com/L-K-M/zai-code-review 'refs/tags/v0.0.14^{}'
@@ -73,14 +71,11 @@ jobs:
           # PR with a zai-review:full / zai-review:hybrid / zai-review:incremental
           # label, applied before the push that triggers the next review.
           ZAI_REVIEW_MODE: hybrid
-          # Left at the action's own default. Raising it to cut the request
-          # count backfires: at 25000, three of Seance PR #89's 17 chunks spent the
-          # whole 32768-token output budget on reasoning and returned no review
-          # at all (finish reason "length", 116k to 123k reasoning characters),
-          # and each of those cost a wasted request plus the two smaller ones
-          # the action then retries with. Bigger chunks would hit that more
-          # often, not less.
-          MAX_CHUNK_CHARS: 25000
+          # PR #116 repeatedly spent the output budget reasoning about 25000-
+          # character chunks, then retried their smaller sections. Begin at
+          # 12500 to avoid those wasted parent requests without omitting patch
+          # content. Chunk size and reasoning cannot be overridden by PR labels.
+          MAX_CHUNK_CHARS: 12500
           ZAI_REVIEWER_NAME: GLM 5.3 Code Review
           GITHUB_TOKEN: ${{ github.token }}
 
@@ -96,7 +91,7 @@ jobs:
           PR_NUMBER: ${{ github.event.pull_request.number }}
           RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}/attempts/${{ github.run_attempt }}
           # Keep in step with the review step's timeout-minutes above.
-          REVIEW_BUDGET_MINUTES: "170"
+          REVIEW_BUDGET_MINUTES: "300"
         run: |
           set -euo pipefail
 
