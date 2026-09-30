@@ -117,7 +117,7 @@
 "GOOvie" = "GOOvie";
 "Goo Guy" = "黏糊小人";
 "Goo Your Photos" = "把照片揉成黏糊";
-"Goo Your Photos\nAn offline native photo playground.\n\nPublic domain under the Unlicense.\nSample artwork and warp shaders belong to this project.\nNo third-party runtime dependencies.\nYour photos stay on your Mac." = "把照片揉成黏糊\n完全离线的原生照片游乐场。\n\n依据 Unlicense 置于公共领域。\n样图与变形着色器属于本项目。\n无需第三方运行时依赖。\n你的照片始终留在 Mac 上。";
+"Goo Your Photos\nAn offline native photo playground.\n\nPublic domain under the Unlicense.\nSample artwork and warp shaders belong to this project.\nNo third-party runtime dependencies.\nEditing happens on your Mac." = "把照片揉成黏糊\n完全离线的原生照片游乐场。\n\n依据 Unlicense 置于公共领域。\n样图与变形着色器属于本项目。\n无需第三方运行时依赖。\n编辑在你的 Mac 上完成。";
 "Grow" = "胀大";
 "H.264 encoding is unavailable for this image size." = "无法以 H.264 编码此尺寸的图片。";
 "Hand" = "抓手";
@@ -316,3 +316,9 @@
 "unwind" = "反漩";
 "vortex" = "漩涡";
 "whip" = "鞭甩";
+
+"Share…" = "共享…";
+"Shared %@" = "已共享 %@";
+"Share cancelled" = "已取消共享";
+"Open a document window before sharing." = "请先打开文稿窗口，再共享。";
+"The sharing picker could not be opened." = "无法打开共享选项。";

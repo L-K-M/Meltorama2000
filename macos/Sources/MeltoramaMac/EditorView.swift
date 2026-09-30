@@ -303,6 +303,8 @@ struct ExportSheet:View {
     @State private var speed:MovieSpeed = .normal
     @State private var loop=true
     @State private var limit=0
+    private var options: ExportOptions { ExportOptions(format:format,jpegQuality:quality,speed:speed,loop:loop,maxDimension:limit==0 ? nil : limit) }
+    private var needsFrames: Bool { format.isMovie && session.state.keyframes.count<2 }
     var body:some View {
         VStack(alignment:.leading,spacing:18) {
             Text(L("Export")).font(.title2.weight(.semibold))
@@ -317,7 +319,12 @@ struct ExportSheet:View {
                 Text(LF("%d × %d source pixels. Export replays your edits against the original photo.",Int(session.imageSize.width),Int(session.imageSize.height))).font(.caption).foregroundStyle(.secondary)
             }
             Divider()
-            HStack {Spacer();Button(L("Cancel")) {session.showExport=false}.keyboardShortcut(.cancelAction);Button(L("Export…")) {session.export(options:ExportOptions(format:format,jpegQuality:quality,speed:speed,loop:loop,maxDimension:limit==0 ? nil : limit))}.keyboardShortcut(.defaultAction).disabled(!session.canExport || (format.isMovie && session.state.keyframes.count<2))}
+            HStack {
+                Button(L("Share…")) {session.share(options:options)}.disabled(!session.canShare || needsFrames)
+                Spacer()
+                Button(L("Cancel")) {session.showExport=false}.keyboardShortcut(.cancelAction)
+                Button(L("Export…")) {session.export(options:options)}.keyboardShortcut(.defaultAction).disabled(!session.canExport || needsFrames)
+            }
         }.padding(24).frame(width:420)
     }
 }

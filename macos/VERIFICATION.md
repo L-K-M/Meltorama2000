@@ -27,6 +27,7 @@ record below must distinguish automated checks from manual app checks.
 | Still export | Native ImageIO PNG/JPEG renders the original source size by default, preserves upright orientation, and matches the canvas's displacement math. JPEG quality is adjustable. Oversized textures fail clearly rather than silently reducing resolution. |
 | Movie export | AVFoundation H.264 MP4 and ImageIO GIF consume the same tween walk. MP4 stays at 30 fps; GIF selects 20/10/5/4/2 fps without truncating the strip. Speed changes frame count, including the exact closing pin. GIF's loop option is respected. |
 | Export failures | Progress updates remain responsive, cancellation cleans staging files, and an existing destination stays intact until successful atomic finalization. Errors describe the failed operation. |
+| Native sharing | The export sheet shares PNG/JPEG/MP4/GIF through system services with the same options and immutable replay. Dismissal/cancellation removes temporary outputs; a chosen service retains its output through completion even if the document closes. |
 | Mac interaction | Standard menus, shortcuts, contextual commands, focus rings, tab order, selection feedback, tooltips/accessibility labels, light/dark appearance, and comfortable click targets are exercised in the actual app. |
 | Distribution | A clean repeatable build produces a self-contained `.app` with shaders, samples, metadata, icon, and notices. It launches after relocation without the source checkout. |
 
@@ -89,9 +90,15 @@ both GIF and MP4 after rendering starts. Cancellation preserves existing
 destination bytes and removes staging files. GPU-less processes explicitly
 skip these integration checks instead of reporting encoder verification.
 
-The integrated native suite passed all 96 tests on 30 September 2026 on Apple
+The integrated native suite passed all 106 tests on 30 September 2026 on Apple
 silicon, macOS 26.7, with zero failures and zero skips. Actual GPU and encoding
 tests ran. Android's unit tests, lint, and debug assembly also passed.
+
+Ten sharing tests verify all four output formats, committed immutable PNG pixel
+parity, unique owner-only staging directories, cancellation and failure cleanup,
+picker dismissal, retained file lifetime after closing the source window,
+selected-service cancellation, interrupted presentation, and flipped-view
+popover placement. Lifecycle tests use inert services and send nothing.
 
 The universal release bundle contains arm64 and x86_64 executables with a
 macOS 13 minimum deployment target and only Apple/system dynamic dependencies.
@@ -114,8 +121,14 @@ The installed app was launched and exercised through its real windows:
   The saved JSON and reopened inspector both retained the exact 0.45 amount.
 - Saved a `.meltorama` package with the native save panel and reopened it with
   Command-O. Original source bytes and pinned revisions survived.
+  Save As created an independent project while retaining the original source
+  bytes in both. Command-Option-Shift-S opened AppKit's Save As panel.
 - Exported a 1200 × 900 PNG and an H.264 MP4 through the native export sheets
   and save dialogs. Independent decoder checks cover JPEG and animated GIF.
+  The native sharing picker displayed encoded PNG and MP4 previews and services
+  after the export sheet dismissed. The final picker anchored beneath the
+  toolbar. Escape dismissed both and removed their private temporary outputs;
+  no external service was invoked or sent anything.
 - Placed and selected a lens, cropped a document containing a selected frame,
   and used Undo to restore its image dimensions and captured pin. The crop
   check reproduced a stale SwiftUI binding crash before the fix; the same

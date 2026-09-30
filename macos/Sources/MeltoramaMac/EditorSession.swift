@@ -56,6 +56,7 @@ final class EditorSession: ObservableObject {
     private var copyTask: Task<Void, Never>?
     private var copyGeneration = 0
     private(set) var activeExportID: UUID?
+    @Published private(set) var sharingCoordinator: NativeSharingCoordinator?
     private var continuousUndoGroup: (manager: UndoManager, groupsByEvent: Bool, baseLevel: Int)?
     var activeStroke: Stroke?
     private var lastPoint: CGPoint?
@@ -76,6 +77,7 @@ final class EditorSession: ObservableObject {
     static let recoveryDirectory: URL = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0].appendingPathComponent("Meltorama/Recovery", isDirectory: true)
     var hasPhoto: Bool { !source.isEmpty }
     var canExport: Bool { hasPhoto && progress == nil && activeExportID == nil }
+    var canShare: Bool { canExport && sharingCoordinator == nil }
     var aspect: Float { Float(imageSize.width / max(1, imageSize.height)) }
     var currentRevision: Int64 { state.log.history.indices.contains(state.log.cursor) ? state.log.history[state.log.cursor] : 0 }
     var hint: String {
@@ -438,24 +440,69 @@ final class EditorSession: ObservableObject {
         panel.allowedContentTypes = [options.format.contentType]
         panel.nameFieldStringValue = "\(document?.displayName ?? "Goo").\(options.format.fileExtension)"
         guard panel.runModal() == .OK, let url = panel.url else { return }
+        startOutput(options: options, to: url) { [weak self] result in
+            self?.exportMessage = LF("Exported %@", result.lastPathComponent)
+            NSWorkspace.shared.activateFileViewerSelecting([result])
+        }
+    }
+    @MainActor @discardableResult
+    func share(options: ExportOptions, from window: NSWindow? = nil,
+               presentation: NativeSharingCoordinator.Presentation? = nil) -> Task<Void, Never>? {
+        document?.commitPendingEditing()
+        guard canShare else { return nil }
+        guard let window = window ?? document?.windowControllers.first(where: { $0.window?.isVisible == true })?.window else {
+            error = NativeSharingFailure.missingWindow.localizedDescription
+            return nil
+        }
+        do {
+            let coordinator = try NativeSharingCoordinator(format: options.format, name: document?.displayName ?? "Goo")
+            sharingCoordinator = coordinator
+            coordinator.onCompletion = { [weak self, weak coordinator] outcome in
+                guard let self, let coordinator, self.sharingCoordinator === coordinator else { return }
+                self.sharingCoordinator = nil
+                switch outcome {
+                case .shared: self.exportMessage = LF("Shared %@", coordinator.fileURL.lastPathComponent)
+                case .cancelled: self.exportMessage = L("Share cancelled")
+                case .failed(let error): self.exportMessage = nil; self.error = localizedError(error).localizedDescription
+                }
+            }
+            let task = startOutput(options: options, to: coordinator.fileURL, cancelledMessage: L("Share cancelled"),
+                onReady: { _ in try await coordinator.present(in: window, presentation: presentation) },
+                onAbort: { coordinator.cancelBeforeSharing() })
+            if task == nil { coordinator.cancelBeforeSharing() }
+            return task
+        } catch {
+            self.error = localizedError(error).localizedDescription
+            return nil
+        }
+    }
+    @discardableResult
+    private func startOutput(options: ExportOptions, to url: URL,
+                             cancelledMessage: String = L("Export cancelled"),
+                             onReady: @escaping @MainActor (URL) async throws -> Void,
+                             onAbort: @escaping @MainActor () -> Void = {}) -> Task<Void, Never>? {
         finishStroke()
         let snapshot = state, source = self.source, fusion = self.fusion
-        guard let exportID = beginExportTracking() else { return }
-        exportTask = Task { @MainActor [weak self] in
+        guard let exportID = beginExportTracking() else { return nil }
+        let task = Task { @MainActor [weak self] in
             guard let self else { return }
             defer { finishExportTracking(exportID) }
             do {
                 let result = try await ExportService.export(document: snapshot, source: source, fusion: fusion, options: options, to: url) { [weak self] value in
                     DispatchQueue.main.async { [weak self] in self?.applyExportProgress(value, exportID: exportID) }
                 }
-                exportMessage = LF("Exported %@", result.lastPathComponent)
-                NSWorkspace.shared.activateFileViewerSelecting([result])
+                try await onReady(result)
             } catch is CancellationError {
-                exportMessage = L("Export cancelled")
+                onAbort()
+                exportMessage = cancelledMessage
             } catch {
+                onAbort()
+                exportMessage = nil
                 self.error = localizedError(error).localizedDescription
             }
         }
+        exportTask = task
+        return task
     }
     func beginExportTracking() -> UUID? {
         guard canExport else { return nil }

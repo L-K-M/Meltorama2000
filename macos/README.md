@@ -54,7 +54,7 @@ menus. Undo does not flatten existing pins.
 | Command | Shortcut |
 | --- | --- |
 | New document / Open | Command-N / Command-O |
-| Save / Save As | Command-S / Command-Shift-S |
+| Save / Save As | Command-S / Command-Option-Shift-S |
 | Undo / Redo | Command-Z / Command-Shift-Z |
 | Export | Command-Shift-E |
 | Add Fusion photo | Command-Shift-O |
@@ -90,6 +90,10 @@ caps are available for large photos. Movie export uses the same replay and
 tween pipeline with H.264 MP4 or animated GIF. Speed changes the number of
 frames while retaining the encoder's nominal clock. GIF uses Apple's ImageIO
 encoder. Cancelled exports remove staging files and retain existing outputs.
+Choose Share in the export sheet to send the selected photo or movie through
+the native Mac sharing picker. Sharing uses the same format, quality, size,
+and animation settings as export. Its temporary output stays available until
+the selected service finishes, then the app removes it.
 
 ## Architecture and maintenance
 

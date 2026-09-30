@@ -117,7 +117,7 @@
 "GOOvie" = "GOOvie";
 "Goo Guy" = "Goo Guy";
 "Goo Your Photos" = "Goo Your Photos";
-"Goo Your Photos\nAn offline native photo playground.\n\nPublic domain under the Unlicense.\nSample artwork and warp shaders belong to this project.\nNo third-party runtime dependencies.\nYour photos stay on your Mac." = "Goo Your Photos\nAn offline native photo playground.\n\nPublic domain under the Unlicense.\nSample artwork and warp shaders belong to this project.\nNo third-party runtime dependencies.\nYour photos stay on your Mac.";
+"Goo Your Photos\nAn offline native photo playground.\n\nPublic domain under the Unlicense.\nSample artwork and warp shaders belong to this project.\nNo third-party runtime dependencies.\nEditing happens on your Mac." = "Goo Your Photos\nAn offline native photo playground.\n\nPublic domain under the Unlicense.\nSample artwork and warp shaders belong to this project.\nNo third-party runtime dependencies.\nEditing happens on your Mac.";
 "Grow" = "Grow";
 "H.264 encoding is unavailable for this image size." = "H.264 encoding is unavailable for this image size.";
 "Hand" = "Hand";
@@ -316,3 +316,9 @@
 "unwind" = "unwind";
 "vortex" = "vortex";
 "whip" = "whip";
+
+"Share…" = "Share…";
+"Shared %@" = "Shared %@";
+"Share cancelled" = "Share cancelled";
+"Open a document window before sharing." = "Open a document window before sharing.";
+"The sharing picker could not be opened." = "The sharing picker could not be opened.";

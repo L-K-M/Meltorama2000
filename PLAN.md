@@ -367,4 +367,5 @@ canvas gestures; SwiftUI owns the tool palette, contextual inspectors, and
 GOOvie timeline. Mac windows use system typography and adaptive appearance
 with a central workspace. The native toolbar and standard menus replace the
 phone dock, and named project packages plus recovery replace the In-room
-private shelf. See [macos/README.md](macos/README.md).
+private shelf. Native sharing services replace Android's share intents, using
+the same encoded output as file export. See [macos/README.md](macos/README.md).

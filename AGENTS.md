@@ -283,6 +283,12 @@ lives in `engine/core` as pure JVM classes.
   Finish active brush and lens gestures in `canClose`, before AppKit decides
   whether saving is needed. Waiting until `close` lets a clean saved document
   pass that decision, then lose the gesture it commits on the way out.
+  AppKit adapts Save As to Command-Option-Shift-S for autosaving documents.
+  Declare and document that shortcut explicitly; Command-Shift-S is not Save As.
+- Native sharing uses the export encoder and a unique, owner-only temporary
+  directory. The sharing coordinator retains that output until the chosen
+  service completes or fails, even if the document closes. Dismissing the
+  picker before choosing a service removes only its temporary output.
 - The macOS icon reuses the app's hand-authored droplet vector via
   `scripts/generate-macos-icon.swift`. Samples are the same repo-generated
   public-domain assets documented above.

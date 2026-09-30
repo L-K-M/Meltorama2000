@@ -109,7 +109,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuItemValidation, 
         alert.runModal()
     }
     @objc func about(_ sender: Any?) {
-        NSApp.orderFrontStandardAboutPanel(options: [.applicationName: "Meltorama 2000", .credits: NSAttributedString(string: L("Goo Your Photos\nAn offline native photo playground.\n\nPublic domain under the Unlicense.\nSample artwork and warp shaders belong to this project.\nNo third-party runtime dependencies.\nYour photos stay on your Mac."))])
+        NSApp.orderFrontStandardAboutPanel(options: [.applicationName: "Meltorama 2000", .credits: NSAttributedString(string: L("Goo Your Photos\nAn offline native photo playground.\n\nPublic domain under the Unlicense.\nSample artwork and warp shaders belong to this project.\nNo third-party runtime dependencies.\nEditing happens on your Mac."))])
     }
     @objc func settings(_ sender: Any?) {
         if settingsWindow == nil {
@@ -197,7 +197,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuItemValidation, 
             ("New", #selector(newDocument), "n", .command), ("Open…", #selector(openDocument), "o", .command),
             ("-", nil, "", []), ("Close", #selector(NSWindow.performClose(_:)), "w", .command),
             ("Save…", #selector(NSDocument.save(_:)), "s", .command),
-            ("Save As…", #selector(NSDocument.saveAs(_:)), "s", [.command, .shift]),
+            ("Save As…", #selector(NSDocument.saveAs(_:)), "s", [.command, .option, .shift]),
             ("Revert to Saved…", #selector(NSDocument.revertToSaved(_:)), "", []),
             ("-", nil, "", []), ("Add Fusion Photo…", #selector(importFusion), "o", [.command, .shift]),
             ("Export…", #selector(exportDocument), "e", [.command, .shift])])
