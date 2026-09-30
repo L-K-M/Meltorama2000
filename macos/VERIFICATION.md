@@ -153,6 +153,10 @@ The installed app was launched and exercised through its real windows:
   Option-6 restored 12%. Command-C and Option-C kept Brush selected, while
   ordinary H/C/L/B selected Hand/Crop/Lenses/Brush. The bracket and Command-C
   failures were reproduced in the app before the fix and passed afterward.
+- Inspected the final accessibility tree: effect reset, Fusion add, playback,
+  timeline hiding, frame ordering, and frame deletion expose localized action
+  names rather than SF Symbol identifiers. This verifies labels, not a complete
+  manual VoiceOver workflow.
 
 The UI automation connection timed out at a native save panel. A process
 sample showed the application's main thread normally waiting for events.

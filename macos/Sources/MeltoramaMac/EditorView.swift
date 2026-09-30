@@ -130,7 +130,7 @@ struct EditorView: View {
                 ForEach(0..<6,id:\.self) { index in EffectSection(session:session,index:index) }
                 Divider().padding(.top,8)
                 VStack(alignment:.leading,spacing:10) {
-                    HStack { Text(L("Fusion Photo")).font(.headline); Spacer(); Button {session.importFusion()} label:{Image(systemName:"plus")}.help(L("Add a Fusion photo")).disabled(!session.hasPhoto) }
+                    HStack { Text(L("Fusion Photo")).font(.headline); Spacer(); Button {session.importFusion()} label:{Image(systemName:"plus")}.help(L("Add a Fusion photo")).accessibilityLabel(L("Add a Fusion photo")).disabled(!session.hasPhoto) }
                     if session.fusion != nil { Text(L("Paint the second photo through with Fusion.")).font(.caption).foregroundStyle(.secondary); Button(L("Remove Fusion Photo")) {session.setFusion(nil)} }
                     else { Text(L("Combine two photos with a soft brush.")).font(.caption).foregroundStyle(.secondary) }
                 }.padding(14)
@@ -180,12 +180,12 @@ struct EditorView: View {
         VStack(alignment:.leading,spacing:9) {
             HStack(spacing:10) {
                 Label(L("GOOvie"),systemImage:"film").font(.headline)
-                Button {session.togglePlayback()} label:{Image(systemName:session.playing ? "pause.fill" : "play.fill")}.help(L("Play or pause the animation")).disabled(session.state.keyframes.count<2)
+                Button {session.togglePlayback()} label:{Image(systemName:session.playing ? "pause.fill" : "play.fill")}.help(L("Play or pause the animation")).accessibilityLabel(L("Play or pause the animation")).disabled(session.state.keyframes.count<2)
                 Button(L("Capture")) {session.captureKeyframe()}.help(L("Pin the live photo as a new frame (⌘K)"))
                 Button(L("Update")) {session.updateKeyframe()}.disabled(!session.state.keyframes.indices.contains(session.selectedKeyframe ?? -1))
                 Spacer()
                 Text("\(session.state.keyframes.count) / 64").font(.caption).foregroundStyle(.secondary)
-                Button {session.showTimeline=false} label:{Image(systemName:"xmark")}.buttonStyle(.borderless).help(L("Hide GOOvie timeline"))
+                Button {session.showTimeline=false} label:{Image(systemName:"xmark")}.buttonStyle(.borderless).help(L("Hide GOOvie timeline")).accessibilityLabel(L("Hide GOOvie timeline"))
             }
             if session.state.keyframes.isEmpty { Text(L("Capture a frame, goo the photo, then capture another. Frames keep their own revisions through undo.")).font(.caption).foregroundStyle(.secondary) }
             else {
@@ -203,9 +203,9 @@ struct EditorView: View {
                     if session.state.keyframes.count>1 { Slider(value:Binding(get:{session.scrub},set:{session.scrub=$0;session.live=false;session.playing=false;session.requestRender()}),in:0...Double(session.state.keyframes.count-1)).accessibilityLabel(L("Animation position")) }
                     if let index=session.selectedKeyframe,session.state.keyframes.indices.contains(index) {
                         Picker(L("Curve"),selection:EditorBindings.keyframeEasing(session:session,index:index)) { ForEach(Easing.allCases,id:\.rawValue) {Text(L($0.title)).tag($0)} }.frame(width:180)
-                        Button {session.moveFrame(-1)} label:{Image(systemName:"chevron.left")}.disabled(index==0).help(L("Move frame earlier"))
-                        Button {session.moveFrame(1)} label:{Image(systemName:"chevron.right")}.disabled(index==session.state.keyframes.count-1).help(L("Move frame later"))
-                        Button {session.deleteFrame()} label:{Image(systemName:"trash")}.help(L("Delete selected frame"))
+                        Button {session.moveFrame(-1)} label:{Image(systemName:"chevron.left")}.disabled(index==0).help(L("Move frame earlier")).accessibilityLabel(L("Move frame earlier"))
+                        Button {session.moveFrame(1)} label:{Image(systemName:"chevron.right")}.disabled(index==session.state.keyframes.count-1).help(L("Move frame later")).accessibilityLabel(L("Move frame later"))
+                        Button {session.deleteFrame()} label:{Image(systemName:"trash")}.help(L("Delete selected frame")).accessibilityLabel(L("Delete selected frame"))
                     }
                 }
             }
@@ -278,7 +278,7 @@ struct EffectSection: View {
                 Text(L(titles[index])).font(.callout).onTapGesture {expanded.toggle()}
                 Spacer()
                 if value != 0 { Text(String(format:"%+.0f%%",value*100)).font(.caption).monospacedDigit().foregroundStyle(.secondary) }
-                Button {setValue(0);session.edit("Still \(titles[index])") {$0.wobble.levers[index]=LeverWobble()}} label:{Image(systemName:"arrow.counterclockwise").font(.caption)}.buttonStyle(.borderless).help(LF("Reset %@",L(titles[index])))
+                Button {setValue(0);session.edit("Still \(titles[index])") {$0.wobble.levers[index]=LeverWobble()}} label:{Image(systemName:"arrow.counterclockwise").font(.caption)}.buttonStyle(.borderless).help(LF("Reset %@",L(titles[index]))).accessibilityLabel(LF("Reset %@",L(titles[index])))
             }.frame(height:29).padding(.horizontal,14)
             if expanded {
                 VStack(alignment:.leading,spacing:8) {

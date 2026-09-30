@@ -230,6 +230,9 @@ lives in `engine/core` as pure JVM classes.
   chain instead of treating them as tool letters. Brush-size brackets use the
   generated character, including Option-generated brackets on international
   keyboards; other Option combinations remain available to native commands.
+- Icon-only SwiftUI controls need explicit localized accessibility labels.
+  A tooltip alone leaves the accessibility name as the SF Symbol identifier.
+  Reset, Fusion add, playback, and frame actions use their purpose as the name.
 - The Mac renderer's GOOvie endpoint cache must touch a cached A before
   materializing B. Otherwise a FIFO eviction can delete A while the current
   draw still holds it, corrupting nonadjacent or reordered frame previews.
