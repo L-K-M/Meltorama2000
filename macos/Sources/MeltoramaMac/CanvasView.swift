@@ -4,16 +4,19 @@ import MeltoramaCore
 
 struct CanvasView: NSViewRepresentable {
     @ObservedObject var session: EditorSession
+    @Environment(\.macTheme) private var theme
     func makeNSView(context: Context) -> PhotoCanvas {
         let view = PhotoCanvas()
         view.session = session
+        view.workspaceBackgroundColor = theme.canvasBackgroundColor
         return view
     }
-    func updateNSView(_ nsView: PhotoCanvas, context: Context) { nsView.session = session; nsView.updateViewport(); nsView.needsDisplay = true }
+    func updateNSView(_ nsView: PhotoCanvas, context: Context) { nsView.session = session; nsView.workspaceBackgroundColor = theme.canvasBackgroundColor; nsView.updateViewport(); nsView.needsDisplay = true }
 }
 
 final class PhotoCanvas: NSView {
     weak var session: EditorSession?
+    var workspaceBackgroundColor: NSColor = .underPageBackgroundColor
     private var tracking: NSTrackingArea?
     private var pointer: CGPoint?
     private var spaceDown = false
@@ -51,7 +54,7 @@ final class PhotoCanvas: NSView {
         return CanvasGeometry.sourcePoint(p, imageRect: imageRect, rotation: session.rotation)
     }
     override func draw(_ dirtyRect:NSRect) {
-        NSColor.underPageBackgroundColor.setFill();bounds.fill()
+        workspaceBackgroundColor.setFill();bounds.fill()
         guard let session,let image=session.image else {
             if session?.rendering == true {let text=NSAttributedString(string:L("Preparing Photo…"),attributes:[.font:NSFont.systemFont(ofSize:14),.foregroundColor:NSColor.secondaryLabelColor]);text.draw(at:CGPoint(x:bounds.midX-65,y:bounds.midY))};return
         }
