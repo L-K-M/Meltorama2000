@@ -272,6 +272,13 @@ and `git diff --check` passed. The icon packager produced all ten exact-sized
 sRGB representations; Apple's ICNS compiler encoded and decoded them, and every
 decoded pixel was verified opaque.
 
+`scripts/build.sh --install` built the release app and installed version 2.0.6
+(build 10) in `/Applications/Meltorama.app` with exit status zero. Strict
+signature verification and the installed GPU/edit/save/reopen smoke test
+passed. The universal archive's checksum and signature passed, and a relocated
+copy in a folder with spaces passed the same smoke test on arm64 and x86_64
+through Rosetta. Both Mach-O slices retain a macOS 13 deployment target.
+
 The debug app launched with the restored controls. Its actual Dark welcome
 window and system-rendered application icon were inspected: the picture fills
 the rounded icon without the previous white surround, and the welcome divider

@@ -333,6 +333,9 @@ lives in `engine/core` as pure JVM classes.
   canvas inset: the previous freeform icon appeared small on a system backdrop.
   Keep the master in the repository so builds need no external service. The
   original elastic photograph and its prompt remain in Git history at `9f0f268`.
+  In a restricted filesystem sandbox, Apple's `iconutil` can report a valid
+  iconset as invalid. Verify its slots, then rerun the compiler outside that
+  sandbox before changing the artwork or packager.
   Android retains its hand-authored droplet vector. Samples are the same
   repo-generated public-domain assets documented above.
 - Native user-facing copy lives in `en.lproj` and `zh-Hans.lproj`, accessed
