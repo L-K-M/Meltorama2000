@@ -268,6 +268,7 @@
 "The project's crop is invalid." = "The project's crop is invalid.";
 "The project's image %@ is missing." = "The project's image %@ is missing.";
 "The project's undo history is damaged." = "The project's undo history is damaged.";
+"This project has reached its edit limit. Export the photo to start a new project." = "This project has reached its edit limit. Export the photo to start a new project.";
 "The requested image is larger than this Mac can render." = "The requested image is larger than this Mac can render.";
 "There is not enough memory to encode a movie frame." = "There is not enough memory to encode a movie frame.";
 "This Mac could not allocate the photo rendering surface." = "This Mac could not allocate the photo rendering surface.";

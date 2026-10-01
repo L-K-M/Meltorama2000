@@ -8,7 +8,7 @@ final class FrameThumbnailTests: XCTestCase {
         try log.push(Stroke(tool: .smear, radius: 0.2, strength: 1,
                             stamps: [Stamp(cx: 0.4, cy: 0.5, dx: 0.05, dy: 0)]))
         let target = log.currentRevision
-        log.reset()
+        try log.reset()
         try log.push(Stroke(tool: .rewind, radius: 0.2, strength: 1,
                             stamps: [Stamp(cx: 0.5, cy: 0.5)], targetRevision: target))
         let pin = KeyframeRecord(revision: log.currentRevision, globals: GlobalParams(twirl: 0.4))

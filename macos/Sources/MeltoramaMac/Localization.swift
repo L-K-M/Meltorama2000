@@ -62,6 +62,7 @@ func localizedError(_ error: Error) -> NSError {
     case .invalidGlobals: description = L("The project contains invalid effect settings.")
     case .invalidKeyframe: description = L("An animation keyframe refers to a missing revision.")
     case .invalidPackage: description = L("Choose a Meltorama project package or an Android project folder.")
+    case .revisionLimitReached: description = L("This project has reached its edit limit. Export the photo to start a new project.")
     }
     var info = original.userInfo
     info[NSLocalizedDescriptionKey] = description
