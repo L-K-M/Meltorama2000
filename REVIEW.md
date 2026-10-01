@@ -118,6 +118,24 @@ Legend: 🐞 bug · 🔧 improvement · ✨ idea · ⬜ open · 🟢 done · ⏸
   links), and all updated dependencies compile and pass existing unit tests and
   lint in CI. Android navigation restoration and appearance still require
   device verification; do not claim that compilation exercised them.
+- **PR #112: KSP must match a specific Kotlin compiler version — refuted.**
+  KSP's release notes document that its version is independent of the Kotlin
+  compiler since KSP 2.3.0. The current PR's Android CI completed both
+  `kspDebugKotlin` and `kspDebugUnitTestKotlin`, compilation, tests, lint, and
+  APK assembly. KSP 2.3.12 requires AGP 8.12 or later, which this project
+  satisfies. Sources: [KSP 2.3.0](https://github.com/google/ksp/releases/tag/2.3.0)
+  and [KSP 2.3.12](https://github.com/google/ksp/releases/tag/2.3.12).
+- **PR #113: the AGP update requires a newer wrapper — refuted.** The
+  [official AGP compatibility table](https://developer.android.com/build/releases/agp-9-4-0-release-notes)
+  specifies a minimum Gradle version below the wrapper already committed when
+  this PR was reviewed. Its Android CI passed. The stale pairing comment was
+  replaced with a compatibility instruction so independent updates cannot
+  leave contradictory version numbers in prose.
+- **PR #114: the wrapper JAR was not regenerated — refuted.** The PR changes
+  the JAR, whose SHA-256 matches Gradle's official distribution checksum. The
+  Windows safety-net block matches the upstream wrapper script. Unchanged
+  distribution URL validation and checksum policy are outside this update;
+  wrapper-validation CI passed and Android CI executed successfully.
 
 - **PR #117: shrink the bootstrap or retrigger with labels — refuted.** The
   pinned action has no completed-chunk checkpoint. Incremental/hybrid scope
