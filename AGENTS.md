@@ -358,6 +358,16 @@ lives in `engine/core` as pure JVM classes.
   run with `python3 -B -m unittest discover -s scripts/tests -v` and use isolated
   temporary installations. Install success and optional launch success are
   checked separately; a false `--run` flag must not become the exit status.
+- Native imported revision IDs are retained exactly. `Int64.max` is the
+  exhausted allocation sentinel, never a document ID. Stroke/reset/crop/batch
+  allocation must throw before mutation at that boundary; exhaustion must not
+  change globals or discard saved work. Keep the localized edit-limit error.
+- Native Rewind caches at most four completed target fields in steady state,
+  cloning the longest cached stroke prefix before replaying its suffix. An LRU
+  alone still replays nested Rewind prefixes exponentially. Invalidate on
+  source/crop/grid/revision identity changes, and keep a borrowed target alive
+  until its stamp finishes. Counter-based GPU regressions cover bounded replay
+  and cached/fresh pixel parity without depending on wall-clock timing.
 
 Three workflows (details: [CICD.md](CICD.md)): `ci.yml` (tests + lint +
 debug APK on every PR/main push), `release.yml` (v* tags → verified,

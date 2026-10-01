@@ -247,8 +247,9 @@ verification passed on the installed bundle. Its noninteractive smoke test used
 the installed resources, rendered through the native GPU, and saved/reopened a
 project successfully. All 122 native tests passed with no failures or skips.
 
-Eleven isolated CLI regressions passed after reproducing the original failure.
-They exercise first installation, replacement, debug forwarding, paths with
+Twelve isolated CLI regressions passed after reproducing the original failures.
+Some tests cover several scenarios. They exercise first installation,
+replacement, absolute-path validation, debug forwarding, paths with
 spaces, unrelated working directories, dry runs, copy/signature failures,
 publication failure, interruption, failed rollback, destination races, and
 optional launch failure. Replacement is verified on the destination volume

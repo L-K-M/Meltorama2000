@@ -71,6 +71,11 @@ if $INSTALL || $RUN; then
   fi
 fi
 
+if $INSTALL && [[ "${MELTORAMA_INSTALL_DIR:-/Applications}" != /* ]]; then
+  echo "!! app: MELTORAMA_INSTALL_DIR must be an absolute path" >&2
+  exit 1
+fi
+
 [[ ${#REQUESTED[@]} -eq 0 ]] && REQUESTED=(apk app)
 
 case "$(uname -s)" in
@@ -115,7 +120,9 @@ stage() {
 # BSD mv can silently nest a bundle inside a destination another installer
 # recreated. Exact rename semantics fail instead of reporting that as success.
 rename_exact() {
-  python3 -c 'import os, sys; os.rename(sys.argv[1], sys.argv[2])' "$1" "$2"
+  python3 -c 'import os, sys
+try: os.rename(sys.argv[1], sys.argv[2])
+except OSError as error: sys.exit("rename failed: " + str(error))' "$1" "$2"
 }
 
 cleanup_install() {

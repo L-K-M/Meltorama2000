@@ -135,7 +135,9 @@ class BuildScriptTests(unittest.TestCase):
         # Even a regressed script that ignores MELTORAMA_INSTALL_DIR must not
         # touch /Applications. Keep the fallback separate from the override so
         # the tests still catch an ignored installation destination.
-        script = BUILD_SCRIPT.read_text().replace("/Applications", str(self.default_dir))
+        original = BUILD_SCRIPT.read_text()
+        self.assertIn("/Applications", original, "Update the fixture's default-path safety substitution")
+        script = original.replace("/Applications", str(self.default_dir))
         self.script.write_text(script)
         self.script.chmod(0o755)
         build = self.repository / "scripts/build-macos.sh"
@@ -205,6 +207,16 @@ class BuildScriptTests(unittest.TestCase):
         self.assertEqual((self.installed / "Contents/Resources/version.txt").read_text(),
                          "new version")
         self.assertEqual(self.calls("open"), [["-R", str(self.installed)]])
+
+    def test_relative_install_folder_is_rejected_before_building(self):
+        for folder in ("Applications", "~/Applications"):
+            with self.subTest(folder=folder):
+                self.environment["MELTORAMA_INSTALL_DIR"] = folder
+                result = self.invoke("--install")
+                self.assertNotEqual(result.returncode, 0, result.stdout + result.stderr)
+                self.assertIn("absolute path", result.stderr)
+                self.assertEqual(self.calls("build-macos.sh"), [])
+                self.assertFalse((self.repository / "Applications").exists())
 
     def test_incomplete_copy_preserves_existing_app(self):
         result = self.invoke("--install", failure="copy")
