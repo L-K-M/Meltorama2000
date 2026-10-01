@@ -9,7 +9,7 @@
 
 [![CI](https://github.com/L-K-M/Meltorama2000/actions/workflows/ci.yml/badge.svg)](https://github.com/L-K-M/Meltorama2000/actions/workflows/ci.yml)
 
-Latest release: v<!-- version -->2.0.0<!-- /version --> · [Download](https://github.com/L-K-M/Meltorama2000/releases/latest)
+Latest release: v<!-- version -->2.0.5<!-- /version --> · [Download](https://github.com/L-K-M/Meltorama2000/releases/latest)
 
 </div>
 
@@ -19,9 +19,9 @@ Latest release: v<!-- version -->2.0.0<!-- /version --> · [Download](https://gi
     <img height="500" src="media-sources/screenshot2.jpeg">
 </div>
 
-Meltorama 2000 is a fun photo-warping app for Android in the spirit
+Meltorama 2000 is a fun photo-warping app for Android and macOS in the spirit
 of Kai's Power Goo, the 1996 "Realtime Liquid Image Funware". Open a photo, drag a
-finger through it like wet paint, balloon an eye, shrink a chin, twirl the
+finger or mouse through it like wet paint, balloon an eye, shrink a chin, twirl the
 whole thing into a spiral — then save or share the result.
 
 > [!IMPORTANT]
@@ -52,3 +52,12 @@ create a `v*` tag by hand. CI publishes the APK to GitHub Releases.
 [Unlicense](LICENSE) — public domain. "Kai's Power Goo" and "KPT" are
 referenced as historical inspiration only; this project is unaffiliated
 with their past or present rights holders.
+
+## Native macOS application
+
+Build and launch with `scripts/build.sh --run`, or install straight into
+/Applications with `scripts/build.sh --install` (the lower-level
+`scripts/build-macos.sh` remains available for packaging flags like
+`--universal`). The native editor includes the full brush
+palette, effects, lenses, Fusion, and GOOvie exports, using compatible project
+packages. See [macos/README.md](macos/README.md) for builds, interaction, and recovery.

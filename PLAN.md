@@ -357,3 +357,23 @@ the verb (appId stays `ch.lkmc.goo` regardless):
 **Gooify**, **Blorb**, **PicPutty**. Current favorite: **Taffy** or
 **Squidge** — both read as playful without leaning on the KPT trademark
 history.
+
+## Native macOS adaptation
+
+The native visual language is a tactile photo-warping console, drawing from
+Kai's Power Goo and the Delicious Generation of Mac applications. Satin-metal
+panels, glossy colored brush domes, inset mode controls, raised action pills,
+and a graphite GOOvie filmstrip give the editor character. Native document
+windows, menus, text entry, sliders, checkboxes, and pickers retain their Mac
+behavior. Materials adapt to appearance; selection also has shape and
+checkmark cues; decorative layers do not intercept input. See decision 0006.
+
+The macOS editor keeps the revision graph, original-image package format,
+normalized input geometry, shader kernels, and preview/export replay model.
+Swift ports the pure Kotlin rules; AppKit owns documents, undo, files, and
+canvas gestures; SwiftUI owns the tool palette, contextual inspectors, and
+GOOvie timeline. Mac windows use system typography and adaptive appearance
+with a central workspace. The native toolbar and standard menus replace the
+phone dock, and named project packages plus recovery replace the In-room
+private shelf. Native sharing services replace Android's share intents, using
+the same encoded output as file export. See [macos/README.md](macos/README.md).

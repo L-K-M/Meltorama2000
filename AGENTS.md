@@ -30,7 +30,9 @@ Deviations from PLAN.md get recorded here as they happen.
 ./gradlew testDebugUnitTest    # the whole test suite (JVM-only, by design)
 ./gradlew lintDebug            # hard CI gate — keep it clean
 ./gradlew assembleDebug        # debug APK
-scripts/build.sh               # release APK staged into dist/
+scripts/build.sh               # every artifact this host can build -> dist/
+                               # (`apk`/`app` target names; --install puts
+                               #  Meltorama.app into /Applications)
 scripts/install.sh             # build + install + launch on a device
 ```
 
@@ -211,7 +213,161 @@ lives in `engine/core` as pure JVM classes.
   this repo, license is the project's (Unlicense). Regenerate with
   `python3 scripts/generate_samples.py`.
 
+## Native macOS port
+
+- `macos/Package.swift` builds the Foundation `MeltoramaCore` library and
+  AppKit/SwiftUI `MeltoramaMac` application. `scripts/build-macos.sh` creates
+  an independent `.app` and zip; `scripts/test-macos.sh --smoke` exercises
+  package tests and the installed app's GPU/save pipeline. No third-party
+  runtime dependencies are bundled.
+- The native renderer uses the existing GLSL in an isolated desktop OpenGL
+  context. `scripts/sync-macos-shaders.py` translates version/precision/layout
+  syntax only; regenerate after editing `GlShaders.kt`. CI checks drift.
+  Source UV remains top-left. Image upload and readback row orientation must
+  stay paired; identity and asymmetric-color export tests catch inversions.
+  Canvas zoom is fit-relative internally; its readout and Actual Size use
+  `CanvasGeometry` and the window's backing scale to measure display pixels.
+  Do not present the internal fit multiplier as a document zoom percentage.
+- Native pointer sampling has a 4,096-stamp budget per segment before symmetry
+  and portal copies. Extreme aspect ratios and drags outside a photo can exceed
+  millions of nominal intervals; a Float accumulator can stop advancing and
+  hang the main thread. Double preflight spreads oversized paths across the
+  budget while retaining the first responsive stamp and exact endpoint.
+  Ordinary paths keep Android's Float math, and saved stamps replay unchanged.
+  Noise lattice conversion saturates outside Int32 instead of trapping.
+  Menu zoom and gesture zoom share the 0.1...16 Fit-relative range; Actual Size
+  remains a separate pixel-scale command for large originals.
+- Canvas keys forward Command/Control combinations through AppKit's responder
+  chain instead of treating them as tool letters. Brush-size brackets use the
+  generated character, including Option-generated brackets on international
+  keyboards; other Option combinations remain available to native commands.
+- Icon-only SwiftUI controls need explicit localized accessibility labels.
+  A tooltip alone leaves the accessibility name as the SF Symbol identifier.
+  Reset, Fusion add, playback, and frame actions use their purpose as the name.
+- The Mac console's tactile materials live in `GooChrome.swift`: one light
+  source above-left, opaque appearance-aware metal, colored brush domes,
+  inset mode controls, and raised action pills. Keep real `Button` controls
+  with focus/disabled/pressed states; decoration never participates in hit
+  testing or accessibility. Selected tools and frames also have checkmarks.
+  Sliders, checkboxes, pickers, and buffered AppKit numeric fields stay native.
+  Effect titles and disclosure share one button; enabling stays independent.
+  Welcome and GOOvie presentation live in separate views and use the same
+  document actions and retained bindings. No perpetual decorative animation.
+  The palette minimum includes a persistent scrollbar gutter; check tool
+  names in both shipped locales before narrowing it.
+- `build-macos.sh` names its ZIP from Android's committed `versionName`.
+  Before building later edits at the same version, preserve any tagged native
+  bundle separately so a preview cannot replace that release's bytes.
+  `release.yml` publishes Android artifacts; attach the matching verified
+  native ZIP and checksum separately to the GitHub Release.
+- The Mac renderer's GOOvie endpoint cache must touch a cached A before
+  materializing B. Otherwise a FIFO eviction can delete A while the current
+  draw still holds it, corrupting nonadjacent or reordered frame previews.
+  `WarpEngineTests` reproduces this with an already cached A and an uncached B.
+  Revision IDs belong to one document. A shared thumbnail renderer also checks
+  revision records for conflicts when another project uses identical photo
+  bytes; direct stroke equality misses a Rewind's changed detached target.
+  Stage source and Fusion decode/upload before replacing textures or their
+  identity keys. Failed decoding must preserve the previous revision identity;
+  a successful source/crop change invalidates Fusion's cover geometry until B
+  is rebuilt. Undo or retry after a bad image must match a fresh replay.
+- Pin replay mirrors Android `PinWarp.sanitized`: finite document values can
+  still be outside solver bounds. Clamp controls and weights, reach, and rubber
+  at shader upload so imported projects and pulls dragged beyond the photo
+  reproduce Android's result in preview and export.
+- SwiftUI may read a retained `Binding` after its inspector disappears.
+  Keyframe and lens bindings validate selection and array bounds inside every
+  getter and setter (`EditorBindings`), not just the surrounding view's `if`.
+  Deleting a selected frame, cropping, removing a lens, and undo can otherwise
+  crash during the next SwiftUI update. Neutral getters and no-op stale writes
+  are presentation recovery; they never change the document.
+- `.meltorama` is a Finder package around Android's existing project folder
+  format. `ProjectPackage` strictly validates local names, regular assets,
+  schema, and revision DAG before accepting it. Saved source bytes remain
+  original. Native controls are not serialized into the Android document.
+  Crop pixel bounds use Android's Float products followed by independent
+  nearest rounding and clamping of origin and size (`CropRect.pixelRect`).
+  Double multiplication, truncation, or `CGRect.integral` changes imported
+  pixels. Near-full-frame edge jitter is ignored on both platforms.
+  Validate pixel decoding before native read/Revert replaces a live document.
+  Image dimensions alone do not establish successful pixel decoding. A decode
+  error must leave drafts, gestures, undo, and recovery intact.
+- Mac undo is AppKit's document undo manager, including native effect and
+  timeline actions. Revision IDs remain monotonic across undo branches;
+  existing animation pins retain their immutable revisions. Crop resets
+  coordinate-dependent edits, but native Undo restores the prior document.
+- Inspector number fields buffer text until Return or focus leaves, then parse
+  and clamp once. Clamping each keystroke turns a partial `0` into the minimum
+  before the user can finish typing. Normalized size/strength/effect values
+  display percentages without changing document units. Slider drags group undo
+  across input events and balance the group on save, close, or panel removal.
+  Native `NSTextField` delegates commit synchronously before explicit Save,
+  Close, Capture, Copy, and Export; deferred SwiftUI focus callbacks can otherwise
+  leave serialization one value behind. Background autosave serializes only the
+  committed model and must not clamp partial text or move focus. Successful
+  Revert discards drafts after validation; failed reads preserve them.
+  Inspector content reserves a legacy scroller's width. Without that space,
+  SwiftUI's scrollable layout can put percentage suffixes under the scrollbar
+  when expanded sections or document tabs reduce the available height.
+- Named Mac documents autosave through `NSDocument`. Unnamed work also writes
+  durable recovery packages; recovery is never silently evicted. Mac document
+  close/save behavior follows AppKit conventions, a deliberate adaptation of
+  the phone's private always-saved shelf. Export stages a sibling file and
+  replaces its destination only after successful encoding.
+  Finish active brush and lens gestures in `canClose`, before AppKit decides
+  whether saving is needed. Waiting until `close` lets a clean saved document
+  pass that decision, then lose the gesture it commits on the way out.
+  AppKit adapts Save As to Command-Option-Shift-S for autosaving documents.
+  Declare and document that shortcut explicitly; Command-Shift-S is not Save As.
+- Native sharing uses the export encoder and a unique, owner-only temporary
+  directory. The sharing coordinator retains that output until the chosen
+  service completes or fails, even if the document closes. Dismissing the
+  picker before choosing a service removes only its temporary output.
+- The Mac icon is an elastic photograph, with its frame and image stretched
+  into a glossy berry curl. Its original RGBA master and generation provenance
+  live in `macos/Artwork/`; `scripts/generate-macos-icon.swift` makes ten native
+  iconset slots in sRGB with transparent edges and a 1/16 canvas inset.
+  Keep the master in the repository so builds need no external service.
+  Android retains its hand-authored droplet vector. Samples are the same
+  repo-generated public-domain assets documented above.
+- Native user-facing copy lives in `en.lproj` and `zh-Hans.lproj`, accessed
+  through `L` and `LF`; tool terminology follows Android's Chinese resources.
+  Samples, shaders, and localization use `ResourceBundle`, which resolves the
+  installed app's `Contents/Resources` bundle before SwiftPM's `Bundle.module`.
+  SwiftPM's generated accessor can fall back to an absolute build directory,
+  masking incomplete packaging on the development Mac. The installed smoke
+  test refuses resources outside the app bundle.
+  Resolve resource bundles physically under `Contents/Resources`; flat SwiftPM
+  and Xcode `Contents/Resources` layouts are both supported. Installed apps
+  never use the development fallback. Compare containment after resolving
+  symlinks: Foundation can normalize `/private/tmp` to `/tmp` for a nested
+  bundle while retaining `/private/tmp` for the application's main bundle.
+  SwiftPM's native build system can lowercase localization directories.
+  Specific-language tests derive their `.lproj` bundle from the localized
+  strings URL; direct lookup of a case-sensitive language folder can fail even
+  when Foundation resolves its strings correctly.
+
 ## CI/CD
+
+- `scripts/build.sh --install` selects only the Mac target unless targets are
+  explicitly named. It stages and verifies the app on the installation volume,
+  then uses exact directory renames with rollback. Never delete the installed
+  app before its replacement is ready. BSD `mv` can silently nest a replacement
+  inside a concurrently recreated destination; exact renames must refuse that.
+  `MELTORAMA_INSTALL_DIR` overrides `/Applications`. Build-command regressions
+  run with `python3 -B -m unittest discover -s scripts/tests -v` and use isolated
+  temporary installations. Install success and optional launch success are
+  checked separately; a false `--run` flag must not become the exit status.
+- Native imported revision IDs are retained exactly. `Int64.max` is the
+  exhausted allocation sentinel, never a document ID. Stroke/reset/crop/batch
+  allocation must throw before mutation at that boundary; exhaustion must not
+  change globals or discard saved work. Keep the localized edit-limit error.
+- Native Rewind caches at most four completed target fields in steady state,
+  cloning the longest cached stroke prefix before replaying its suffix. An LRU
+  alone still replays nested Rewind prefixes exponentially. Invalidate on
+  source/crop/grid/revision identity changes, and keep a borrowed target alive
+  until its stamp finishes. Counter-based GPU regressions cover bounded replay
+  and cached/fresh pixel parity without depending on wall-clock timing.
 
 Three workflows (details: [CICD.md](CICD.md)): `ci.yml` (tests + lint +
 debug APK on every PR/main push), `release.yml` (v* tags → verified,
@@ -416,4 +572,3 @@ may waive review; report that waiver rather than claiming review passed.
   status, review rounds completed, and whether it is merged.
 
 <!-- shared-rules:end -->
-

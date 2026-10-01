@@ -108,6 +108,32 @@ Legend: 🐞 bug · 🔧 improvement · ✨ idea · ⬜ open · 🟢 done · ⏸
 
 ## Sol PR review dispositions
 
+- **PR #118: relative install folder and Python tracebacks — applied.** The
+  install override must be an absolute path, including dry-run validation.
+  Expected rename failures print a concise error while retaining rollback.
+  The quick start uses one install command, and the fixture asserts its
+  default-path safety substitution. Its twelve tests cover multiple scenarios.
+- **PR #118: repeat dependency checks — already verified.** The stale catalog
+  header was removed with #112. Both action pins were checked against their
+  upstream tags. Wrapper pinning/version policy remains the existing deferred
+  concern; this install change does not upgrade the Gradle actions.
+- **PR #118: signal and fixture semantics — verified/deferred.** The interrupt
+  mock signals the transaction subshell that owns the real EXIT/TERM rollback
+  traps. Intentional false-return helpers are called in condition contexts.
+  Fixture install/failure variables override the host, and the mock builder
+  does not read signing variables. Additional symlink/mode assertions are
+  deferred; the real installed bundle passed strict signature verification.
+
+- **PR #111: pin the CI Java setup action — applied.** The native integration
+  pins the same verified upstream commit already used by the release workflow.
+  The adjacent wrapper-action pinning suggestion concerns existing behavior;
+  it is deferred rather than widening this dependency update.
+- **PR #115: add Android instrumentation and screenshot suites — declined.**
+  This repository deliberately uses JVM-only tests and has no emulator CI job.
+  The Navigation release notes were checked against the typed routes (no deep
+  links), and all updated dependencies compile and pass existing unit tests and
+  lint in CI. Android navigation restoration and appearance still require
+  device verification; do not claim that compilation exercised them.
 - **PR #112: KSP must match a specific Kotlin compiler version — refuted.**
   KSP's release notes document that its version is independent of the Kotlin
   compiler since KSP 2.3.0. The current PR's Android CI completed both
