@@ -386,6 +386,16 @@ Manual VoiceOver, Chinese UI, and theme-picker keyboard navigation with macOS
 Keyboard Navigation enabled remain unverified; this Mac's normal Tab setting
 skipped non-text controls.
 
+`scripts/build.sh --install` installed 2.0.8 (build 12) successfully.
+The installed app's actual About panel confirmed the version and displayed
+the complete generated dog and melting curl. The universal arm64/x86_64
+bundle passed strict signing, ZIP integrity, and checksum checks; both slices
+declare macOS 13 and passed bundled GPU/edit/save/reopen/pinned-revision smoke
+tests on Apple silicon and through Rosetta.
+The same smoke tests and strict signature verification passed after relocating
+the bundle to a fresh folder with spaces outside the checkout. The installed
+icon provenance matched the checked-in artwork record.
+
 ## Remaining limitations
 
 - The native app uses Apple's system frameworks and the original GLSL kernels.
