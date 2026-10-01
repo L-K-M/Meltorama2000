@@ -349,6 +349,16 @@ lives in `engine/core` as pure JVM classes.
 
 ## CI/CD
 
+- `scripts/build.sh --install` selects only the Mac target unless targets are
+  explicitly named. It stages and verifies the app on the installation volume,
+  then uses exact directory renames with rollback. Never delete the installed
+  app before its replacement is ready. BSD `mv` can silently nest a replacement
+  inside a concurrently recreated destination; exact renames must refuse that.
+  `MELTORAMA_INSTALL_DIR` overrides `/Applications`. Build-command regressions
+  run with `python3 -B -m unittest discover -s scripts/tests -v` and use isolated
+  temporary installations. Install success and optional launch success are
+  checked separately; a false `--run` flag must not become the exit status.
+
 Three workflows (details: [CICD.md](CICD.md)): `ci.yml` (tests + lint +
 debug APK on every PR/main push), `release.yml` (v* tags → verified,
 published APK), `zai-code-review.yml` (GLM 5.2 reviews every PR; respond

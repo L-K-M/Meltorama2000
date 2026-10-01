@@ -39,14 +39,14 @@ an explicit `concurrency:` group, `timeout-minutes:` on every job, and
   design; a future switch to a real key breaks upgrades for every
   installed user and must be treated as a product decision.
 
-### zai-code-review.yml — GLM 5.2 PR Review
+### zai-code-review.yml — GLM PR Review
 - **Trigger:** `pull_request_target` (opened, reopened, synchronize,
   ready_for_review) — secrets are available to the job, hence the guards.
 - **Guards:** runs only for non-draft PRs whose head repo IS this repo —
   fork PRs never see the secret or the write-capable token. The action is
-  pinned to an immutable commit (`7d0ce7b` = v0.0.9 of
-  `L-K-M/zai-code-review`); verify SHA↔tag before bumping:
-  `git ls-remote https://github.com/L-K-M/zai-code-review refs/tags/v0.0.9`.
+  pinned to an immutable commit of `L-K-M/zai-code-review`. The workflow
+  records the verified release tag beside its pin; verify SHA↔tag before
+  bumping with `git ls-remote` against that upstream tag.
 - **Concurrency:** keyed on the PR number (for `pull_request_target`,
   `github.ref` is the base branch and would collide across PRs); superseded
   reviews of an outdated diff are cancelled.
@@ -76,7 +76,8 @@ this workflow.
 
 `ci.yml` also runs a `macos` job on the hosted Mac runner. It verifies the
 mechanical GLSL translation, runs Swift document/input/session/renderer/export
-tests, and builds an independent ad-hoc-signed application zip. GPU tests
+tests, checks the build/install CLI in isolated temporary fixtures, and builds
+an independent ad-hoc-signed application zip. GPU tests
 explicitly skip when the runner has no accelerated display context; actual
 Mac smoke checks are recorded in `macos/VERIFICATION.md`. The native zip and
 SHA-256 sidecar are uploaded as PR/main artifacts. Local Developer ID signing
@@ -87,7 +88,7 @@ requires the developer's Apple credentials.
 
 | Secret | Used by | Purpose |
 | ------ | ------- | ------- |
-| `ZAI_API_KEY` | zai-code-review.yml | Z.ai API key for GLM 5.2 reviews. Set with `gh secret set ZAI_API_KEY --repo L-K-M/Meltorama2000`. Absent ⇒ reviews skip, everything else unaffected. |
+| `ZAI_API_KEY` | zai-code-review.yml | Z.ai API key for GLM reviews. Set with `gh secret set ZAI_API_KEY --repo L-K-M/Meltorama2000`. Absent ⇒ reviews skip, everything else unaffected. |
 
 No release-signing secrets exist, deliberately (decision 0002).
 

@@ -18,6 +18,8 @@
 #   scripts/build.sh --install       # build the Mac app and install it into
 #                                    # /Applications, then reveal it
 #   scripts/build.sh --check         # print resolved config; build nothing
+# Set MELTORAMA_INSTALL_DIR to choose a different install folder, for example
+# "$HOME/Applications". The default is /Applications.
 #
 # Produced artifacts land in dist/ — goo-v<version>-*.apk and
 # meltorama-macos-<version>.zip plus Meltorama.app itself.
@@ -25,7 +27,7 @@
 # The lkm-build engine (https://github.com/L-K-M/release-tool) has no Gradle
 # kind, so this is a self-contained orchestrator in the family house style;
 # the `app` target delegates to scripts/build-macos.sh.
-set -uo pipefail
+set -euo pipefail
 
 # Absolute self-path first: usage() re-opens the script, which a relative $0
 # would no longer find after the cd below.
@@ -109,6 +111,62 @@ stage() {
   STAGED=$((STAGED + 1))
   echo "-- staged dist/$name"
 }
+
+# BSD mv can silently nest a bundle inside a destination another installer
+# recreated. Exact rename semantics fail instead of reporting that as success.
+rename_exact() {
+  python3 -c 'import os, sys; os.rename(sys.argv[1], sys.argv[2])' "$1" "$2"
+}
+
+cleanup_install() {
+  local temporary="$1" destination="$2" previous="$1/Previous.app"
+  if [[ -e "$previous" || -L "$previous" ]]; then
+    if [[ -e "$destination" || -L "$destination" ]] || ! rename_exact "$previous" "$destination"; then
+      echo "!! app: your previous app remains at $previous" >&2
+      return 0
+    fi
+  fi
+  rm -rf "$temporary" || echo "!! app: temporary files remain at $temporary" >&2
+}
+
+# Keep signal/exit traps inside this subshell. They run while the transaction's
+# paths are in scope, including if the user interrupts after moving the old app.
+install_app() (
+  local folder="${MELTORAMA_INSTALL_DIR:-/Applications}"
+  local destination="$folder/Meltorama.app" temporary previous
+  echo "-- installing $destination"
+  if ! mkdir -p "$folder" || ! temporary="$(mktemp -d "$folder/.meltorama-install.XXXXXX")"; then
+    echo "!! app: cannot write to $folder; choose MELTORAMA_INSTALL_DIR" >&2
+    return 1
+  fi
+  previous="$temporary/Previous.app"
+  trap 'cleanup_install "$temporary" "$destination"' EXIT
+  trap 'exit 130' INT
+  trap 'exit 143' TERM
+
+  # Finish and verify the replacement before moving the installed app. The
+  # staging directory is on the destination volume so publication is a rename.
+  if ! ditto "$DIST/Meltorama.app" "$temporary/Meltorama.app" ||
+     ! codesign --verify --strict "$temporary/Meltorama.app"; then
+    echo "!! app: replacement copy or signature verification failed" >&2
+    return 1
+  fi
+  if [[ -e "$destination" || -L "$destination" ]]; then
+    if ! rename_exact "$destination" "$previous"; then
+      echo "!! app: could not move the existing installation" >&2
+      return 1
+    fi
+  fi
+  if ! rename_exact "$temporary/Meltorama.app" "$destination"; then
+    echo "!! app: could not publish the replacement" >&2
+    return 1
+  fi
+  trap - EXIT INT TERM
+  if ! rm -rf "$temporary"; then
+    echo "!! app: installed successfully; temporary files remain at $temporary" >&2
+  fi
+  return 0
+)
 
 was_named() {
   [[ $EXPLICIT -eq 1 ]] || return 1
@@ -203,9 +261,11 @@ build_app() {
   echo "== app (macOS) =="
 
   if $CHECK; then
-    echo "-- would run: scripts/build-macos.sh${PROFILE:+ $([[ "$PROFILE" == debug ]] && echo --debug)}"
+    local command="scripts/build-macos.sh"
+    [[ "$PROFILE" == debug ]] && command="$command --debug"
+    echo "-- would run: $command"
     echo "-- would stage: dist/Meltorama.app + dist/meltorama-macos-$VERSION.zip"
-    $INSTALL && echo "-- would install: /Applications/Meltorama.app"
+    $INSTALL && echo "-- would install: ${MELTORAMA_INSTALL_DIR:-/Applications}/Meltorama.app"
     record "app: checked (would build $PROFILE)"
     return 0
   fi
@@ -219,7 +279,9 @@ build_app() {
 
   if $CLEAN; then
     echo "-- removing macos/.build"
-    rm -rf macos/.build
+    if ! rm -rf macos/.build; then
+      record "app: FAILED (clean)"; return 1
+    fi
   fi
 
   local -a args=()
@@ -236,17 +298,17 @@ build_app() {
   STAGED=$((STAGED + 1))
 
   if $INSTALL; then
-    echo "-- installing /Applications/Meltorama.app"
-    rm -rf "/Applications/Meltorama.app"
-    # ditto preserves the signature, resource forks and permissions.
-    if ! ditto "$DIST/Meltorama.app" "/Applications/Meltorama.app"; then
-      echo "!! app: could not copy into /Applications (needs write permission)" >&2
+    if ! install_app; then
       record "app: FAILED (install)"; return 1
     fi
-    record "app: installed -> /Applications/Meltorama.app"
-    INSTALLED="/Applications/Meltorama.app"
-    $RUN && open "/Applications/Meltorama.app"
+    INSTALLED="${MELTORAMA_INSTALL_DIR:-/Applications}/Meltorama.app"
+    record "app: installed -> $INSTALLED"
+    if $RUN && ! open "$INSTALLED"; then
+      echo "!! app: installed, but launch failed" >&2
+      record "app: FAILED (launch)"; return 1
+    fi
   fi
+  return 0
 }
 
 # ---------------------------------------------------------------------------
@@ -263,12 +325,14 @@ done
 echo "Summary"
 for line in "${RESULTS[@]}"; do echo "  $line"; done
 
-if [[ -n "$INSTALLED" ]]; then
+if [[ "$FAILED" -eq 0 && -n "$INSTALLED" ]]; then
   echo "  installed: $INSTALLED"
-  [[ "$(uname -s)" == "Darwin" ]] && ! $RUN && open -R "$INSTALLED"
-elif [[ "$STAGED" -gt 0 && "$HOST" == "macos" ]]; then
+  if [[ "$HOST" == "macos" ]] && ! $RUN && ! open -R "$INSTALLED"; then
+    echo "!! app: installed, but Finder could not reveal $INSTALLED" >&2
+  fi
+elif [[ "$FAILED" -eq 0 && "$STAGED" -gt 0 && "$HOST" == "macos" ]]; then
   echo "  artifacts: $DIST"
-  open "$DIST"
+  open "$DIST" || echo "!! Finder could not show $DIST" >&2
 fi
 
 exit "$FAILED"

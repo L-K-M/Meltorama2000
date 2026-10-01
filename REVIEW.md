@@ -108,6 +108,17 @@ Legend: 🐞 bug · 🔧 improvement · ✨ idea · ⬜ open · 🟢 done · ⏸
 
 ## Sol PR review dispositions
 
+- **PR #111: pin the CI Java setup action — applied.** The native integration
+  pins the same verified upstream commit already used by the release workflow.
+  The adjacent wrapper-action pinning suggestion concerns existing behavior;
+  it is deferred rather than widening this dependency update.
+- **PR #115: add Android instrumentation and screenshot suites — declined.**
+  This repository deliberately uses JVM-only tests and has no emulator CI job.
+  The Navigation release notes were checked against the typed routes (no deep
+  links), and all updated dependencies compile and pass existing unit tests and
+  lint in CI. Android navigation restoration and appearance still require
+  device verification; do not claim that compilation exercised them.
+
 - **PR #117: shrink the bootstrap or retrigger with labels — refuted.** The
   pinned action has no completed-chunk checkpoint. Incremental/hybrid scope
   requires a completed baseline; PR #116's failed bootstrap has none and
