@@ -218,8 +218,8 @@ lives in `engine/core` as pure JVM classes.
 - `macos/Package.swift` builds the Foundation `MeltoramaCore` library and
   AppKit/SwiftUI `MeltoramaMac` application. `scripts/build-macos.sh` creates
   an independent `.app` and zip; `scripts/test-macos.sh --smoke` exercises
-  package tests and the installed app's GPU/save pipeline. No third-party
-  runtime dependencies are bundled.
+  package tests and the built `dist/Meltorama.app` GPU/save pipeline. No
+  third-party runtime dependencies are bundled.
 - The native renderer uses the existing GLSL in an isolated desktop OpenGL
   context. `scripts/sync-macos-shaders.py` translates version/precision/layout
   syntax only; regenerate after editing `GlShaders.kt`. CI checks drift.
@@ -244,12 +244,15 @@ lives in `engine/core` as pure JVM classes.
 - Icon-only SwiftUI controls need explicit localized accessibility labels.
   A tooltip alone leaves the accessibility name as the SF Symbol identifier.
   Reset, Fusion add, playback, and frame actions use their purpose as the name.
-- The Mac console's tactile materials live in `GooChrome.swift`: one light
-  source above-left, opaque appearance-aware metal, colored brush domes,
-  inset mode controls, and raised action pills. Keep real `Button` controls
-  with focus/disabled/pressed states; decoration never participates in hit
-  testing or accessibility. Selected tools and frames also have checkmarks.
-  Sliders, checkboxes, pickers, and buffered AppKit numeric fields stay native.
+- The Mac interface uses native controls and the document layout restored from
+  `v2.0.1`, retaining later correctness and installer fixes. `MacTheme.swift`
+  supplies a window tint that follows appearance: mint/aqua in Light, teal in Dark,
+  and berry for primary actions. Keep modes in the native segmented picker,
+  tools in labeled rows, and document actions in the toolbar and menus.
+  Selected tools and frames also have checkmarks. Buttons, sliders, checkboxes,
+  pickers, and buffered AppKit numeric fields keep native rendering and behavior.
+  The custom `GooChrome.swift` metal and dome styles were removed at the user's
+  request; do not reintroduce them as the Mac visual language. See decision 0007.
   Effect titles and disclosure share one button; enabling stays independent.
   Welcome and GOOvie presentation live in separate views and use the same
   document actions and retained bindings. No perpetual decorative animation.
@@ -323,11 +326,13 @@ lives in `engine/core` as pure JVM classes.
   directory. The sharing coordinator retains that output until the chosen
   service completes or fails, even if the document closes. Dismissing the
   picker before choosing a service removes only its temporary output.
-- The Mac icon is an elastic photograph, with its frame and image stretched
-  into a glossy berry curl. Its original RGBA master and generation provenance
-  live in `macos/Artwork/`; `scripts/generate-macos-icon.swift` makes ten native
-  iconset slots in sRGB with transparent edges and a 1/16 canvas inset.
-  Keep the master in the repository so builds need no external service.
+- The Mac icon fills an opaque square with a sunny landscape and glossy berry
+  curl. Its 1254-pixel master and generation/edit provenance live in
+  `macos/Artwork/`; `scripts/generate-macos-icon.swift` draws it edge to edge
+  into ten native iconset slots in sRGB. Do not add transparent margins or a
+  canvas inset: the previous freeform icon appeared small on a system backdrop.
+  Keep the master in the repository so builds need no external service. The
+  original elastic photograph and its prompt remain in Git history at `9f0f268`.
   Android retains its hand-authored droplet vector. Samples are the same
   repo-generated public-domain assets documented above.
 - Native user-facing copy lives in `en.lproj` and `zh-Hans.lproj`, accessed
@@ -371,7 +376,7 @@ lives in `engine/core` as pure JVM classes.
 
 Three workflows (details: [CICD.md](CICD.md)): `ci.yml` (tests + lint +
 debug APK on every PR/main push), `release.yml` (v* tags → verified,
-published APK), `zai-code-review.yml` (GLM 5.2 reviews every PR; respond
+published APK), `zai-code-review.yml` (GLM 5.3 reviews every PR; respond
 per [CLAUDE.md](CLAUDE.md)). Family contract on every workflow:
 least-privilege permissions, explicit concurrency, timeouts, wrapper
 validation.
@@ -397,7 +402,7 @@ component + versionCode on every non-trivial change set.
 
 Review-cycle limits follow the shared stopping rules below.
 
-PRs are reviewed by GLM 5.2 automatically. Findings are triaged
+PRs are reviewed by GLM 5.3 automatically. Findings are triaged
 apply/decline/refute per [CLAUDE.md](CLAUDE.md); declined findings and
 their reasons accumulate in [REVIEW.md](REVIEW.md) so later rounds (and
 later agents) don't flip-flop. Point-in-time review snapshots archive under

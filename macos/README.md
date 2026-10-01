@@ -26,9 +26,9 @@ Use `--debug` for a debug bundle and `--universal` for Apple silicon and Intel
 in one app with the lower-level `scripts/build-macos.sh`. The version comes
 from the existing Android release configuration.
 
-The app icon is an elastic photograph with a glossy berry curl. Its original
-master is checked in under `Artwork/`; the build generates native icon sizes
-and packages them into the application without downloading resources.
+The app icon fills its square with a sunny landscape and glossy berry curl.
+Its opaque master is checked in under `Artwork/`; the build generates native
+icon sizes and packages them into the application without downloading resources.
 Open `macos/Package.swift` in Xcode for development; the shell script packages
 the executable into its document-aware application bundle.
 
@@ -45,12 +45,13 @@ The toolbar contains document and view actions. Appearance follows macOS;
 Settings also offers Light and Dark for this app. Standard text editing and
 keyboard focus work in inspectors.
 
-The editor has a tactile console finish: colored glossy brush domes, a satin
-metal tool rack, recessed workspace and inspector panels, and a GOOvie
-filmstrip. Inset mode controls stay distinct from raised action buttons.
-Selection includes a checkmark, and effect enabling stays independent from
-disclosure. The finish follows Light/Dark appearance while native numeric
-entry, menus, shortcuts, and document commands keep their existing behavior.
+The window is tinted mint/aqua in Light appearance and teal in Dark, with berry
+primary actions. Native segmented controls choose modes, labeled rows choose
+tools, and standard buttons perform actions. Selection includes a checkmark,
+and effect enabling stays independent from disclosure. The interface retains
+the native document layout preserved by `v2.0.1`, together with later correctness
+and installer fixes. Numeric entry, menus, shortcuts, and document commands
+keep their existing behavior.
 
 The palette includes all twenty Android tools. Hold tools pump while pressed;
 paint tools stamp along the path. Option-click chooses Echo's source or

@@ -257,6 +257,29 @@ before moving the old app; failed rollback retains and reports its backup.
 These tests are included in the hosted macOS CI job. They do not substitute for
 actual window/Dock appearance checks, which remain pending manual unlock.
 
+## Native controls and colorful icon, 1 October 2026
+
+The layout and native controls from `v2.0.1` were restored, with an adaptive
+mint/aqua window tint in Light appearance and teal in Dark. The custom metal
+panels, domes, and film decoration were removed. Later document, renderer,
+recovery, and installation fixes remain. Effect reset, Fusion add, and timeline
+close have explicit 24-point click targets within the compact layout.
+
+All 130 native tests passed with zero failures and zero skips outside the
+filesystem sandbox, including GPU replay, document input, and encoders. All
+twelve isolated build/install regressions passed. The shader translation check
+and `git diff --check` passed. The icon packager produced all ten exact-sized
+sRGB representations; Apple's ICNS compiler encoded and decoded them, and every
+decoded pixel was verified opaque.
+
+The debug app launched with the restored controls. Its actual Dark welcome
+window and system-rendered application icon were inspected: the picture fills
+the rounded icon without the previous white surround, and the welcome divider
+reserves only its horizontal line. Accessibility exposes descriptive names for
+all four segmented modes. Further interactive checks paused when the Mac
+locked; Light appearance, editing, file dialogs, export, and resizing need a
+fresh pass on this presentation after manual unlock.
+
 ## Remaining limitations
 
 - The native app uses Apple's system frameworks and the original GLSL kernels.

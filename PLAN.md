@@ -247,7 +247,7 @@ any Gradle execution. Details in [CICD.md](CICD.md).
 - **release.yml** — `v*` tags: tag↔versionName gate, re-prove tests+lint at
   the tagged commit, `assembleRelease`, sha256 sidecar, GitHub Release.
   No signing secrets (decision 3).
-- **zai-code-review.yml** — GLM 5.2 reviews every PR (hardened
+- **zai-code-review.yml** — GLM 5.3 reviews every PR (hardened
   `pull_request_target`: same-repo + non-draft guard, commit-pinned action,
   PR-number concurrency). Review responses follow [CLAUDE.md](CLAUDE.md).
 - Releases are cut only with `scripts/release.sh X.Y.Z --push` (shared
@@ -360,13 +360,15 @@ history.
 
 ## Native macOS adaptation
 
-The native visual language is a tactile photo-warping console, drawing from
-Kai's Power Goo and the Delicious Generation of Mac applications. Satin-metal
-panels, glossy colored brush domes, inset mode controls, raised action pills,
-and a graphite GOOvie filmstrip give the editor character. Native document
-windows, menus, text entry, sliders, checkboxes, and pickers retain their Mac
-behavior. Materials adapt to appearance; selection also has shape and
-checkmark cues; decorative layers do not intercept input. See decision 0006.
+The Mac interface starts from native controls and the document layout preserved
+by `v2.0.1`. The custom metal panels and brush domes from decision 0006 were
+rejected after user testing. Color now gives the window its character: mint/aqua
+in Light appearance, teal in Dark, and berry primary actions. Modes use a native
+segmented picker; tools use labeled rows with checkmark selection; compact
+effects keep enabling independent from disclosure. The colorful icon fills its
+square with a sunny landscape melting into a berry curl. Kai's Power Goo and
+the Delicious Generation remain inspiration for playfulness, with familiar Mac
+controls as the foundation. See [decision 0007](docs/decisions/0007-colorful-native-mac.md).
 
 The macOS editor keeps the revision graph, original-image package format,
 normalized input geometry, shader kernels, and preview/export replay model.

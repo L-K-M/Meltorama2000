@@ -3,8 +3,9 @@ Meltorama 2000 for macOS
 Application source, warp shaders, sample artwork, and app icon: this repository,
 released into the public domain under the Unlicense. See LICENSE.
 
-The Mac icon is original imagegen artwork created for this project.
-Its provenance and complete prompt are included in IconProvenance.md.
+The Mac icon is original imagegen artwork created for this project and edited
+from that original into a colorful square. Its provenance and complete edit
+prompt are included in IconProvenance.md.
 No source photograph or third-party reference artwork is included in it.
 
 The macOS application has no third-party runtime libraries, fonts, encoders,
