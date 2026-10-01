@@ -228,6 +228,17 @@ automatically. This preview must not inherit the baseline's visual QA claims;
 welcome/editor appearance, pointer targets, focus, selection, disclosure,
 typing, save/reopen, export, and resizing need another pass after manual unlock.
 
+## Elastic photograph icon, 1 October 2026
+
+The new original icon master is checked in with its generation provenance and
+complete prompt. Native packaging produces all ten standard iconset slots in
+sRGB, with alpha preserved. Apple's icon compiler successfully encoded ICNS
+and decoded all ten slots again. The artwork was inspected on light and dark
+backgrounds at 16, 32, 64, 128, and 512 pixels. At 32 pixels its white frame,
+bright photograph, and berry curl remain distinct. The installed app packages
+the ICNS, license, notices, and provenance rather than relying on a development
+asset path. Actual Dock appearance remains unverified while the Mac is locked.
+
 ## Remaining limitations
 
 - The native app uses Apple's system frameworks and the original GLSL kernels.

@@ -321,9 +321,13 @@ lives in `engine/core` as pure JVM classes.
   directory. The sharing coordinator retains that output until the chosen
   service completes or fails, even if the document closes. Dismissing the
   picker before choosing a service removes only its temporary output.
-- The macOS icon reuses the app's hand-authored droplet vector via
-  `scripts/generate-macos-icon.swift`. Samples are the same repo-generated
-  public-domain assets documented above.
+- The Mac icon is an elastic photograph, with its frame and image stretched
+  into a glossy berry curl. Its original RGBA master and generation provenance
+  live in `macos/Artwork/`; `scripts/generate-macos-icon.swift` makes ten native
+  iconset slots in sRGB with transparent edges and a 1/16 canvas inset.
+  Keep the master in the repository so builds need no external service.
+  Android retains its hand-authored droplet vector. Samples are the same
+  repo-generated public-domain assets documented above.
 - Native user-facing copy lives in `en.lproj` and `zh-Hans.lproj`, accessed
   through `L` and `LF`; tool terminology follows Android's Chinese resources.
   Samples, shaders, and localization use `ResourceBundle`, which resolves the

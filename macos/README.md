@@ -20,6 +20,10 @@ sidecar. Drag the app to Applications to install it. The bundle contains the
 shaders, sample images, icon, and notices and works without the repository.
 Use `--debug` for a debug bundle and `--universal` for Apple silicon and Intel
 in one app. The version comes from the existing Android release configuration.
+
+The app icon is an elastic photograph with a glossy berry curl. Its original
+master is checked in under `Artwork/`; the build generates native icon sizes
+and packages them into the application without downloading resources.
 Open `macos/Package.swift` in Xcode for development; the shell script packages
 the executable into its document-aware application bundle.
 

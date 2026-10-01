@@ -19,7 +19,7 @@ One-time actions use raised pills or compact metal buttons. The neutral photo
 workspace has a recessed bezel. Effects keep one compact checkbox/disclosure/
 title/actions header, with independent enabling and expansion. The GOOvie
 strip uses dark film stock, perforations, image windows, and selection marks.
-The welcome surface uses the existing original icon and mounted sample cards.
+The welcome surface uses the app icon and mounted sample cards.
 
 SwiftUI draws all new materials and control states. No image from the references
 is copied into the app, and no new runtime library or downloaded asset is needed.
