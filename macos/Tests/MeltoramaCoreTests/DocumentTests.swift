@@ -55,7 +55,7 @@ final class DocumentTests: XCTestCase {
         XCTAssertFalse(snapshot.history.contains(pin))
         XCTAssertEqual(try snapshot.materialize(revision:pin),[stroke(1),stroke(2)])
         var restored = try StrokeLog(snapshot:snapshot)
-        restored.reset()
+        try restored.reset()
         XCTAssertEqual(restored.strokes,[])
         restored.undo()
         XCTAssertEqual(restored.strokes.last?.targetRevision,pin)
@@ -85,6 +85,57 @@ final class DocumentTests: XCTestCase {
         let before = log.snapshot()
         XCTAssertThrowsError(try log.pushBatch([stroke(4),stroke(5,tool:.rewind,target:999)]))
         XCTAssertEqual(log.snapshot(),before)
+    }
+
+    private func boundarySnapshot(lastID: Int64) -> StrokeLogSnapshot {
+        StrokeLogSnapshot(revisions: [StrokeRevisionRecord(id: 0),
+            StrokeRevisionRecord(id: lastID, parent: 0, stroke: stroke(1))],
+            history: [0, lastID], cursor: 1)
+    }
+
+    func testExhaustedRevisionCounterRejectsPushWithoutChangingDocument() throws {
+        let snapshot = boundarySnapshot(lastID: Int64.max - 1)
+        let imported = try ProjectDocument.decode(ProjectDocument(log: snapshot).encoded())
+        var log = try StrokeLog(snapshot: imported.log)
+        XCTAssertThrowsError(try log.push(stroke(2)))
+        XCTAssertEqual(log.snapshot(), snapshot)
+        XCTAssertEqual(try imported.encoded(), try ProjectDocument(log: snapshot).encoded())
+    }
+
+    func testExhaustedRevisionCounterRejectsResetAndCropWithoutChangingDocument() throws {
+        let snapshot = boundarySnapshot(lastID: Int64.max - 1)
+        var log = try StrokeLog(snapshot: snapshot)
+        XCTAssertThrowsError(try log.reset())
+        XCTAssertEqual(log.snapshot(), snapshot)
+        XCTAssertThrowsError(try log.clearHistory())
+        XCTAssertEqual(log.snapshot(), snapshot)
+    }
+
+    func testLastRevisionIDPreservesRewindTargetsAndCanStillUndoRedoAndSave() throws {
+        let target = Int64.max - 2
+        var log = try StrokeLog(snapshot: boundarySnapshot(lastID: target))
+        try log.push(stroke(2, tool: .rewind, target: target))
+        XCTAssertEqual(log.currentRevision, Int64.max - 1)
+        let before = log.snapshot(pins: [target])
+        XCTAssertThrowsError(try log.push(stroke(3)))
+        XCTAssertEqual(log.snapshot(pins: [target]), before)
+        log.undo()
+        XCTAssertEqual(log.currentRevision, target)
+        log.redo()
+        let project = ProjectDocument(log: log.snapshot(pins: [target]),
+            keyframes: [KeyframeRecord(revision: target)])
+        let reopened = try ProjectDocument.decode(project.encoded())
+        XCTAssertEqual(reopened, project)
+        XCTAssertEqual(try reopened.log.materialize().last?.targetRevision, target)
+    }
+
+    func testBatchAllocationFailureRetainsAvailableRevisionID() throws {
+        let snapshot = boundarySnapshot(lastID: Int64.max - 2)
+        var log = try StrokeLog(snapshot: snapshot)
+        XCTAssertThrowsError(try log.pushBatch([stroke(2), stroke(3)]))
+        XCTAssertEqual(log.snapshot(), snapshot)
+        try log.push(stroke(2))
+        XCTAssertEqual(log.currentRevision, Int64.max - 1)
     }
 
     func testMalformedDAGsAndUnusablePayloadsAreRefused() throws {

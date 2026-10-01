@@ -101,6 +101,59 @@ final class SessionTests: XCTestCase {
         XCTAssertEqual(session.currentRevision, cropped.log.currentRevision)
     }
 
+    @MainActor func testExhaustedImportedRevisionsPreserveDocumentAcrossFailedEditsAndSave() async throws {
+        let document = try document(), session = document.session
+        defer { session.stopTimers() }
+        let lastID = Int64.max - 1
+        let log = StrokeLogSnapshot(revisions: [StrokeRevisionRecord(id: 0),
+            StrokeRevisionRecord(id: lastID, parent: 0, stroke: stroke(0.3))],
+            history: [0, lastID], cursor: 1)
+        let original = ProjectDocument(globals: GlobalParams(twirl: 0.4), log: log,
+            keyframes: [KeyframeRecord(revision: lastID)])
+        let package = ProjectPackage(document: original, sourceData: session.source)
+        try document.read(from: package.fileWrapper(), ofType: "ch.lkmc.goo.project")
+        document.updateChangeCount(.changeCleared)
+        session.resetGoo()
+        XCTAssertNotNil(session.error)
+        XCTAssertEqual(session.state, original)
+        session.error = nil
+        session.dealGoo()
+        XCTAssertNotNil(session.error)
+        XCTAssertEqual(session.state, original)
+        XCTAssertThrowsError(try EditorSession.cropping(original,
+            to: CropRect(left: 0.1, top: 0.1, right: 0.8, bottom: 0.9)))
+        session.activeStroke = stroke(0.6)
+        session.finishStroke()
+        XCTAssertNotNil(session.error)
+        XCTAssertEqual(session.state, original)
+        XCTAssertFalse(document.undoManager?.canUndo == true)
+        XCTAssertFalse(document.isDocumentEdited)
+        let saved = try ProjectPackage(fileWrapper: document.fileWrapper(ofType: "ch.lkmc.goo.project"))
+        XCTAssertEqual(saved.document.log, original.log)
+        XCTAssertEqual(saved.document.keyframes, original.keyframes)
+        XCTAssertEqual(saved.document.globals, original.globals)
+        XCTAssertEqual(saved.sourceData, package.sourceData)
+    }
+
+    @MainActor func testExhaustedActiveRevisionDoesNotReplaceLastRecoveryCheckpoint() async throws {
+        let document = try document(), session = document.session
+        let root = FileManager.default.temporaryDirectory.appendingPathComponent("revision-recovery-\(UUID().uuidString)")
+        defer { session.stopTimers(); try? FileManager.default.removeItem(at: root) }
+        session.recoveryURL = root.appendingPathComponent("Draft.meltorama")
+        let lastID = Int64.max - 1
+        session.state.log = StrokeLogSnapshot(revisions: [StrokeRevisionRecord(id: 0),
+            StrokeRevisionRecord(id: lastID, parent: 0, stroke: stroke(0.3))],
+            history: [0, lastID], cursor: 1)
+        session.writeRecovery()
+        let before = try ProjectPackage.read(url: session.recoveryURL)
+        session.activeStroke = stroke(0.6)
+        session.writeRecovery()
+        XCTAssertNotNil(session.error)
+        let after = try ProjectPackage.read(url: session.recoveryURL)
+        XCTAssertEqual(after.document, before.document)
+        XCTAssertEqual(after.sourceData, before.sourceData)
+    }
+
     @MainActor func testCaptureCommitsGestureBeforePinningAndCanBeUndone() async throws {
         let document = try document(), session = document.session
         defer { session.stopTimers() }

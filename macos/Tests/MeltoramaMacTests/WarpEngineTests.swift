@@ -309,6 +309,69 @@ final class WarpEngineTests: XCTestCase {
         XCTAssertEqual(try pixels(cached), try pixels(exact))
     }
 
+    func testNestedRewindTargetsHaveBoundedReplayWork() throws {
+        let renderer = try engine(), source = try fixture()
+        var log = StrokeLog()
+        try log.push(Stroke(tool: .smear, radius: 0.25, strength: 1,
+                            stamps: [Stamp(cx: 0.45, cy: 0.5, dx: 0.05, dy: 0)]))
+        let seed = ProjectDocument(log: log.snapshot())
+        let expected = try engine().render(document: seed, source: source.data, fusion: nil, size: size)
+        for _ in 0..<12 {
+            let target = log.currentRevision
+            try log.push(Stroke(tool: .rewind, radius: 0.25, strength: 1,
+                                stamps: [Stamp(cx: 0.45, cy: 0.5)], targetRevision: target))
+        }
+        let document = ProjectDocument(log: log.snapshot())
+        let result = try renderer.render(document: document, source: source.data, fusion: nil, size: size)
+        XCTAssertEqual(try pixels(result), try pixels(expected))
+        XCTAssertLessThanOrEqual(renderer.rewindTargetBuildCount, 12,
+                                 "Each immutable target should be built once, rather than recursively rebuilding prefixes")
+        XCTAssertLessThanOrEqual(renderer.cachedRewindTargetCount, 4)
+
+        var active = Stroke(tool: .rewind, radius: 0.25, strength: 1,
+                            stamps: [Stamp(cx: 0.45, cy: 0.5)], targetRevision: log.currentRevision)
+        let preview = try renderer.render(document: document, source: source.data, fusion: nil,
+                                           size: size, activeStroke: active)
+        XCTAssertLessThanOrEqual(renderer.rewindTargetBuildCount, 1)
+        active.stamps.append(Stamp(cx: 0.5, cy: 0.5))
+        let extended = try renderer.render(document: document, source: source.data, fusion: nil,
+                                            size: size, activeStroke: active)
+        XCTAssertEqual(renderer.rewindTargetBuildCount, 0,
+                       "Extending a live Rewind stroke must reuse its immutable target")
+        try log.push(active)
+        let committed = try engine().render(document: ProjectDocument(log: log.snapshot()),
+                                              source: source.data, fusion: nil, size: size)
+        XCTAssertEqual(try pixels(preview), try pixels(expected))
+        XCTAssertEqual(try pixels(extended), try pixels(committed))
+        XCTAssertLessThanOrEqual(renderer.cachedRewindTargetCount, 4)
+    }
+
+    func testRewindTargetCachePreservesDetachedBranchesAndReorderedPins() throws {
+        let renderer = try engine(), source = try fixture()
+        var log = StrokeLog()
+        var pins: [Int64] = [0]
+        for index in 0..<8 {
+            try log.reset()
+            try log.push(Stroke(tool: .smear, radius: 0.3, strength: 1,
+                                stamps: [Stamp(cx: 0.35 + Float(index) * 0.04, cy: 0.5,
+                                               dx: index % 2 == 0 ? 0.06 : -0.04, dy: 0.01)]))
+            let previousBranch = pins.last!
+            try log.push(Stroke(tool: .rewind, radius: 0.2, strength: 0.4,
+                                stamps: [Stamp(cx: 0.45, cy: 0.5)], targetRevision: previousBranch))
+            pins.append(log.currentRevision)
+        }
+        let document = ProjectDocument(log: log.snapshot(pins: pins))
+        for revision in pins.reversed() {
+            let tween = WarpTween(from: revision, to: revision, fraction: 0, globals: GlobalParams())
+            let cached = try renderer.render(document: document, source: source.data, fusion: nil,
+                                              size: size, tween: tween)
+            let replay = try engine().render(document: document, source: source.data, fusion: nil,
+                                              size: size, tween: tween)
+            XCTAssertEqual(try pixels(cached), try pixels(replay))
+            XCTAssertLessThanOrEqual(renderer.cachedRewindTargetCount, 4)
+        }
+    }
+
     func testFusionFreezeAndCropHaveTheirDocumentSemantics() throws {
         let renderer = try engine(), source = try fixture(), fusion = try fixture(inverted: true)
         var fuseLog = StrokeLog()

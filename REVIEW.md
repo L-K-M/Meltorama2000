@@ -108,6 +108,51 @@ Legend: 🐞 bug · 🔧 improvement · ✨ idea · ⬜ open · 🟢 done · ⏸
 
 ## Sol PR review dispositions
 
+- **PR #118: relative install folder and Python tracebacks — applied.** The
+  install override must be an absolute path, including dry-run validation.
+  Expected rename failures print a concise error while retaining rollback.
+  The quick start uses one install command, and the fixture asserts its
+  default-path safety substitution. Its twelve tests cover multiple scenarios.
+- **PR #118: repeat dependency checks — already verified.** The stale catalog
+  header was removed with #112. Both action pins were checked against their
+  upstream tags. Wrapper pinning/version policy remains the existing deferred
+  concern; this install change does not upgrade the Gradle actions.
+- **PR #118: signal and fixture semantics — verified/deferred.** The interrupt
+  mock signals the transaction subshell that owns the real EXIT/TERM rollback
+  traps. Intentional false-return helpers are called in condition contexts.
+  Fixture install/failure variables override the host, and the mock builder
+  does not read signing variables. Additional symlink/mode assertions are
+  deferred; the real installed bundle passed strict signature verification.
+
+- **PR #111: pin the CI Java setup action — applied.** The native integration
+  pins the same verified upstream commit already used by the release workflow.
+  The adjacent wrapper-action pinning suggestion concerns existing behavior;
+  it is deferred rather than widening this dependency update.
+- **PR #115: add Android instrumentation and screenshot suites — declined.**
+  This repository deliberately uses JVM-only tests and has no emulator CI job.
+  The Navigation release notes were checked against the typed routes (no deep
+  links), and all updated dependencies compile and pass existing unit tests and
+  lint in CI. Android navigation restoration and appearance still require
+  device verification; do not claim that compilation exercised them.
+- **PR #112: KSP must match a specific Kotlin compiler version — refuted.**
+  KSP's release notes document that its version is independent of the Kotlin
+  compiler since KSP 2.3.0. The current PR's Android CI completed both
+  `kspDebugKotlin` and `kspDebugUnitTestKotlin`, compilation, tests, lint, and
+  APK assembly. KSP 2.3.12 requires AGP 8.12 or later, which this project
+  satisfies. Sources: [KSP 2.3.0](https://github.com/google/ksp/releases/tag/2.3.0)
+  and [KSP 2.3.12](https://github.com/google/ksp/releases/tag/2.3.12).
+- **PR #113: the AGP update requires a newer wrapper — refuted.** The
+  [official AGP compatibility table](https://developer.android.com/build/releases/agp-9-4-0-release-notes)
+  specifies a minimum Gradle version below the wrapper already committed when
+  this PR was reviewed. Its Android CI passed. The stale pairing comment was
+  replaced with a compatibility instruction so independent updates cannot
+  leave contradictory version numbers in prose.
+- **PR #114: the wrapper JAR was not regenerated — refuted.** The PR changes
+  the JAR, whose SHA-256 matches Gradle's official distribution checksum. The
+  Windows safety-net block matches the upstream wrapper script. Unchanged
+  distribution URL validation and checksum policy are outside this update;
+  wrapper-validation CI passed and Android CI executed successfully.
+
 - **PR #117: shrink the bootstrap or retrigger with labels — refuted.** The
   pinned action has no completed-chunk checkpoint. Incremental/hybrid scope
   requires a completed baseline; PR #116's failed bootstrap has none and

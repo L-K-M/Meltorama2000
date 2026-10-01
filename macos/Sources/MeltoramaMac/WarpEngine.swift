@@ -54,7 +54,11 @@ final class WarpEngine: @unchecked Sendable {
     private var knownRevisions: [Int64: StrokeRevisionRecord] = [:]
     private var pinBase: (strokes: [Stroke], field: FieldPair)?
     private var endpoints: [(revision: Int64, strokes: [Stroke], field: FieldPair)] = []
+    private static let rewindTargetCacheCapacity = 4
+    private var rewindTargets: [(revision: Int64, strokes: [Stroke], field: FieldPair)] = []
     private var recalling = Set<Int64>()
+    private(set) var rewindTargetBuildCount = 0
+    var cachedRewindTargetCount: Int { rewindTargets.count }
     private var outputTexture: GLuint = 0
     private var outputFramebuffer: GLuint = 0
     private var outputWidth = 0
@@ -97,6 +101,7 @@ final class WarpEngine: @unchecked Sendable {
         liveField?.delete()
         pinBase?.field.delete()
         endpoints.forEach { $0.field.delete() }
+        clearRewindTargets()
         glDeleteProgram(stampProgram)
         glDeleteProgram(warpProgram)
         glDeleteVertexArrays(1, &vao)
@@ -116,6 +121,7 @@ final class WarpEngine: @unchecked Sendable {
                 showFreeze: Bool = false) throws -> CGImage {
         lock.lock()
         defer { lock.unlock() }
+        rewindTargetBuildCount = 0
         context.makeCurrentContext()
         defer { NSOpenGLContext.clearCurrentContext() }
         defer {
@@ -151,6 +157,7 @@ final class WarpEngine: @unchecked Sendable {
             pinBase = nil
             endpoints.forEach { $0.field.delete() }
             endpoints.removeAll()
+            clearRewindTargets()
             knownRevisions.removeAll()
         }
         for record in document.log.revisions { knownRevisions[record.id] = record }
@@ -318,6 +325,7 @@ final class WarpEngine: @unchecked Sendable {
         if changedSource {
             let image = try Self.decodedImage(data: source, crop: crop, maxDimension: decodeCap)
             let newTexture = try upload(image)
+            clearRewindTargets()
             // The old GPU fields still belong to this table until replacement
             // succeeds. A failed decode must preserve both image and identity.
             if changedDocumentImage { knownRevisions.removeAll() }
@@ -473,21 +481,19 @@ final class WarpEngine: @unchecked Sendable {
         // every uniform, and setting them first would leave the outer stroke
         // using the final inner stroke's brush parameters.
         var recall: FieldPair?
+        var borrowedRevision: Int64?
+        defer {
+            if let borrowedRevision {
+                recalling.remove(borrowedRevision)
+                trimRewindTargets()
+            }
+        }
         if let revision = stroke.targetRevision {
             guard recalling.insert(revision).inserted else { throw WarpError.invalidRevision(revision) }
-            defer { recalling.remove(revision) }
-            let target = try FieldPair(width: field.width, height: field.height)
-            do {
-                for prior in try document.log.materialize(revision: revision) {
-                    try replay(prior, into: target, document: document, aspect: aspect)
-                }
-            } catch {
-                target.delete()
-                throw error
-            }
-            recall = target
+            borrowedRevision = revision
+            recall = try rewindTarget(revision, document: document, aspect: aspect,
+                                      width: field.width, height: field.height)
         }
-        defer { recall?.delete() }
         glUseProgram(stampProgram)
         glBindVertexArray(vao)
         uniform1(stampProgram, "u_radius", stroke.radius)
@@ -516,6 +522,51 @@ final class WarpEngine: @unchecked Sendable {
         }
         bind(0, unit: 1)
         bind(0, unit: 0)
+    }
+
+    private func rewindTarget(_ revision: Int64, document: ProjectDocument,
+                              aspect: Float, width: Int, height: Int) throws -> FieldPair {
+        let strokes = try document.log.materialize(revision: revision)
+        if let index = rewindTargets.firstIndex(where: { $0.revision == revision && $0.strokes == strokes }) {
+            let target = rewindTargets.remove(at: index)
+            rewindTargets.append(target)
+            return target.field
+        }
+
+        rewindTargetBuildCount += 1
+        let target = try FieldPair(width: width, height: height)
+        // An LRU alone still rebuilds nested Rewind prefixes exponentially.
+        // Clone the longest completed prefix, then replay only its suffix.
+        let prefix = rewindTargets.filter { cached in
+            cached.strokes.count <= strokes.count &&
+            Array(strokes.prefix(cached.strokes.count)) == cached.strokes
+        }.max { $0.strokes.count < $1.strokes.count }
+        if let prefix { target.restore(from: prefix.field) }
+        do {
+            for stroke in strokes.dropFirst(prefix?.strokes.count ?? 0) {
+                try replay(stroke, into: target, document: document, aspect: aspect)
+            }
+        } catch {
+            target.delete()
+            throw error
+        }
+        rewindTargets.append((revision, strokes, target))
+        trimRewindTargets()
+        return target
+    }
+
+    private func trimRewindTargets() {
+        // A recursive stamp borrows its target until its pass finishes. Keep
+        // those fields alive even if completing a deeper target grows the LRU.
+        while rewindTargets.count > Self.rewindTargetCacheCapacity {
+            guard let index = rewindTargets.firstIndex(where: { !recalling.contains($0.revision) }) else { return }
+            rewindTargets.remove(at: index).field.delete()
+        }
+    }
+
+    private func clearRewindTargets() {
+        rewindTargets.forEach { $0.field.delete() }
+        rewindTargets.removeAll()
     }
 
     private func prepareOutput(width: Int, height: Int) throws {

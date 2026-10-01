@@ -118,7 +118,7 @@ final class EditorSession: ObservableObject {
         do {
             imageSize = try WarpEngine.imageSize(data: data)
             var log = try StrokeLog(snapshot: StrokeLogSnapshot())
-            log.reset()
+            try log.reset()
             var fresh = ProjectDocument()
             fresh.log = log.snapshot(pins: [])
             replacePackage(ProjectPackage(document: fresh, sourceData: data, fusionData: nil), name: name)
@@ -343,10 +343,19 @@ final class EditorSession: ObservableObject {
         alert.informativeText = L("Brush edits, effects, and lenses will return to the original. Captured GOOvie frames stay intact. You can undo this.")
         alert.addButton(withTitle: L("Reset Goo")); alert.addButton(withTitle: L("Cancel"))
         guard alert.runModal() == .alertFirstButtonReturn else { return }
-        edit("Reset Goo") { state in
-            if var log = try? StrokeLog(snapshot: state.log) { log.reset(); state.log = log.snapshot(pins: state.keyframes.map(\.revision)) }
-            state.globals = GlobalParams(); state.wobble = GlobalWobble()
-        }
+        resetGoo()
+    }
+    func resetGoo() {
+        finishStroke()
+        do {
+            var reset = state
+            var log = try StrokeLog(snapshot: reset.log)
+            try log.reset()
+            reset.log = log.snapshot(pins: reset.keyframes.map(\.revision))
+            reset.globals = GlobalParams()
+            reset.wobble = GlobalWobble()
+            edit("Reset Goo") { $0 = reset }
+        } catch { self.error = localizedError(error).localizedDescription }
     }
     func captureKeyframe() {
         guard hasPhoto, state.keyframes.count < 64 else { return }
@@ -705,7 +714,7 @@ final class EditorSession: ObservableObject {
         var log = try StrokeLog(snapshot: document.log)
         // A new document-space root gets a fresh ID. Old snapshots may still
         // be held by the native undo manager and must never alias this root.
-        log.clearHistory()
+        try log.clearHistory()
         cropped.log = log.snapshot()
         cropped.globals = GlobalParams()
         cropped.wobble = GlobalWobble()
@@ -758,11 +767,17 @@ extension BrushTool {
 extension EditorSession {
     func dealGoo() {
         guard hasPhoto else {return}
+        finishStroke()
         let seed=UInt64.random(in:1...UInt64.max)
         let deal=GooMe.makeDeal(seed:seed,aspect:aspect,from:state.globals)
-        edit("Deal Goo") { state in
-            if var log=try? StrokeLog(snapshot:state.log) {try? log.pushBatch(deal.strokes);state.log=log.snapshot(pins:state.keyframes.map(\.revision))}
-            state.globals=deal.globals
-        }
+        do {
+            var log = try StrokeLog(snapshot: state.log)
+            try log.pushBatch(deal.strokes)
+            let snapshot = log.snapshot(pins: state.keyframes.map(\.revision))
+            edit("Deal Goo") { state in
+                state.log = snapshot
+                state.globals = deal.globals
+            }
+        } catch { self.error = localizedError(error).localizedDescription }
     }
 }

@@ -11,15 +11,20 @@ Install Xcode or Apple's Command Line Tools with Swift 6 or later, then run
 from the repository root:
 
 ```sh
-scripts/build-macos.sh --launch
+scripts/build.sh --install
 scripts/test-macos.sh --smoke
 ```
 
 The build produces `dist/Meltorama.app` and a versioned zip with its SHA-256
-sidecar. Drag the app to Applications to install it. The bundle contains the
+sidecar. `--install` verifies and installs the app in `/Applications`, preserving
+the existing app if replacement fails. Set `MELTORAMA_INSTALL_DIR` to choose a
+different folder, such as `"$HOME/Applications"`. Add `--run` to launch after
+installation. The folder must be an absolute path. To build and launch without
+installing, run `scripts/build.sh app --run`. The bundle contains the
 shaders, sample images, icon, and notices and works without the repository.
 Use `--debug` for a debug bundle and `--universal` for Apple silicon and Intel
-in one app. The version comes from the existing Android release configuration.
+in one app with the lower-level `scripts/build-macos.sh`. The version comes
+from the existing Android release configuration.
 
 The app icon is an elastic photograph with a glossy berry curl. Its original
 master is checked in under `Artwork/`; the build generates native icon sizes

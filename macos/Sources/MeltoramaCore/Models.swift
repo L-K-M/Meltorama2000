@@ -387,9 +387,10 @@ public struct StrokeLog: Sendable {
         guard stroke.hasContent else { return }
         guard stroke.isValid else { throw ProjectError.invalidStroke(nextRevision) }
         if let target = stroke.targetRevision { guard state.revisions.contains(where: { $0.id == target }) else { throw ProjectError.invalidRevision(target) } }
+        let revision = try allocateRevision()
         state.history = Array(state.history.prefix(state.cursor+1))
-        state.revisions.append(StrokeRevisionRecord(id: nextRevision,parent: currentRevision,stroke: stroke))
-        state.history.append(nextRevision); state.cursor += 1; nextRevision += 1
+        state.revisions.append(StrokeRevisionRecord(id: revision,parent: currentRevision,stroke: stroke))
+        state.history.append(revision); state.cursor += 1
     }
     public mutating func pushBatch(_ strokes: [Stroke]) throws {
         let batch = strokes.filter(\.hasContent)
@@ -404,14 +405,25 @@ public struct StrokeLog: Sendable {
     }
     public mutating func undo() { if canUndo { state.cursor -= 1 } }
     public mutating func redo() { if canRedo { state.cursor += 1 } }
-    public mutating func reset() {
+    public mutating func reset() throws {
         guard !strokes.isEmpty else { return }
+        let revision = try allocateRevision()
         state.history = Array(state.history.prefix(state.cursor+1))
-        state.revisions.append(StrokeRevisionRecord(id: nextRevision))
-        state.history.append(nextRevision); state.cursor += 1; nextRevision += 1
+        state.revisions.append(StrokeRevisionRecord(id: revision))
+        state.history.append(revision); state.cursor += 1
     }
-    public mutating func clearHistory() {
-        state = StrokeLogSnapshot(revisions: [StrokeRevisionRecord(id: nextRevision)],history: [nextRevision]); nextRevision += 1
+    public mutating func clearHistory() throws {
+        let revision = try allocateRevision()
+        state = StrokeLogSnapshot(revisions: [StrokeRevisionRecord(id: revision)],history: [revision])
+    }
+    private mutating func allocateRevision() throws -> Int64 {
+        // Int64.max is the exhausted counter sentinel, never a serialized ID.
+        // Imported graphs can reach it without being invalid; refusing the
+        // next edit preserves their pins and Rewind references exactly.
+        guard nextRevision < Int64.max else { throw ProjectError.revisionLimitReached }
+        let revision = nextRevision
+        nextRevision += 1
+        return revision
     }
     public func snapshot(pins: [Int64] = []) -> StrokeLogSnapshot {
         let table = Dictionary(uniqueKeysWithValues: state.revisions.map { ($0.id,$0) })
@@ -491,6 +503,7 @@ public struct ProjectDocument: Codable, Equatable, Sendable {
 public enum ProjectError: LocalizedError {
     case unsupportedSchema(Int), invalidAssetName, missingAsset(String), invalidHistory
     case invalidRevision(Int64), invalidStroke(Int64), invalidCrop, invalidGlobals, invalidKeyframe, invalidPackage
+    case revisionLimitReached
     public var errorDescription: String? {
         switch self {
         case .unsupportedSchema(let schema): "This project uses unsupported document version \(schema)."
@@ -503,6 +516,7 @@ public enum ProjectError: LocalizedError {
         case .invalidGlobals: "The project contains invalid effect settings."
         case .invalidKeyframe: "An animation keyframe refers to a missing revision."
         case .invalidPackage: "Choose a Meltorama project package or an Android project folder."
+        case .revisionLimitReached: "This project has reached its edit limit. Export the photo to start a new project."
         }
     }
 }

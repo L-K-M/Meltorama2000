@@ -54,6 +54,10 @@ final class LocalizationTests: XCTestCase {
         XCTAssertNotNil(mapped.userInfo[NSUnderlyingErrorKey] as? ProjectError)
         let revision = localizedError(ProjectError.invalidRevision(Int64.max))
         XCTAssertTrue(revision.localizedDescription.contains(String(Int64.max)))
+        let exhausted = localizedError(ProjectError.revisionLimitReached)
+        XCTAssertEqual(exhausted.localizedDescription,
+            L("This project has reached its edit limit. Export the photo to start a new project."))
+        XCTAssertNotNil(exhausted.userInfo[NSUnderlyingErrorKey] as? ProjectError)
         let external = NSError(domain: NSCocoaErrorDomain, code: NSFileReadNoSuchFileError,
                                userInfo: [NSFilePathErrorKey: name])
         XCTAssertTrue(localizedError(external) === external)
