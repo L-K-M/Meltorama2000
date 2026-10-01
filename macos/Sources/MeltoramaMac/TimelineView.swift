@@ -4,6 +4,7 @@ import SwiftUI
 struct GoovieTimelineView: View {
     @ObservedObject var session: EditorSession
     @Environment(\.colorSchemeContrast) private var contrast
+    @Environment(\.macTheme) private var theme
 
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
@@ -122,8 +123,8 @@ struct GoovieTimelineView: View {
         }
         .buttonStyle(.plain)
         .foregroundStyle(.primary)
-        .background(selected ? MacTheme.accent.opacity(0.2) : Color(nsColor: .textBackgroundColor), in: RoundedRectangle(cornerRadius: 6))
-        .overlay(RoundedRectangle(cornerRadius: 6).strokeBorder(selected ? MacTheme.accent : Color.secondary.opacity(0.25), lineWidth: contrast == .increased ? 3 : 2)
+        .background(selected ? theme.accent.opacity(0.2) : Color(nsColor: .textBackgroundColor), in: RoundedRectangle(cornerRadius: 6))
+        .overlay(RoundedRectangle(cornerRadius: 6).strokeBorder(selected ? theme.accent : Color.secondary.opacity(0.25), lineWidth: contrast == .increased ? 3 : 2)
             .allowsHitTesting(false).accessibilityHidden(true))
         .accessibilityLabel(LF("Frame %d", index + 1))
         .accessibilityAddTraits(selected ? .isSelected : [])

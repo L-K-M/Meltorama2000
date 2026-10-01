@@ -113,11 +113,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuItemValidation, 
     }
     @objc func settings(_ sender: Any?) {
         if settingsWindow == nil {
-            let view = SettingsView()
-            let window = NSWindow(contentRect: NSRect(x: 0, y: 0, width: 458, height: 270), styleMask: [.titled, .closable], backing: .buffered, defer: false)
+            let hostingView = NSHostingView(rootView: SettingsView())
+            let window = NSWindow(contentRect: NSRect(origin: .zero, size: hostingView.fittingSize), styleMask: [.titled, .closable], backing: .buffered, defer: false)
             window.isReleasedWhenClosed = false
             window.title = L("Settings")
-            window.contentView = NSHostingView(rootView: view)
+            window.contentView = hostingView
             window.center()
             settingsWindow = window
         }

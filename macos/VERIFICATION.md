@@ -346,6 +346,46 @@ the same smoke test on arm64 and x86_64 through Rosetta. Both slices retain a
 macOS 13 minimum deployment target. All 130 native tests passed again after
 the Settings lifetime and thumbnail fixes.
 
+## Optional themes and generated dog icon, 1 October 2026
+
+All 134 native tests passed with zero failures and zero skips, including GPU
+replay and export encoders. Four new theme tests cover persisted-value fallback,
+the exact Classic palette, accent contrast, and selection text contrast.
+All eight themes pass 4.5:1 on their native and washed surfaces under Aqua,
+Dark Aqua, and both Increase Contrast appearances. Localization covers every
+theme name. All twelve build/install script regression tests also passed.
+
+In the actual app, each of Classic, Candy, Tangerine, Ocean, Grape, Mint,
+Sunshine, and Cherry was selected under Light and Dark appearance. Native radio
+dots, swatches, localized accessibility names, and the complete wrapped Settings
+copy rendered correctly. Settings closed and reopened successfully.
+Candy survived quitting and relaunching the app.
+
+A live theme change preserved an uncommitted `45%` effect draft and its
+field focus while the model still held zero. Native text Undo restored zero;
+Redo and Return committed 0.45. The original titlebar, tool rows, independent
+effect disclosure, and welcome hand remained intact. Theme changes reached
+both open document tabs and an already-open export sheet without resetting
+its PNG/original-resolution options.
+
+Smear painting, frame capture, Command-S, native close, and Command-O reopening
+retained revision 1, one pin, and Bulge 0.45. The saved JSON hash remained
+unchanged through theme switches, and contained no theme preference.
+PNG exports under Candy and Ocean both decoded as 1200 × 900 and had the
+same SHA-256: `a33772980bf70dac368b6a88cd760ecd5fc230b2b2bcd58935a1308b9ea55e80`.
+Resizing from 1240 × 820 to approximately 910 × 614 retained the tool modes,
+expanded effect, native titlebar/toolbar alignment, and complete frame card.
+Classic and System appearance were restored after testing.
+
+The invented dog icon was generated without a real pet photograph, using the
+previous generated landscape only as a melting-curl composition reference.
+The master and exact prompt are recorded in `Artwork/README.md`. Apple's
+icon compiler encoded and decoded all ten iconset slots. Dimensions, sRGB,
+and full opacity passed validation; 128- and 32-pixel artwork was inspected.
+Manual VoiceOver, Chinese UI, and theme-picker keyboard navigation with macOS
+Keyboard Navigation enabled remain unverified; this Mac's normal Tab setting
+skipped non-text controls.
+
 ## Remaining limitations
 
 - The native app uses Apple's system frameworks and the original GLSL kernels.

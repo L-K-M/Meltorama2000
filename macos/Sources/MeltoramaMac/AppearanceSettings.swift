@@ -29,7 +29,12 @@ enum AppearancePreference: String, CaseIterable, Identifiable {
 
 struct SettingsView: View {
     @AppStorage(AppearancePreference.storageKey) private var appearance: AppearancePreference = .system
+    @AppStorage(ThemePreference.storageKey) private var storedTheme = ThemePreference.classic.rawValue
     @AppStorage("hideBrushCursor") private var hideBrushCursor = false
+    private var theme: MacTheme { MacTheme(preference: ThemePreference.resolve(storedTheme)) }
+    private var themeSelection: Binding<ThemePreference> {
+        Binding(get: { ThemePreference.resolve(storedTheme) }, set: { storedTheme = $0.rawValue })
+    }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 18) {
@@ -39,10 +44,29 @@ struct SettingsView: View {
                     Text(L(preference.title)).tag(preference)
                 }
             }.pickerStyle(.menu)
+            VStack(alignment: .leading, spacing: 8) {
+                Text(L("Theme")).font(.headline)
+                Picker(L("Theme"), selection: themeSelection) {
+                    ForEach(ThemePreference.allCases) { preference in
+                        HStack(spacing: 8) {
+                            Circle().fill(MacTheme(preference: preference).accent)
+                                .frame(width: 12, height: 12)
+                                .overlay(Circle().strokeBorder(.primary.opacity(0.2), lineWidth: 1))
+                                .accessibilityHidden(true)
+                            Text(L(preference.title))
+                        }.tag(preference)
+                    }
+                }.pickerStyle(.radioGroup).labelsHidden()
+                Text(L("Themes color the panels and controls. Your photos keep their original colors."))
+                    .font(.caption).foregroundStyle(.secondary)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
             Toggle(L("Show brush cursor"), isOn: Binding(get: { !hideBrushCursor }, set: { hideBrushCursor = !$0 }))
             Text(L("Projects autosave after editing. Recovery drafts protect photos you have not named yet. All editing and export happen on your Mac."))
                 .font(.callout).foregroundStyle(.secondary)
+                .fixedSize(horizontal: false, vertical: true)
         }.padding(24).frame(width: 410)
+            .tint(theme.accent)
             .onChange(of: appearance) { preference in preference.apply() }
     }
 }
