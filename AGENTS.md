@@ -249,9 +249,10 @@ lives in `engine/core` as pure JVM classes.
   titlebar, and the welcome view's `hand.draw` illustration. Later document,
   recovery, numeric entry, accessibility, and responsive-layout fixes remain.
   `MacTheme.swift` supplies a local lime accent; the whole window is not
-  tinted. Tools use labeled rows and selection backgrounds; controls retain native drawing
-  and behavior. See decision 0008, which supersedes the tinted-window direction
-  in 0007. The custom `GooChrome.swift` console styles remain removed.
+  tinted. Tools use labeled rows and selection backgrounds; controls retain
+  native drawing and behavior. See decision 0008, which supersedes the
+  tinted-window direction in 0007. The custom `GooChrome.swift` console styles
+  remain removed.
   Effect titles and disclosure share one button; enabling stays independent.
   Welcome and GOOvie presentation live in separate views and use the same
   document actions and retained bindings. No perpetual decorative animation.
@@ -340,8 +341,9 @@ lives in `engine/core` as pure JVM classes.
   It derives from Karen Arnold's CC0 `Golden-retriever-dog.jpg`, verified on
   [Wikimedia Commons](https://commons.wikimedia.org/wiki/File:Golden-retriever-dog.jpg)
   and [Public Domain Pictures](https://www.publicdomainpictures.net/en/view-image.php?image=31188&picture=golden-retriever-dog).
-  Keep both the original photograph (`macos/Artwork/Sources/GoldenRetriever.jpg`)
-  and the opaque 1254-pixel master in the repository. The exact prompt, source
+  Keep both the original photograph
+  (`macos/Artwork/Sources/GoldenRetriever.jpg`) and the opaque 1254-pixel master
+  in the repository. The exact prompt, source
   links, license, and hashes live in `macos/Artwork/README.md`.
   `scripts/generate-macos-icon.swift` draws the master edge to edge into ten
   native iconset slots in sRGB. The previous elastic landscape icons and their

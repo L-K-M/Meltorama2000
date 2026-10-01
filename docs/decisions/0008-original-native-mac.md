@@ -5,8 +5,9 @@
 
 ## Context
 
-The user rejected decision 0007's teal window tint, reduced contrast, segmented
-mode control, changed titlebar, and application icon in the welcome view. The
+The user rejected [decision 0007](0007-colorful-native-mac.md): the teal window
+tint, reduced contrast, segmented mode control, changed titlebar, and
+application icon in the welcome view. The
 original native screenshot remains the requested presentation reference, as
 preserved by `v2.0.1` at `94dc117`.
 
