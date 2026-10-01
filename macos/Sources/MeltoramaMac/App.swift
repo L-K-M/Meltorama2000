@@ -115,6 +115,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuItemValidation, 
         if settingsWindow == nil {
             let view = SettingsView()
             let window = NSWindow(contentRect: NSRect(x: 0, y: 0, width: 458, height: 270), styleMask: [.titled, .closable], backing: .buffered, defer: false)
+            window.isReleasedWhenClosed = false
             window.title = L("Settings")
             window.contentView = NSHostingView(rootView: view)
             window.center()
@@ -253,8 +254,6 @@ final class GooDocument: NSDocument {
         let window = EditorWindow(contentRect: NSRect(x: 0, y: 0, width: 1240, height: 820), styleMask: [.titled, .closable, .miniaturizable, .resizable, .fullSizeContentView], backing: .buffered, defer: false)
         window.session = session
         window.title = displayName
-        window.backgroundColor = MacTheme.windowNSColor
-        window.titlebarAppearsTransparent = true
         window.minSize = NSSize(width: 870, height: 580)
         window.tabbingMode = .preferred
         window.setFrameAutosaveName("MeltoramaEditor")

@@ -360,15 +360,15 @@ history.
 
 ## Native macOS adaptation
 
-The Mac interface starts from native controls and the document layout preserved
-by `v2.0.1`. The custom metal panels and brush domes from decision 0006 were
-rejected after user testing. Color now gives the window its character: mint/aqua
-in Light appearance, teal in Dark, and berry primary actions. Modes use a native
-segmented picker; tools use labeled rows with checkmark selection; compact
-effects keep enabling independent from disclosure. The colorful icon fills its
-square with a sunny landscape melting into a berry curl. Kai's Power Goo and
-the Delicious Generation remain inspiration for playfulness, with familiar Mac
-controls as the foundation. See [decision 0007](docs/decisions/0007-colorful-native-mac.md).
+The Mac interface restores the original presentation preserved by `v2.0.1`:
+individual mode buttons, a narrow palette of labeled tool rows, neutral system
+surfaces, the standard titlebar, and the welcome hand illustration. The user
+rejected both the custom console materials in decision 0006 and the tinted
+window/segmented-mode interpretation in 0007. Playfulness now uses local
+lime accents while native controls and readable selection remain the
+foundation. Later correctness, recovery, input, accessibility, and responsive
+layout fixes are retained. Compact effects keep enabling independent from
+disclosure. See [decision 0008](docs/decisions/0008-original-native-mac.md).
 
 The macOS editor keeps the revision graph, original-image package format,
 normalized input geometry, shader kernels, and preview/export replay model.

@@ -1,15 +1,21 @@
 Meltorama 2000 for macOS
 
-Application source, warp shaders, sample artwork, and app icon: this repository,
-released into the public domain under the Unlicense. See LICENSE.
+Application source, warp shaders, sample artwork, and app icon edits: this
+repository, released into the public domain under the Unlicense. See LICENSE.
 
-The Mac icon is original imagegen artwork created for this project and edited
-from that original into a colorful square. Its provenance and complete edit
-prompt are included in IconProvenance.md.
-No source photograph or third-party reference artwork is included in it.
+The Mac icon is derived from Golden-retriever-dog.jpg by Karen Arnold,
+available under the CC0 1.0 Universal Public Domain Dedication.
+Source: https://www.publicdomainpictures.net/en/view-image.php?image=31188&picture=golden-retriever-dog
+License record: https://commons.wikimedia.org/wiki/File:Golden-retriever-dog.jpg
+License: https://creativecommons.org/publicdomain/zero/1.0/
+The photograph was cropped and warped using the built-in imagegen tool.
+Its provenance, source/master hashes, and exact edit prompt are included in
+IconProvenance.md. The original photograph and edited master are retained in
+the repository's macos/Artwork/ directory.
 
-The macOS application has no third-party runtime libraries, fonts, encoders,
-or downloaded resources. It uses Apple's AppKit, SwiftUI, ImageIO, OpenGL,
+The macOS application has no third-party runtime libraries, fonts, or encoders.
+Required resources are bundled; the installed app fetches none at runtime.
+It uses Apple's AppKit, SwiftUI, ImageIO, OpenGL,
 AVFoundation, and the Swift standard library supplied by the operating system.
 SF Symbols are displayed through Apple's system APIs under Apple's terms.
 

@@ -26,9 +26,10 @@ Use `--debug` for a debug bundle and `--universal` for Apple silicon and Intel
 in one app with the lower-level `scripts/build-macos.sh`. The version comes
 from the existing Android release configuration.
 
-The app icon fills its square with a sunny landscape and glossy berry curl.
-Its opaque master is checked in under `Artwork/`; the build generates native
-icon sizes and packages them into the application without downloading resources.
+The app icon is a playful photographic Golden Retriever portrait with a warped
+nose, eye, and smiling cheek. Its opaque master and CC0 source photograph are
+checked in under `Artwork/`; the build generates native icon sizes and packages
+them into the application without downloading resources.
 Open `macos/Package.swift` in Xcode for development; the shell script packages
 the executable into its document-aware application bundle.
 
@@ -45,13 +46,12 @@ The toolbar contains document and view actions. Appearance follows macOS;
 Settings also offers Light and Dark for this app. Standard text editing and
 keyboard focus work in inspectors.
 
-The window is tinted mint/aqua in Light appearance and teal in Dark, with berry
-primary actions. Native segmented controls choose modes, labeled rows choose
-tools, and standard buttons perform actions. Selection includes a checkmark,
-and effect enabling stays independent from disclosure. The interface retains
-the native document layout preserved by `v2.0.1`, together with later correctness
-and installer fixes. Numeric entry, menus, shortcuts, and document commands
-keep their existing behavior.
+The interface restores the original native presentation preserved by `v2.0.1`:
+a narrow palette, individual mode buttons, neutral system surfaces, a standard
+titlebar, and the welcome hand illustration. Local lime accents add color.
+Labeled tool rows retain the original selection highlight, and effect enabling stays
+independent from disclosure. Later correctness, recovery, numeric entry,
+accessibility, responsive layout, and installer fixes remain in place.
 
 The palette includes all twenty Android tools. Hold tools pump while pressed;
 paint tools stamp along the path. Option-click chooses Echo's source or

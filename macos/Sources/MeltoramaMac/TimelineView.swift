@@ -44,7 +44,7 @@ struct GoovieTimelineView: View {
             }
         }
         .padding(12)
-        .background(MacTheme.window)
+        .background(Color(nsColor: .controlBackgroundColor))
         .disabled(!session.hasPhoto)
     }
 
@@ -120,9 +120,10 @@ struct GoovieTimelineView: View {
             }.frame(width: 88, height: 78).padding(4)
                 .contentShape(RoundedRectangle(cornerRadius: 6))
         }
-        .buttonStyle(.bordered)
+        .buttonStyle(.plain)
         .foregroundStyle(.primary)
-        .overlay(RoundedRectangle(cornerRadius: 6).strokeBorder(selected ? MacTheme.accent : .clear, lineWidth: contrast == .increased ? 3 : 2)
+        .background(selected ? MacTheme.accent.opacity(0.2) : Color(nsColor: .textBackgroundColor), in: RoundedRectangle(cornerRadius: 6))
+        .overlay(RoundedRectangle(cornerRadius: 6).strokeBorder(selected ? MacTheme.accent : Color.secondary.opacity(0.25), lineWidth: contrast == .increased ? 3 : 2)
             .allowsHitTesting(false).accessibilityHidden(true))
         .accessibilityLabel(LF("Frame %d", index + 1))
         .accessibilityAddTraits(selected ? .isSelected : [])

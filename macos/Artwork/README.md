@@ -1,43 +1,48 @@
 # Mac application artwork
 
 `MeltoramaIcon.png` is the 1254 × 1254 opaque square master for the Mac app.
-A sunny cyan landscape and large yellow sun fill the icon, with turquoise
-water and purple hills stretching into a glossy raspberry curl at the lower
-right. A thin ivory edge preserves the elastic photograph idea without a broad
-white mat or empty surrounding tile. There is no lettering or separate badge.
+It shows a cheerful Golden Retriever photograph with an enlarged nose, one
+slightly enlarged eye, and a smiling cheek pulled sideways. The close portrait
+fills the square and retains the source photograph's fur, tongue, and green
+background. It was edited with the built-in imagegen tool on 1 October 2026.
 
-The artwork was created on 1 October 2026 with the built-in imagegen tool. The
-first elastic photograph was generated without reference images; this version
-was edited from that original using the prompt below. No photograph or artwork
-from the user's historical examples was copied. The original master and prompt
-remain in Git history: [master](https://github.com/L-K-M/Meltorama2000/blob/9f0f268/macos/Artwork/MeltoramaIcon.png)
-and [prompt](https://github.com/L-K-M/Meltorama2000/blob/9f0f268/macos/Artwork/README.md).
-The artwork is distributed with the project under the Unlicense; see the
-repository's `LICENSE`.
+## Source and license
 
-`scripts/generate-macos-icon.swift` reads this checked-in master and produces
+The real photograph is Karen Arnold's `Golden-retriever-dog.jpg`, preserved as
+`Sources/GoldenRetriever.jpg` (1920 × 1440 JPEG). It is available under
+[CC0 1.0 Universal](https://creativecommons.org/publicdomain/zero/1.0/), as
+recorded by [Wikimedia Commons](https://commons.wikimedia.org/wiki/File:Golden-retriever-dog.jpg)
+and the [original Public Domain Pictures page](https://www.publicdomainpictures.net/en/view-image.php?image=31188&picture=golden-retriever-dog).
+The Commons license record was checked on 1 October 2026; its stable revision is
+[1275143223](https://commons.wikimedia.org/w/index.php?title=File:Golden-retriever-dog.jpg&oldid=1275143223).
+The project's edits are released under the Unlicense; see the repository's
+`LICENSE`. The source photograph remains CC0.
+
+SHA-256:
+
+```text
+96bd803ee7b525075b2ff147493b8eb1e23942b5fa6fc07494d6dd162950e0d3  Sources/GoldenRetriever.jpg
+7b7ec25169fbc13101186279bce63060b06d0766cf901ad32f7006c0bfb4e9e8  MeltoramaIcon.png
+```
+
+## Packaging
+
+`scripts/generate-macos-icon.swift` reads the checked-in master and produces
 the ten standard PNG iconset slots, in sRGB, from 16 to 1024 pixels. It draws
-the picture edge to edge, with no canvas inset or transparent margin. The build
-packages them with Apple's `iconutil`. This process needs no network or
-image-generation service. The Android launcher artwork is unchanged.
+the image edge to edge without a canvas inset or a rounded-corner mask. The
+build packages them with Apple's `iconutil`. This needs no network or image
+service. The Android launcher artwork is unchanged.
 
-The system-rendered icon was inspected on macOS 26. Corner treatment on older
-supported macOS versions has not been visually verified. The mask sentence in
-the edit prompt records the current-system composition intent, not a guarantee
-that every supported OS changes the classic ICNS outline.
+The earlier elastic landscape masters and prompts remain in Git history at
+`9f0f268` and `73160fe`.
 
-## Final edit prompt
+## Exact edit prompt
 
 ```text
 Use case: precise-object-edit.
-Asset type: final macOS application icon for Meltorama 2000.
-Edit target: the attached original elastic-photograph icon.
-Preserve: the beautiful sunny landscape, large warm yellow sun, luminous cyan sky, purple hills, turquoise water, and glossy raspberry melting curl. Preserve the idea of a photograph itself becoming liquid.
-Change composition: the colorful melting picture must FILL the app icon. Make a bold close-up square composition, much more upright and nearly frontal. The landscape and liquid fold together occupy almost the entire square. Keep only a very thin warm ivory photo edge where it helps read the curl; eliminate the broad white photo mat. Bring the glossy magenta curl right to the lower-right edge; make it substantial and clearly part of the image.
-Background: FULL-BLEED OPAQUE color from edge to edge. Continue the luminous turquoise/cyan and raspberry color around any remaining corners so there is no empty white or gray tile and no transparency. Deliver square artwork with square outer corners: the operating system will apply its native app-icon mask.
-Mood: colorful, sunny, cheerful, juicy, happy. High-quality dimensional highlights, clear broad shapes at small Dock sizes. Let the picture be the icon, not a tiny object sitting on a background.
-Avoid: white/gray surrounding tile, blank margins, floating centered miniature, thick white border, separate drop emblem, multiple props, dark gloomy color, text, lettering, mockup, comparison sheet. Final single square icon artwork alone, at least 1024 pixels.
+Asset type: full-bleed macOS icon master, square PNG.
+Input image: a real CC0 photograph by Karen Arnold; this is the edit target, not a style reference.
+Primary request: make a cheerful photographic icon for Meltorama, a photo-liquify app. Crop this exact golden retriever photograph tightly into a square so the happy dog's face, floppy ears, black nose and pink tongue fill nearly the entire picture. Preserve the actual photographic fur, whiskers, lighting, natural eyes, tongue texture, lens softness and background from the source. Then apply a clearly visible but friendly digital liquify distortion: enlarge the nose, balloon one eye slightly, and smoothly pull one smiling cheek sideways into a small sweeping curve. It should look like someone had fun warping a real photograph with a brush. Keep the original dog's identity and natural photographic appearance; no replacement dog, no painted fur, no cosmetic smoothing or synthetic studio rendering.
+Composition: a simple bold close portrait legible at tiny icon sizes, face mostly central, both eyes and nose visible, natural blurred green background at edges. Square picture all the way to every edge, opaque corners, no rounded-corner mask or outside margin.
+Avoid: illustration, cartoon styling, 3D rendering, glossy plastic, fantasy landscapes, rainbow fluids, melted paper, white backplate, icon containers, physical drips, extra features, extra eyes, text, logos, watermark. The deformation is of photograph pixels, not a new creature.
 ```
-
-The tool returned a 1254-pixel square master. The packager validates and
-resamples it to exact native icon sizes.

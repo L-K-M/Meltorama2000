@@ -293,6 +293,50 @@ spacing. The request to shrink the icon onto an inset legacy tile was declined
 against the user's full-picture direction. Older macOS icon corner treatment
 remains visually unverified; the artwork documentation now states that limit.
 
+## Original native presentation restored, 1 October 2026
+
+The document window and toolbar configuration match `v2.0.1` at `94dc117`.
+The transparent titlebar and blanket window tint were removed. The original
+four mode buttons, plain monochrome tool rows, narrow palette, neutral system
+surfaces, and 48-point welcome hand were restored. A local lime accent marks
+selection and the welcome illustration. Later document/input/recovery fixes,
+compact effect headers, 24-point secondary actions, and responsive welcome
+and GOOvie views remain.
+
+All 130 native tests passed with zero failures and zero skips, including GPU
+replay, document input, and encoders. The debug application built with its
+bundled photographic icon and provenance. Apple's icon compiler encoded and
+decoded all ten representations; dimensions, sRGB, and every pixel's opacity
+passed validation. The 128- and 32-pixel artwork was inspected.
+
+The icon is edited from Karen Arnold's real CC0 photograph. Its source,
+license record, exact edit prompt, and source/master hashes are retained in
+`macos/Artwork/`. This is a photo-derived edit, not an untouched photograph.
+
+The actual app was inspected in Light and Dark appearance. Its opaque titlebar
+and toolbar align, the four independent mode buttons and monochrome tools are
+restored, and the welcome hand is 48 points with a lime accent. Resizing from
+1240 × 820 to 908 × 614 with persistent palette/inspector scrollbars retained
+all four modes at the 142-point palette minimum. Taffy Pins truncates there;
+its localized help and full accessibility name remain available.
+
+Native text undo and Return/Tab commits were exercised. Bulge expanded while
+disabled, then enabled at 45% and retained that value when collapsed. A Smear
+stroke, two captured pins, keyboard undo/redo, Command-S, and native save/reopen
+retained revision 1, both pins, and Bulge 0.45. Native PNG export decoded as
+1200 × 900. Playback and pause worked. Native bordered frame buttons reproduced
+clipped thumbnails; plain frame cards displayed the complete thumbnails at both
+window sizes in Light appearance.
+
+Closing and reopening Settings failed twice before setting
+`isReleasedWhenClosed = false` on the delegate's cached window. After rebuilding,
+Command-comma, close, Command-comma reopened Settings successfully. This manual
+regression covers the delegate's private window lifetime. Light → Dark → System
+switching worked and System was restored.
+The standard About panel displayed the photographic icon as a full rounded
+picture without a separate plate on macOS 26.7. Dock appearance, older macOS
+icon treatment, Chinese labels, and manual VoiceOver operation remain unverified.
+
 ## Remaining limitations
 
 - The native app uses Apple's system frameworks and the original GLSL kernels.
