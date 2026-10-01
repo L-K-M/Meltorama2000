@@ -248,10 +248,16 @@ lives in `engine/core` as pure JVM classes.
   palette, individual mode buttons, neutral system surfaces, standard window
   titlebar, and the welcome view's `hand.draw` illustration. Later document,
   recovery, numeric entry, accessibility, and responsive-layout fixes remain.
-  `MacTheme.swift` supplies a local lime accent; the whole window is not
-  tinted. Tools use labeled rows and selection backgrounds; controls retain
+  `MacTheme.swift` supplies eight optional light/dark palettes, independently
+  of the System/Light/Dark preference. Classic retains the original lime
+  accent and neutral panels; other themes tint only the side panels.
+  The photo workspace and standard titlebar remain neutral.
+  Theme changes are application preferences, never document edits; keep
+  hosting views and field coordinators stable so drafts and undo survive.
+  Tools use labeled rows and selection backgrounds; controls retain
   native drawing and behavior. See decision 0008, which supersedes the
-  tinted-window direction in 0007. The custom `GooChrome.swift` console styles
+  tinted-window direction in 0007, and decision 0009 for optional themes.
+  The custom `GooChrome.swift` console styles
   remain removed.
   Effect titles and disclosure share one button; enabling stays independent.
   Welcome and GOOvie presentation live in separate views and use the same
@@ -336,15 +342,13 @@ lives in `engine/core` as pure JVM classes.
   directory. The sharing coordinator retains that output until the chosen
   service completes or fails, even if the document closes. Dismissing the
   picker before choosing a service removes only its temporary output.
-- The Mac icon is a photographic Golden Retriever portrait edited with the
-  built-in imagegen tool: enlarged nose, one eye, and a pulled smiling cheek.
-  It derives from Karen Arnold's CC0 `Golden-retriever-dog.jpg`, verified on
-  [Wikimedia Commons](https://commons.wikimedia.org/wiki/File:Golden-retriever-dog.jpg)
-  and [Public Domain Pictures](https://www.publicdomainpictures.net/en/view-image.php?image=31188&picture=golden-retriever-dog).
-  Keep both the original photograph
-  (`macos/Artwork/Sources/GoldenRetriever.jpg`) and the opaque 1254-pixel master
-  in the repository. The exact prompt, source
-  links, license, and hashes live in `macos/Artwork/README.md`.
+- The Mac icon combines an invented dog in photographic style with a
+  bottom-right melting curl. The built-in imagegen tool generated the dog
+  from scratch; no real pet photo was supplied. The earlier generated
+  landscape master was only a curl-composition reference. Keep the opaque
+  1254-pixel master, exact prompt, provenance, license, and hash in
+  `macos/Artwork/`. The retired real-photo icon and its CC0 source attribution
+  remain in Git history at `6d6f2d3`; do not use that source for new artwork.
   `scripts/generate-macos-icon.swift` draws the master edge to edge into ten
   native iconset slots in sRGB. The previous elastic landscape icons and their
   prompts remain in Git history at `9f0f268` and `73160fe`.

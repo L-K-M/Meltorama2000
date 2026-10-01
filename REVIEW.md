@@ -301,3 +301,44 @@ the reviewer. No important correctness, build, or data-loss defect was confirmed
 - **Prose wrapping and ADR backlink — applied.** Long prose was rewrapped and
   decision 0008 now links back to 0007. The proposed checksum-heading expansion
   is optional wording; the existing file paths and hashes are unambiguous.
+
+## PR #121 review dispositions (native themes and generated dog)
+
+The completed full GLM 5.3 review covered `41484b9`. Binary artwork was
+unavailable to the reviewer and was verified locally. No important defect was
+confirmed; the application source remains unchanged after this review.
+
+- **Theme picker loses its accessibility label — refuted.** The picker supplies
+  `L("Theme")`; actual AX inspection retained that group name and individually
+  named choices. Apple's [labelsHidden documentation](https://developer.apple.com/documentation/swiftui/view/labelshidden())
+  explicitly preserves hidden control labels for accessibility. Manual
+  VoiceOver remains unverified.
+- **Duplicate export-sheet preference — declined.** Both observers read the
+  same persisted key. Independent observation at the presented sheet root
+  keeps an already-open export sheet responsive to changes. Actual testing
+  confirmed live tint changes without losing its selected export options.
+  Replacing that observer with an environment lookup is optional refactoring.
+- **Settings fitting size — unconfirmed.** All eight radio rows and both
+  wrapped captions were visible in the actual application, including after
+  closing and reopening Settings. Larger accessibility text sizes and macOS 13
+  remain manual coverage gaps; no clipping defect was demonstrated.
+- **Future dates, missing artwork records, or stale hashes — refuted.** The
+  change was committed on 1 October 2026. The provenance README exists, its
+  master hash matches, all three cited commits resolve with the described
+  artwork, and the retired real-dog source is deleted. Generation used only
+  the earlier landscape reference, with no real-dog photograph supplied.
+- **Two provenance documents — refuted.** `scripts/build-macos.sh` copies
+  `Artwork/README.md` into the app as `IconProvenance.md`; the installed copy
+  matches byte for byte. There is one maintained source record.
+- **Localization, alpha, and color-profile concerns — refuted.** Theme titles
+  render through `L`, their README order matches the enum, and accents are
+  authored explicitly in sRGB. A pure AppKit probe resolved all 128 tested
+  theme/system surfaces across four appearances to alpha 1, so the contrast
+  calculations use opaque backgrounds. All theme contrast tests passed.
+- **Welcome fallback and newer onChange overload — declined.** Every welcome
+  and timeline presentation descends from the injected editor theme. A static
+  defaults-backed fallback would add a stale second lookup. Keep the existing
+  onChange overload while the deployment target remains macOS 13.
+- **Named test surfaces and ADR retitling — deferred.** These are diagnostic
+  and editorial improvements without a current behavior defect. They do not
+  justify another application change during release stabilization.

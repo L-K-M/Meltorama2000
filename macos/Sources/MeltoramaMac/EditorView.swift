@@ -4,6 +4,8 @@ import MeltoramaCore
 
 struct EditorView: View {
     @ObservedObject var session: EditorSession
+    @AppStorage(ThemePreference.storageKey) private var storedTheme = ThemePreference.classic.rawValue
+    private var theme: MacTheme { MacTheme(preference: ThemePreference.resolve(storedTheme)) }
     var body: some View {
         VStack(spacing: 0) {
             HSplitView {
@@ -31,7 +33,8 @@ struct EditorView: View {
                 HStack { ProgressView(value: progress).frame(width: 200); Text(LF("Exporting… %d%%",Int(progress*100))).monospacedDigit(); Spacer(); Button(L("Cancel")) { session.cancelExport() } }.padding(10)
             }
         }
-        .tint(MacTheme.accent)
+        .tint(theme.accent)
+        .environment(\.macTheme, theme)
         .frame(minWidth: 820, minHeight: 500)
         .sheet(isPresented: $session.showExport) { ExportSheet(session: session) }
         .alert(L("Meltorama Could Not Complete That"), isPresented: .init(get:{session.error != nil},set:{if !$0 {session.error = nil}})) { Button(L("OK")) { session.error = nil } } message: { Text(session.error ?? "") }
@@ -54,11 +57,11 @@ struct EditorView: View {
                 Button { session.dealGoo() } label: { Label(L("Deal Goo"),systemImage:"dice") }.disabled(!session.hasPhoto)
                 Button { session.confirmReset() } label: { Label(L("Reset Goo…"),systemImage:"arrow.counterclockwise") }.disabled(!session.hasPhoto)
             }.padding(.horizontal,12).padding(.bottom,12)
-        }.background(Color(nsColor: .controlBackgroundColor))
+        }.background(theme.panelBackground)
     }
     private func modeButton(_ mode: EditorSession.CanvasMode,_ symbol:String,_ label:String)->some View {
         Button { session.finishStroke(); session.mode = mode; session.requestRender() } label: { Image(systemName:symbol).frame(width:24,height:24) }
-            .buttonStyle(.borderless).background(session.mode == mode ? MacTheme.accent.opacity(0.18) : .clear,in:RoundedRectangle(cornerRadius:5))
+            .buttonStyle(.borderless).background(session.mode == mode ? theme.accent.opacity(0.18) : .clear,in:RoundedRectangle(cornerRadius:5))
             .help(L(label)).accessibilityLabel(L(label)).accessibilityAddTraits(session.mode == mode ? .isSelected : [])
     }
     private func toolGroup(_ title:String,_ tools:[BrushTool])->some View {
@@ -68,7 +71,7 @@ struct EditorView: View {
                 Button { session.finishStroke(); session.tool = tool; session.mode = .brush; session.requestRender() } label: {
                     HStack(spacing:9) { Image(systemName:tool.symbol).frame(width:18); Text(L(tool.title)); Spacer() }.padding(.horizontal,7).frame(height:27).contentShape(Rectangle())
                 }.buttonStyle(.plain)
-                    .background(session.mode == .brush && session.tool == tool ? MacTheme.accent.opacity(0.2) : .clear,in:RoundedRectangle(cornerRadius:5))
+                    .background(session.mode == .brush && session.tool == tool ? theme.accent.opacity(0.2) : .clear,in:RoundedRectangle(cornerRadius:5))
                     .accessibilityLabel(L(tool.title))
                     .accessibilityAddTraits(session.tool == tool && session.mode == .brush ? .isSelected : [])
                     .help(L(tool.title))
@@ -121,7 +124,7 @@ struct EditorView: View {
             .frame(maxWidth: .infinity, alignment: .leading)
             // Keep native field suffixes clear when a persistent scroller appears.
             .padding(.trailing, NSScroller.scrollerWidth(for: .regular, scrollerStyle: .legacy))
-        }.background(Color(nsColor:.controlBackgroundColor)).disabled(!session.hasPhoto)
+        }.background(theme.panelBackground).disabled(!session.hasPhoto)
     }
     private var brushInspector: some View {
         VStack(alignment:.leading,spacing:12) {
@@ -243,6 +246,7 @@ struct EffectSection: View {
 
 struct ExportSheet:View {
     @ObservedObject var session:EditorSession
+    @AppStorage(ThemePreference.storageKey) private var storedTheme = ThemePreference.classic.rawValue
     @State private var format:ExportFormat = .png
     @State private var quality=0.95
     @State private var speed:MovieSpeed = .normal
@@ -270,6 +274,6 @@ struct ExportSheet:View {
                 Button(L("Cancel")) {session.showExport=false}.keyboardShortcut(.cancelAction)
                 Button(L("Export…")) {session.export(options:options)}.keyboardShortcut(.defaultAction).disabled(!session.canExport || needsFrames)
             }
-        }.padding(24).frame(width:420).tint(MacTheme.accent)
+        }.padding(24).frame(width:420).tint(MacTheme(preference: ThemePreference.resolve(storedTheme)).accent)
     }
 }

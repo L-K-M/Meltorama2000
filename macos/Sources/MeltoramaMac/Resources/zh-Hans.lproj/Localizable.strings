@@ -326,3 +326,14 @@
 "Share cancelled" = "已取消共享";
 "Open a document window before sharing." = "请先打开文稿窗口，再共享。";
 "The sharing picker could not be opened." = "无法打开共享选项。";
+
+"Theme" = "主题";
+"Classic" = "经典";
+"Candy" = "糖果";
+"Tangerine" = "橘子";
+"Ocean" = "海洋";
+"Grape" = "葡萄";
+"Mint" = "薄荷";
+"Sunshine" = "阳光";
+"Cherry" = "樱桃";
+"Themes color the panels and controls. Your photos keep their original colors." = "主题为面板和控件增添色彩。照片保留原有颜色。";

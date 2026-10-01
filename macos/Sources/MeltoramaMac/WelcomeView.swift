@@ -4,6 +4,7 @@ import SwiftUI
 
 struct WelcomeView: View {
     @ObservedObject var session: EditorSession
+    @Environment(\.macTheme) private var theme
 
     var body: some View {
         GeometryReader { geometry in
@@ -11,7 +12,7 @@ struct WelcomeView: View {
                 VStack(spacing: 22) {
                     Image(systemName: "hand.draw")
                         .font(.system(size: 48, weight: .light))
-                        .foregroundStyle(MacTheme.accent)
+                        .foregroundStyle(theme.accent)
                         .accessibilityHidden(true)
                     VStack(spacing: 8) {
                         Text(L("Goo Your Photos")).font(.largeTitle.weight(.medium))

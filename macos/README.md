@@ -26,8 +26,8 @@ Use `--debug` for a debug bundle and `--universal` for Apple silicon and Intel
 in one app with the lower-level `scripts/build-macos.sh`. The version comes
 from the existing Android release configuration.
 
-The app icon is a playful photographic Golden Retriever portrait with a warped
-nose, eye, and smiling cheek. Its opaque master and CC0 source photograph are
+The app icon combines an invented dog in photographic style with a sweeping
+bottom-right melting curl. Its opaque master and generation provenance are
 checked in under `Artwork/`; the build generates native icon sizes and packages
 them into the application without downloading resources.
 Open `macos/Package.swift` in Xcode for development; the shell script packages
@@ -43,12 +43,17 @@ Open photos with Command-O, drag them into the window, or start with a sample.
 Each project has its own resizable window. Tools stay on the left; the photo
 is central; contextual settings and whole-photo effects are on the right.
 The toolbar contains document and view actions. Appearance follows macOS;
-Settings also offers Light and Dark for this app. Standard text editing and
-keyboard focus work in inspectors.
+Settings also offers Light and Dark for this app, independently of its theme.
+Choose Classic, Candy, Tangerine, Ocean, Grape, Mint, Sunshine, or Cherry.
+Themes change accents and give side panels a restrained color wash; the photo
+workspace stays neutral. Your choice applies to all windows and survives
+relaunch without changing projects or exported pixels. Standard text editing
+and keyboard focus work in inspectors.
 
 The interface restores the original native presentation preserved by `v2.0.1`:
 a narrow palette, individual mode buttons, neutral system surfaces, a standard
-titlebar, and the welcome hand illustration. Local lime accents add color.
+titlebar, and the welcome hand illustration. Classic retains its lime accents;
+the other themes add a choice of colors.
 Labeled tool rows retain the original selection highlight, and effect enabling stays
 independent from disclosure. Later correctness, recovery, numeric entry,
 accessibility, responsive layout, and installer fixes remain in place.

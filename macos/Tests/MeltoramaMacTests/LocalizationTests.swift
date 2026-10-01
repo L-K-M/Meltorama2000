@@ -35,6 +35,7 @@ final class LocalizationTests: XCTestCase {
         for lens in LensType.allCases { XCTAssertNotNil(chinese["Lens \(lens.title)"], lens.title) }
         for easing in Easing.allCases { XCTAssertNotNil(chinese[easing.title], easing.title) }
         for preference in AppearancePreference.allCases { XCTAssertNotNil(chinese[preference.title], preference.title) }
+        for preference in ThemePreference.allCases { XCTAssertNotNil(chinese[preference.title], preference.title) }
         for key in ["File", "Open…", "Save…", "Revert to Saved…", "Return to Full Photo", "Whole Photo Effects", "Export…", "Loop forever", "Enter Full Screen", "Exit Full Screen"] {
             XCTAssertNotEqual(chinese[key], key)
         }

@@ -326,3 +326,14 @@
 "Share cancelled" = "Share cancelled";
 "Open a document window before sharing." = "Open a document window before sharing.";
 "The sharing picker could not be opened." = "The sharing picker could not be opened.";
+
+"Theme" = "Theme";
+"Classic" = "Classic";
+"Candy" = "Candy";
+"Tangerine" = "Tangerine";
+"Ocean" = "Ocean";
+"Grape" = "Grape";
+"Mint" = "Mint";
+"Sunshine" = "Sunshine";
+"Cherry" = "Cherry";
+"Themes color the panels and controls. Your photos keep their original colors." = "Themes color the panels and controls. Your photos keep their original colors.";

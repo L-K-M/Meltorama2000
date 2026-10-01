@@ -30,3 +30,6 @@ This supersedes 0007's tinted window and mode-control direction. The app's
 identity is expressed through selective accents and separate application
 artwork. Shared document and shader behavior, Android's console theme, and
 native document workflows are unchanged.
+
+[Decision 0009](0009-optional-native-mac-themes.md) later adds optional accent
+palettes and replaces the real-photo icon with an invented dog and melting curl.
