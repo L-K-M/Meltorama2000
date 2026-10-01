@@ -3,6 +3,7 @@ import SwiftUI
 
 struct GoovieTimelineView: View {
     @ObservedObject var session: EditorSession
+    @Environment(\.colorSchemeContrast) private var contrast
 
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
@@ -112,16 +113,16 @@ struct GoovieTimelineView: View {
             VStack(spacing: 5) {
                 FrameThumbnail(session: session, index: index)
                 HStack(spacing: 4) {
-                    if selected { Image(systemName: "checkmark").font(.caption2.weight(.semibold)).accessibilityHidden(true) }
+                    Image(systemName: "checkmark").font(.caption2.weight(.semibold))
+                        .opacity(selected ? 1 : 0).accessibilityHidden(true)
                     Text(LF("Frame %d", index + 1)).font(.caption).lineLimit(1)
                 }
             }.frame(width: 88, height: 78).padding(4)
                 .contentShape(RoundedRectangle(cornerRadius: 6))
         }
-        .buttonStyle(.borderless)
+        .buttonStyle(.bordered)
         .foregroundStyle(.primary)
-        .background(selected ? MacTheme.accent.opacity(0.18) : .clear, in: RoundedRectangle(cornerRadius: 6))
-        .overlay(RoundedRectangle(cornerRadius: 6).strokeBorder(selected ? MacTheme.accent : .secondary.opacity(0.25), lineWidth: selected ? 2 : 1)
+        .overlay(RoundedRectangle(cornerRadius: 6).strokeBorder(selected ? MacTheme.accent : .clear, lineWidth: contrast == .increased ? 3 : 2)
             .allowsHitTesting(false).accessibilityHidden(true))
         .accessibilityLabel(LF("Frame %d", index + 1))
         .accessibilityAddTraits(selected ? .isSelected : [])

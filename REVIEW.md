@@ -212,3 +212,49 @@ Legend: 🐞 bug · 🔧 improvement · ✨ idea · ⬜ open · 🟢 done · ⏸
   is always a decimal string ("1.0", "3.6"), and English takes the plural
   form for decimals regardless of value; the app ships one locale. Revisit
   with the first translation, not before.
+
+## PR #119 review dispositions (native Mac restoration)
+
+- **Timeline feedback and contrast — applied.** Frame thumbnails now use
+  native bordered buttons for press/focus feedback. Only selection adds an
+  outline, which widens with Increase Contrast; captions reserve the checkmark
+  space. No custom material or ButtonStyle is restored.
+- **Legacy icon inset — declined.** The user rejected the small picture on a
+  system backdrop and asked for the picture to fill the icon. The current
+  macOS 26 system-rendered icon was inspected with that composition. Keep it
+  edge to edge; do not substitute an unverified 824/1024 inset recipe. Older
+  macOS corner treatment is explicitly unverified. A separate tested legacy
+  variant remains future work. Current [Apple icon guidance](https://developer.apple.com/design/human-interface-guidelines/app-icons)
+  asks for square unmasked layers; it does not prove older ICNS masking.
+- **Original artwork link — applied.** Provenance now links both the original
+  master and prompt at the verified commit `9f0f268`.
+- **Reset requires two Undo commands — refuted.** Both synchronous edit calls
+  are unchanged from `v2.0.1` and use AppKit's event grouping. An independent
+  Foundation harness verified that both registrations undo together with
+  `groupsByEvent` enabled. Consolidating the mutations is optional cleanup.
+- **Canvas can paint over neighboring panes — refuted.** PhotoCanvas draws
+  inside NSView's default drawing clip and never overrides
+  `wantsDefaultClipping`. AppKit clips to the view bounds before calling draw,
+  as documented by [Apple](https://developer.apple.com/documentation/appkit/nsview/wantsdefaultclipping).
+- **Conditional packaging/model/tint claims — verified.** The generator fills
+  all ten slots, the master and provenance are committed, root tint is set,
+  NSColor providers are dynamic, the smoke command uses dist, and the reviewer
+  workflow runs GLM 5.3. No deleted Goo types remain in application sources;
+  local builds, all 130 native tests, and Android/Mac CI pass.
+- **Deal Goo width and mixed button bezels — declined.** Native action sizing
+  and bordered actions distinguish one-time commands from tool rows and the
+  borderless panel-close control. Removing native bezels is not this task.
+- **Opacity metadata guard — deferred.** The current master and decoded ICNS
+  pixels were verified opaque. The proposed no-alpha guard would also reject
+  fully opaque RGBA artwork; it does not test pixel transparency. A future
+  asset-validation change should check pixels rather than alpha metadata.
+- **Stable keyframe UUID and conditional scroller gutter — deferred.** These
+  pre-existing concerns do not justify changing the compatible document model
+  or the scrollbar protection during a presentation restoration.
+- **Segment hover help and remaining appearance checks — unverified.** Actual
+  AX inspection confirmed descriptive labels for all four native segments.
+  Hover, Light appearance, Increase Contrast, focus, file dialogs, export, and
+  resizing await manual unlock; no interactive pass is claimed for them.
+- **Tool-color dots and effect surfaces — declined.** Removing those materials
+  is the user's requested return to native controls. Effects retain independent
+  enabling/disclosure and reserve no body space when collapsed.

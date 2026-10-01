@@ -10,7 +10,8 @@ The artwork was created on 1 October 2026 with the built-in imagegen tool. The
 first elastic photograph was generated without reference images; this version
 was edited from that original using the prompt below. No photograph or artwork
 from the user's historical examples was copied. The original master and prompt
-remain in Git history at [commit 9f0f268](https://github.com/L-K-M/Meltorama2000/blob/9f0f268/macos/Artwork/README.md).
+remain in Git history: [master](https://github.com/L-K-M/Meltorama2000/blob/9f0f268/macos/Artwork/MeltoramaIcon.png)
+and [prompt](https://github.com/L-K-M/Meltorama2000/blob/9f0f268/macos/Artwork/README.md).
 The artwork is distributed with the project under the Unlicense; see the
 repository's `LICENSE`.
 
@@ -19,6 +20,11 @@ the ten standard PNG iconset slots, in sRGB, from 16 to 1024 pixels. It draws
 the picture edge to edge, with no canvas inset or transparent margin. The build
 packages them with Apple's `iconutil`. This process needs no network or
 image-generation service. The Android launcher artwork is unchanged.
+
+The system-rendered icon was inspected on macOS 26. Corner treatment on older
+supported macOS versions has not been visually verified. The mask sentence in
+the edit prompt records the current-system composition intent, not a guarantee
+that every supported OS changes the classic ICNS outline.
 
 ## Final edit prompt
 

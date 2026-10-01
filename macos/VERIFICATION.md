@@ -287,6 +287,12 @@ all four segmented modes. Further interactive checks paused when the Mac
 locked; Light appearance, editing, file dialogs, export, and resizing need a
 fresh pass on this presentation after manual unlock.
 
+The first completed PR review led to native bordered frame buttons for system
+press/focus feedback and contrast-aware selection outlines, plus stable caption
+spacing. The request to shrink the icon onto an inset legacy tile was declined
+against the user's full-picture direction. Older macOS icon corner treatment
+remains visually unverified; the artwork documentation now states that limit.
+
 ## Remaining limitations
 
 - The native app uses Apple's system frameworks and the original GLSL kernels.
