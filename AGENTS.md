@@ -30,7 +30,9 @@ Deviations from PLAN.md get recorded here as they happen.
 ./gradlew testDebugUnitTest    # the whole test suite (JVM-only, by design)
 ./gradlew lintDebug            # hard CI gate — keep it clean
 ./gradlew assembleDebug        # debug APK
-scripts/build.sh               # release APK staged into dist/
+scripts/build.sh               # every artifact this host can build -> dist/
+                               # (`apk`/`app` target names; --install puts
+                               #  Meltorama.app into /Applications)
 scripts/install.sh             # build + install + launch on a device
 ```
 

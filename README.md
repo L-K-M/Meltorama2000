@@ -55,7 +55,9 @@ with their past or present rights holders.
 
 ## Native macOS application
 
-Build and launch with `scripts/build-macos.sh --launch`. Install the resulting
-`dist/Meltorama.app` in Applications. The native editor includes the full brush
+Build and launch with `scripts/build.sh --run`, or install straight into
+/Applications with `scripts/build.sh --install` (the lower-level
+`scripts/build-macos.sh` remains available for packaging flags like
+`--universal`). The native editor includes the full brush
 palette, effects, lenses, Fusion, and GOOvie exports, using compatible project
 packages. See [macos/README.md](macos/README.md) for builds, interaction, and recovery.
