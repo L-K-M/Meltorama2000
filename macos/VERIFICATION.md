@@ -239,6 +239,23 @@ bright photograph, and berry curl remain distinct. The installed app packages
 the ICNS, license, notices, and provenance rather than relying on a development
 asset path. Actual Dock appearance remains unverified while the Mac is locked.
 
+## Build entry point and installation, 1 October 2026
+
+`scripts/build.sh --install` built the release app and installed version 2.0.4
+into `/Applications/Meltorama.app`, returning exit status zero. Strict signature
+verification passed on the installed bundle. Its noninteractive smoke test used
+the installed resources, rendered through the native GPU, and saved/reopened a
+project successfully. All 122 native tests passed with no failures or skips.
+
+Eleven isolated CLI regressions passed after reproducing the original failure.
+They exercise first installation, replacement, debug forwarding, paths with
+spaces, unrelated working directories, dry runs, copy/signature failures,
+publication failure, interruption, failed rollback, destination races, and
+optional launch failure. Replacement is verified on the destination volume
+before moving the old app; failed rollback retains and reports its backup.
+These tests are included in the hosted macOS CI job. They do not substitute for
+actual window/Dock appearance checks, which remain pending manual unlock.
+
 ## Remaining limitations
 
 - The native app uses Apple's system frameworks and the original GLSL kernels.
