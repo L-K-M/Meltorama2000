@@ -36,6 +36,13 @@ The toolbar contains document and view actions. Appearance follows macOS;
 Settings also offers Light and Dark for this app. Standard text editing and
 keyboard focus work in inspectors.
 
+The editor has a tactile console finish: colored glossy brush domes, a satin
+metal tool rack, recessed workspace and inspector panels, and a GOOvie
+filmstrip. Inset mode controls stay distinct from raised action buttons.
+Selection includes a checkmark, and effect enabling stays independent from
+disclosure. The finish follows Light/Dark appearance while native numeric
+entry, menus, shortcuts, and document commands keep their existing behavior.
+
 The palette includes all twenty Android tools. Hold tools pump while pressed;
 paint tools stamp along the path. Option-click chooses Echo's source or
 replaces a Portal pair. Click to place a lens, select its center to drag it,

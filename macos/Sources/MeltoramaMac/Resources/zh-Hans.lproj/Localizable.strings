@@ -8,6 +8,9 @@
 "%d × %d source pixels. Export replays your edits against the original photo." = "原始照片为 %d × %d 像素。导出时会在原始照片上重放你的编辑。";
 "A movie frame could not be encoded." = "没能编码某个动画帧。";
 "About Meltorama 2000" = "关于 Meltorama 2000";
+"Meltorama" = "Meltorama";
+"2000" = "2000";
+"Meltorama 2000" = "Meltorama 2000";
 "Actual Size" = "实际大小";
 "Add Fusion Photo…" = "添加融合照片…";
 "Add a Fusion photo" = "添加融合照片";

@@ -360,6 +360,14 @@ history.
 
 ## Native macOS adaptation
 
+The native visual language is a tactile photo-warping console, drawing from
+Kai's Power Goo and the Delicious Generation of Mac applications. Satin-metal
+panels, glossy colored brush domes, inset mode controls, raised action pills,
+and a graphite GOOvie filmstrip give the editor character. Native document
+windows, menus, text entry, sliders, checkboxes, and pickers retain their Mac
+behavior. Materials adapt to appearance; selection also has shape and
+checkmark cues; decorative layers do not intercept input. See decision 0006.
+
 The macOS editor keeps the revision graph, original-image package format,
 normalized input geometry, shader kernels, and preview/export replay model.
 Swift ports the pure Kotlin rules; AppKit owns documents, undo, files, and

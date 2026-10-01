@@ -205,6 +205,29 @@ live work. A metadata-success/decoder-rejection fixture could not be reproduced:
 ImageIO accepts many partial images and supplies recovered pixels. That read
 change is defensive hardening, with existing read/revert boundaries verified.
 
+## Tactile console preview, 1 October 2026
+
+Tag `v2.0.1` preserves the previously exercised native interface at `94dc117`.
+The following presentation changes build on that baseline: glossy brush domes,
+opaque satin panels, inset modes, raised actions, a recessed workspace, mounted
+sample cards, and a graphite filmstrip. Effect enabling and expansion remain
+independent. AppKit documents, canvas input, buffered numeric fields, and export
+code are unchanged.
+
+All 122 native tests passed with zero failures and zero skips after integration.
+The universal release bundle built, passed strict signature validation, and
+passed relocated GPU/document smoke tests on arm64 and x86_64 through Rosetta.
+A source and native font-metrics audit checked pane widths, compact effect
+headers, disabled/focus states, opaque fills, reduced-motion handling, and
+contrast. It led to smaller tool cards and a wider minimum palette to retain
+long tool labels with persistent scrollbars.
+
+Actual appearance and interaction checks for this new presentation are still
+pending. UI automation reports that the Mac is locked and cannot be unlocked
+automatically. This preview must not inherit the baseline's visual QA claims;
+welcome/editor appearance, pointer targets, focus, selection, disclosure,
+typing, save/reopen, export, and resizing need another pass after manual unlock.
+
 ## Remaining limitations
 
 - The native app uses Apple's system frameworks and the original GLSL kernels.

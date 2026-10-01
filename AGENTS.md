@@ -242,6 +242,22 @@ lives in `engine/core` as pure JVM classes.
 - Icon-only SwiftUI controls need explicit localized accessibility labels.
   A tooltip alone leaves the accessibility name as the SF Symbol identifier.
   Reset, Fusion add, playback, and frame actions use their purpose as the name.
+- The Mac console's tactile materials live in `GooChrome.swift`: one light
+  source above-left, opaque appearance-aware metal, colored brush domes,
+  inset mode controls, and raised action pills. Keep real `Button` controls
+  with focus/disabled/pressed states; decoration never participates in hit
+  testing or accessibility. Selected tools and frames also have checkmarks.
+  Sliders, checkboxes, pickers, and buffered AppKit numeric fields stay native.
+  Effect titles and disclosure share one button; enabling stays independent.
+  Welcome and GOOvie presentation live in separate views and use the same
+  document actions and retained bindings. No perpetual decorative animation.
+  The palette minimum includes a persistent scrollbar gutter; check tool
+  names in both shipped locales before narrowing it.
+- `build-macos.sh` names its ZIP from Android's committed `versionName`.
+  Before building later edits at the same version, preserve any tagged native
+  bundle separately so a preview cannot replace that release's bytes.
+  `release.yml` publishes Android artifacts; attach the matching verified
+  native ZIP and checksum separately to the GitHub Release.
 - The Mac renderer's GOOvie endpoint cache must touch a cached A before
   materializing B. Otherwise a FIFO eviction can delete A while the current
   draw still holds it, corrupting nonadjacent or reordered frame previews.

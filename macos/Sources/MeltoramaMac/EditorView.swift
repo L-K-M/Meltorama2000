@@ -7,22 +7,31 @@ struct EditorView: View {
     var body: some View {
         VStack(spacing: 0) {
             HSplitView {
-                toolPalette.frame(minWidth: 142, idealWidth: 158, maxWidth: 200)
+                toolPalette.frame(minWidth: 188, idealWidth: 194, maxWidth: 220)
                 VStack(spacing: 0) {
                     if session.hasPhoto {
                         HStack(spacing: 12) {
+                            Circle().fill(session.mode == .brush ? GooTint.brush(session.tool).color : GooTint.aqua.color).frame(width: 7, height: 7).accessibilityHidden(true)
                             Text(L(session.mode == .brush ? session.tool.title : session.mode.rawValue)).font(.headline)
                             if !session.live { Text(L("Frame Preview")).font(.caption).foregroundStyle(.secondary); Button(L("Edit Live")) { session.live = true; session.playing = false; session.requestRender() } }
                             if session.compareOriginal { Text(L("Original Photo")).font(.caption).foregroundStyle(.secondary) }
                             Spacer()
                             if session.mode == .crop { Button(L("Cancel")) { session.cropRect = nil; session.mode = .brush }; Button(L("Apply Crop")) { session.applyCrop() }.disabled(session.cropRect == nil) }
-                        }.padding(.horizontal, 16).frame(height: 40).background(.bar)
+                        }.buttonStyle(GooUtilityButtonStyle()).padding(.horizontal, 16).frame(height: 40).background(GooPanelSurface(cornerRadius: 0))
                         Divider()
                         CanvasView(session: session).frame(maxWidth: .infinity, maxHeight: .infinity)
+                            .clipShape(RoundedRectangle(cornerRadius: 5))
+                            .overlay(RoundedRectangle(cornerRadius: 5).strokeBorder(.black.opacity(0.45), lineWidth: 1).allowsHitTesting(false).accessibilityHidden(true))
+                            .padding(12)
+                            .background(GooPanelSurface(cornerRadius: 0, inset: true))
+                            .overlay(alignment: .topLeading) { GooScrew().padding(4) }
+                            .overlay(alignment: .topTrailing) { GooScrew().padding(4) }
+                            .overlay(alignment: .bottomLeading) { GooScrew().padding(4) }
+                            .overlay(alignment: .bottomTrailing) { GooScrew().padding(4) }
                         Divider()
                         statusBar
-                    } else { welcome }
-                    if session.showTimeline { Divider(); timeline }
+                    } else { WelcomeView(session: session) }
+                    if session.showTimeline { Divider(); GoovieTimelineView(session: session) }
                 }.frame(minWidth: 330, maxWidth: .infinity, maxHeight: .infinity)
                 if session.showInspector { inspector.frame(minWidth: 250, idealWidth: 278, maxWidth: 340) }
             }
@@ -37,69 +46,56 @@ struct EditorView: View {
     }
     private var toolPalette: some View {
         ScrollView {
-            VStack(alignment: .leading, spacing: 12) {
-                Text(L("TOOLS")).font(.caption.weight(.semibold)).foregroundStyle(.secondary).padding(.top,8)
-                HStack(spacing: 6) {
+            VStack(alignment: .leading, spacing: 8) {
+                GooWordmark(compact: true).padding(.top, 8).padding(.bottom, 2)
+                HStack(spacing: 3) {
                     modeButton(.brush, "paintbrush.pointed", "Brush tools")
                     modeButton(.lenses, "circle.dotted", "Place and select lenses")
                     modeButton(.crop, "crop", "Crop photo")
                     modeButton(.hand, "hand.raised", "Pan the workspace")
-                }
+                }.padding(4).background(GooWellSurface(cornerRadius: 7))
                 Divider()
                 toolGroup("Drag", [.smear,.move,.smudge,.nudge,.comb,.fault,.echo,.whip])
                 toolGroup("Hold", [.grow,.shrink,.vortex,.unwind,.melt,.smooth,.ungoo,.rewind])
                 toolGroup("Paint & Place", [.fuse,.pond,.freeze,.pins])
                 Divider()
-                Button { session.dealGoo() } label: { Label(L("Deal Goo"),systemImage:"dice") }.disabled(!session.hasPhoto)
-                Button { session.confirmReset() } label: { Label(L("Reset Goo…"),systemImage:"arrow.counterclockwise") }.disabled(!session.hasPhoto)
+                Button { session.dealGoo() } label: { Label(L("Deal Goo"),systemImage:"dice").frame(maxWidth: .infinity) }
+                    .buttonStyle(GooActionButtonStyle(tint: .berry)).disabled(!session.hasPhoto)
+                Button { session.confirmReset() } label: { Label(L("Reset Goo…"),systemImage:"arrow.counterclockwise").frame(maxWidth: .infinity) }
+                    .buttonStyle(GooUtilityButtonStyle()).disabled(!session.hasPhoto)
             }.padding(.horizontal,12).padding(.bottom,12)
-        }.background(Color(nsColor: .controlBackgroundColor))
+                .padding(.trailing, NSScroller.scrollerWidth(for: .regular, scrollerStyle: .legacy))
+        }.background(GooPanelSurface(cornerRadius: 0))
     }
     private func modeButton(_ mode: EditorSession.CanvasMode,_ symbol:String,_ label:String)->some View {
         Button { session.finishStroke(); session.mode = mode; session.requestRender() } label: { Image(systemName:symbol).frame(width:24,height:24) }
-            .buttonStyle(.borderless).background(session.mode == mode ? Color.accentColor.opacity(0.18) : .clear,in:RoundedRectangle(cornerRadius:5))
+            .buttonStyle(GooModeButtonStyle(selected: session.mode == mode))
             .help(L(label)).accessibilityLabel(L(label)).accessibilityAddTraits(session.mode == mode ? .isSelected : [])
     }
     private func toolGroup(_ title:String,_ tools:[BrushTool])->some View {
-        VStack(alignment:.leading,spacing:3) {
-            Text(L(title)).font(.caption).foregroundStyle(.secondary)
-            ForEach(tools,id:\.rawValue) { tool in
+        VStack(alignment:.leading,spacing:5) {
+            HStack(spacing: 6) {
+                Text(L(title)).font(.caption.weight(.semibold)).foregroundStyle(.secondary)
+                Rectangle().fill(Color.primary.opacity(0.12)).frame(height: 1).accessibilityHidden(true)
+            }
+            LazyVGrid(columns: [GridItem(.flexible(), spacing: 4), GridItem(.flexible(), spacing: 4)], spacing: 4) {
+              ForEach(tools,id:\.rawValue) { tool in
+                let selected = session.mode == .brush && session.tool == tool
                 Button { session.finishStroke(); session.tool = tool; session.mode = .brush; session.requestRender() } label: {
-                    HStack(spacing:9) { Image(systemName:tool.symbol).frame(width:18); Text(L(tool.title)); Spacer() }.padding(.horizontal,7).frame(height:27).contentShape(Rectangle())
-                }.buttonStyle(.plain)
-                    .background(session.mode == .brush && session.tool == tool ? Color.accentColor.opacity(0.2) : .clear,in:RoundedRectangle(cornerRadius:5))
-                    .accessibilityAddTraits(session.tool == tool && session.mode == .brush ? .isSelected : [])
+                    VStack(spacing: 3) {
+                        GooDome(tint: .brush(tool), symbol: tool.symbol, selected: selected, size: 26)
+                        Text(L(tool.title)).font(.system(size: 11, weight: selected ? .semibold : .medium)).lineLimit(1)
+                    }.padding(.horizontal, 2).frame(height: 42)
+                        .overlay(alignment: .topTrailing) {
+                            if selected { Image(systemName: "checkmark").font(.system(size: 8, weight: .bold)).padding(3).accessibilityHidden(true) }
+                        }
+                }.buttonStyle(GooToolButtonStyle(tint: .brush(tool), selected: selected))
+                    .accessibilityLabel(L(tool.title))
+                    .accessibilityAddTraits(selected ? .isSelected : [])
                     .help(L(tool.title))
+              }
             }
         }
-    }
-    private var welcome: some View {
-        VStack(spacing:22) {
-            Image(systemName:"hand.draw").font(.system(size:48,weight:.light)).foregroundStyle(Color.accentColor)
-            VStack(spacing:8) { Text(L("Goo Your Photos")).font(.largeTitle.weight(.medium)); Text(L("Smear, stretch, fuse, and animate.\nA little photo mischief, entirely on your Mac.")).multilineTextAlignment(.center).foregroundStyle(.secondary) }
-            Button(L("Open a Photo…")) { (NSApp.delegate as? AppDelegate)?.openDocument(nil) }.controlSize(.large).keyboardShortcut("o")
-            Divider().frame(width:240)
-            Text(L("Or try a sample")).font(.callout).foregroundStyle(.secondary)
-            HStack(spacing:20) { sample("goo-guy",L("Goo Guy")); sample("candy-blobs",L("Candy Blobs")) }
-            Text(L("Drop a photo or project into this window.")).font(.caption).foregroundStyle(.secondary)
-        }.frame(maxWidth:.infinity,maxHeight:.infinity).background(Color(nsColor:.textBackgroundColor))
-        .onDrop(of:[.fileURL],isTargeted:nil) { providers in
-            guard let item=providers.first else {return false}
-            item.loadItem(forTypeIdentifier:"public.file-url", options:nil) { item,_ in
-                if let data=item as? Data, let url=URL(dataRepresentation:data,relativeTo:nil) { DispatchQueue.main.async { self.openDrop(url) } }
-            }; return true
-        }
-    }
-    private func sample(_ name:String,_ title:String)->some View {
-        Button { session.loadSample(name) } label: {
-            VStack(spacing:7) {
-                if let url=ResourceBundle.url(forResource:name,withExtension:"png"),let image=NSImage(contentsOf:url) { Image(nsImage:image).resizable().scaledToFill().frame(width:110,height:95).clipped().clipShape(RoundedRectangle(cornerRadius:8)) }
-                Text(L(title)).font(.callout)
-            }
-        }.buttonStyle(.plain).accessibilityLabel(LF("Open %@ sample",L(title)))
-    }
-    private func openDrop(_ url:URL) {
-        do { if url.pathExtension=="meltorama" { session.replacePackage(try ProjectPackage.read(url:url),name:url.deletingPathExtension().lastPathComponent) } else { session.importSource(try Data(contentsOf:url),name:url.deletingPathExtension().lastPathComponent) } } catch {session.error=localizedError(error).localizedDescription}
     }
     private var statusBar: some View {
         HStack(spacing:12) {
@@ -109,12 +105,16 @@ struct EditorView: View {
             Button(L("Fit")) {session.resetView()}.buttonStyle(.borderless)
             Text(Double(session.displayedZoom), format: .percent.precision(.fractionLength(session.displayedZoom < 0.01 ? 2 : 0)))
                 .monospacedDigit().frame(minWidth:43)
-        }.font(.caption).padding(.horizontal,12).frame(height:30).background(.bar)
+        }.font(.caption).padding(.horizontal,12).frame(height:30).background(GooPanelSurface(cornerRadius: 0))
     }
     private var inspector: some View {
         ScrollView {
             VStack(alignment:.leading,spacing:0) {
-                Text(L("INSPECTOR")).font(.caption.weight(.semibold)).foregroundStyle(.secondary).padding(14)
+                HStack {
+                    Text(L("INSPECTOR")).font(.caption.weight(.semibold)).foregroundStyle(.secondary)
+                    Spacer()
+                    GooScrew()
+                }.padding(14)
                 if session.mode == .lenses { lensInspector }
                 else if session.mode == .brush { brushInspector }
                 else if session.mode == .crop {
@@ -131,7 +131,7 @@ struct EditorView: View {
                 ForEach(0..<6,id:\.self) { index in EffectSection(session:session,index:index) }
                 Divider().padding(.top,8)
                 VStack(alignment:.leading,spacing:10) {
-                    HStack { Text(L("Fusion Photo")).font(.headline); Spacer(); Button {session.importFusion()} label:{Image(systemName:"plus")}.help(L("Add a Fusion photo")).accessibilityLabel(L("Add a Fusion photo")).disabled(!session.hasPhoto) }
+                    HStack { Text(L("Fusion Photo")).font(.headline); Spacer(); Button {session.importFusion()} label:{Image(systemName:"plus").frame(width: 14, height: 14)}.buttonStyle(GooUtilityButtonStyle()).help(L("Add a Fusion photo")).accessibilityLabel(L("Add a Fusion photo")).disabled(!session.hasPhoto) }
                     if session.fusion != nil { Text(L("Paint the second photo through with Fusion.")).font(.caption).foregroundStyle(.secondary); Button(L("Remove Fusion Photo")) {session.setFusion(nil)} }
                     else { Text(L("Combine two photos with a soft brush.")).font(.caption).foregroundStyle(.secondary) }
                 }.padding(14)
@@ -139,15 +139,15 @@ struct EditorView: View {
                 VStack(alignment:.leading,spacing:10) {
                     Text(L("Document")).font(.headline)
                     Text(LF("%d stroke revisions · %d frames",session.state.log.revisions.filter {$0.stroke != nil}.count,session.state.keyframes.count)).font(.caption).foregroundStyle(.secondary)
-                    Button(L("Save Project…")) {session.document?.save(nil)}.disabled(!session.hasPhoto)
-                    Button(L("Export…")) {session.showExport=true}.disabled(!session.canExport)
+                    Button(L("Save Project…")) {session.document?.save(nil)}.buttonStyle(GooUtilityButtonStyle()).disabled(!session.hasPhoto)
+                    Button(L("Export…")) {session.showExport=true}.buttonStyle(GooActionButtonStyle(tint: .aqua)).disabled(!session.canExport)
                     if let message=session.exportMessage {Text(message).font(.caption).foregroundStyle(.secondary)}
                 }.padding(14)
             }
             .frame(maxWidth: .infinity, alignment: .leading)
             // Keep native field suffixes clear when a persistent scroller appears.
             .padding(.trailing, NSScroller.scrollerWidth(for: .regular, scrollerStyle: .legacy))
-        }.background(Color(nsColor:.controlBackgroundColor)).disabled(!session.hasPhoto)
+        }.background(GooPanelSurface(cornerRadius: 0)).disabled(!session.hasPhoto)
     }
     private var brushInspector: some View {
         VStack(alignment:.leading,spacing:12) {
@@ -177,41 +177,7 @@ struct EditorView: View {
             } else { Text(L("Click the photo to place a lens. Click a lens to select it.")).font(.callout).foregroundStyle(.secondary) }
         }.padding(14)
     }
-    private var timeline: some View {
-        VStack(alignment:.leading,spacing:9) {
-            HStack(spacing:10) {
-                Label(L("GOOvie"),systemImage:"film").font(.headline)
-                Button {session.togglePlayback()} label:{Image(systemName:session.playing ? "pause.fill" : "play.fill")}.help(L("Play or pause the animation")).accessibilityLabel(L("Play or pause the animation")).disabled(session.state.keyframes.count<2)
-                Button(L("Capture")) {session.captureKeyframe()}.help(L("Pin the live photo as a new frame (⌘K)"))
-                Button(L("Update")) {session.updateKeyframe()}.disabled(!session.state.keyframes.indices.contains(session.selectedKeyframe ?? -1))
-                Spacer()
-                Text("\(session.state.keyframes.count) / 64").font(.caption).foregroundStyle(.secondary)
-                Button {session.showTimeline=false} label:{Image(systemName:"xmark")}.buttonStyle(.borderless).help(L("Hide GOOvie timeline")).accessibilityLabel(L("Hide GOOvie timeline"))
-            }
-            if session.state.keyframes.isEmpty { Text(L("Capture a frame, goo the photo, then capture another. Frames keep their own revisions through undo.")).font(.caption).foregroundStyle(.secondary) }
-            else {
-                ScrollView(.horizontal) {
-                    HStack(spacing:8) {
-                        ForEach(session.state.keyframes.indices,id:\.self) { index in
-                            Button {session.selectFrame(index)} label: {
-                                VStack(spacing:3) { FrameThumbnail(session:session,index:index); Text(LF("Frame %d",index+1)).font(.caption) }.frame(width:88,height:78)
-                            }.buttonStyle(.plain).background(session.selectedKeyframe==index ? Color.accentColor.opacity(0.2) : Color(nsColor:.textBackgroundColor),in:RoundedRectangle(cornerRadius:6)).overlay(RoundedRectangle(cornerRadius:6).stroke(session.selectedKeyframe==index ? Color.accentColor : Color.secondary.opacity(0.25)))
-                            .contextMenu { Button(L("Update from Live Photo")) {session.selectedKeyframe=index;session.updateKeyframe()}; Button(L("Move Earlier")) {session.selectedKeyframe=index;session.moveFrame(-1)}.disabled(index==0);Button(L("Move Later")) {session.selectedKeyframe=index;session.moveFrame(1)}.disabled(index==session.state.keyframes.count-1); Divider();Button(L("Delete"),role:.destructive) {session.selectedKeyframe=index;session.deleteFrame()} }
-                        }
-                    }.padding(1)
-                }
-                HStack {
-                    if session.state.keyframes.count>1 { Slider(value:Binding(get:{session.scrub},set:{session.scrub=$0;session.live=false;session.playing=false;session.requestRender()}),in:0...Double(session.state.keyframes.count-1)).accessibilityLabel(L("Animation position")) }
-                    if let index=session.selectedKeyframe,session.state.keyframes.indices.contains(index) {
-                        Picker(L("Curve"),selection:EditorBindings.keyframeEasing(session:session,index:index)) { ForEach(Easing.allCases,id:\.rawValue) {Text(L($0.title)).tag($0)} }.frame(width:180)
-                        Button {session.moveFrame(-1)} label:{Image(systemName:"chevron.left")}.disabled(index==0).help(L("Move frame earlier")).accessibilityLabel(L("Move frame earlier"))
-                        Button {session.moveFrame(1)} label:{Image(systemName:"chevron.right")}.disabled(index==session.state.keyframes.count-1).help(L("Move frame later")).accessibilityLabel(L("Move frame later"))
-                        Button {session.deleteFrame()} label:{Image(systemName:"trash")}.help(L("Delete selected frame")).accessibilityLabel(L("Delete selected frame"))
-                    }
-                }
-            }
-        }.padding(12).background(Color(nsColor:.controlBackgroundColor)).disabled(!session.hasPhoto)
-    }
+
 }
 
 /// SwiftUI can read retained bindings after their inspector has disappeared.
@@ -275,12 +241,16 @@ struct EffectSection: View {
                     if !on { previous=value; previousWobble=session.state.wobble.levers[index] }
                     session.edit("Toggle \(titles[index])") { $0.globals[index]=on ? previous : 0; $0.wobble.levers[index]=on ? previousWobble : LeverWobble() }
                 })).labelsHidden().toggleStyle(.checkbox).accessibilityLabel(LF("Enable %@",L(titles[index])))
-                Button {expanded.toggle()} label:{Image(systemName:expanded ? "chevron.down" : "chevron.right").font(.system(size:10,weight:.semibold)).frame(width:16,height:20)}.buttonStyle(.plain).accessibilityLabel(LF(expanded ? "Collapse %@" : "Expand %@",L(titles[index])))
-                Text(L(titles[index])).font(.callout).onTapGesture {expanded.toggle()}
+                Button {expanded.toggle()} label:{
+                    HStack(spacing: 6) {
+                        Image(systemName:expanded ? "chevron.down" : "chevron.right").font(.system(size:10,weight:.semibold)).frame(width:12)
+                        Text(L(titles[index])).font(.callout.weight(.medium))
+                    }.frame(height: 28).contentShape(Rectangle())
+                }.buttonStyle(.plain).accessibilityLabel(LF(expanded ? "Collapse %@" : "Expand %@",L(titles[index])))
                 Spacer()
                 if value != 0 { Text(String(format:"%+.0f%%",value*100)).font(.caption).monospacedDigit().foregroundStyle(.secondary) }
-                Button {setValue(0);session.edit("Still \(titles[index])") {$0.wobble.levers[index]=LeverWobble()}} label:{Image(systemName:"arrow.counterclockwise").font(.caption)}.buttonStyle(.borderless).help(LF("Reset %@",L(titles[index]))).accessibilityLabel(LF("Reset %@",L(titles[index])))
-            }.frame(height:29).padding(.horizontal,14)
+                Button {setValue(0);session.edit("Still \(titles[index])") {$0.wobble.levers[index]=LeverWobble()}} label:{Image(systemName:"arrow.counterclockwise").font(.caption).frame(width: 12, height: 12)}.buttonStyle(GooUtilityButtonStyle()).help(LF("Reset %@",L(titles[index]))).accessibilityLabel(LF("Reset %@",L(titles[index])))
+            }.frame(height:29).padding(.horizontal,8)
             if expanded {
                 VStack(alignment:.leading,spacing:8) {
                     InspectorSlider(title:L("Amount"),value:Binding(get:{value},set:setValue),range:-1...1,percent:true,onEditingChanged:{if $0 {session.beginContinuousEdit()} else {session.endContinuousEdit()}})
@@ -292,7 +262,7 @@ struct EffectSection: View {
                     }.font(.caption)
                 }.padding(.horizontal,18).padding(.top,5).padding(.bottom,12)
             }
-        }
+        }.padding(.vertical, 2).background(GooPanelSurface(cornerRadius: 6, inset: expanded)).padding(.horizontal, 8).padding(.bottom, 5)
     }
     func setValue(_ value:Float) {session.edit("Adjust \(titles[index])") {$0.globals[index]=value}}
 }
@@ -326,6 +296,6 @@ struct ExportSheet:View {
                 Button(L("Cancel")) {session.showExport=false}.keyboardShortcut(.cancelAction)
                 Button(L("Export…")) {session.export(options:options)}.keyboardShortcut(.defaultAction).disabled(!session.canExport || needsFrames)
             }
-        }.padding(24).frame(width:420)
+        }.padding(24).frame(width:420).background(GooPanelSurface(cornerRadius: 0))
     }
 }
