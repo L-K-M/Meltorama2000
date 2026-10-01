@@ -114,11 +114,11 @@ final class PhotoCanvas: NSView {
     override func otherMouseDown(with event:NSEvent) {panStart=point(event);originalPan=session?.pan ?? .zero}
     override func otherMouseDragged(with event:NSEvent) {mouseDragged(with:event)}
     override func otherMouseUp(with event:NSEvent) {panStart=nil}
-    override func magnify(with event:NSEvent) {session?.zoom=min(16,max(0.1,(session?.zoom ?? 1)*(1+event.magnification)));needsDisplay=true}
+    override func magnify(with event:NSEvent) {session?.scaleZoom(by:1+event.magnification);needsDisplay=true}
     override func rotate(with event:NSEvent) {session?.rotation -= CGFloat(event.rotation);needsDisplay=true}
     override func scrollWheel(with event:NSEvent) {
         guard let session else {return}
-        if event.modifierFlags.contains(.option) {session.zoom=min(16,max(0.1,session.zoom*(1+event.scrollingDeltaY/100)))}
+        if event.modifierFlags.contains(.option) {session.scaleZoom(by:1+event.scrollingDeltaY/100)}
         else {session.pan.x -= event.scrollingDeltaX;session.pan.y -= event.scrollingDeltaY}
         needsDisplay=true
     }

@@ -24,6 +24,7 @@ public enum Symmetry {
 }
 
 public final class StrokeResampler {
+    public static let maxStampsPerSegment = 4096
     private let aspect: Float
     private let firstTravel: Float
     private let spacing: Float
@@ -34,26 +35,73 @@ public final class StrokeResampler {
         precondition(radius.isFinite && radius > 0 && aspect.isFinite && aspect > 0)
         precondition(spacingFraction.isFinite && spacingFraction > 0 && firstTravel.isFinite && firstTravel > 0 && maxSpacing.isFinite && maxSpacing > 0)
         self.aspect = aspect; self.firstTravel = firstTravel
-        spacing = min(spacingFraction*radius,max(maxSpacing,0.002))
+        spacing = max(.leastNormalMagnitude,min(spacingFraction*radius,max(maxSpacing,0.002)))
     }
     public func begin(u: Float, v: Float) {
+        guard u.isFinite, v.isFinite else { return }
         lastU = u; lastV = v; stampU = u; stampV = v; started = true
         toNext = min(spacing,firstTravel)
     }
     public func extend(u: Float, v: Float) -> [Stamp] {
-        precondition(started)
-        guard u.isFinite, v.isFinite else { return [] }
-        let du = u-lastU, dv = v-lastV, segment = hypot(du*aspect,dv)
-        guard segment > 0 else { return [] }
-        var traveled: Float = 0
-        var result: [Stamp] = []
-        while traveled+toNext <= segment {
-            traveled += toNext
-            let t = traveled/segment, cx = lastU+du*t, cy = lastV+dv*t
-            result.append(Stamp(cx: cx,cy: cy,dx: cx-stampU,dy: cy-stampV))
-            stampU = cx; stampV = cy; toNext = spacing
+        guard started, [u,v,lastU,lastV,stampU,stampV].allSatisfy(\.isFinite) else { return [] }
+        // A narrow source or a drag outside the photo can span millions of
+        // nominal intervals. Double preflight avoids Float overflow before
+        // choosing a bounded path; ordinary strokes retain Android's math.
+        let preciseDU = Double(u)-Double(lastU), preciseDV = Double(v)-Double(lastV)
+        let preciseSegment = hypot(preciseDU*Double(aspect),preciseDV)
+        guard preciseSegment.isFinite, preciseSegment > 0 else { return [] }
+        let budgetDistance = Double(toNext)+Double(spacing)*Double(Self.maxStampsPerSegment-1)
+        if preciseSegment > budgetDistance {
+            return coarsenedSegment(u:u,v:v,du:preciseDU,dv:preciseDV,length:preciseSegment)
         }
-        toNext -= segment-traveled; lastU = u; lastV = v
+        let du = u-lastU, dv = v-lastV, segment = hypot(du*aspect,dv)
+        guard du.isFinite, dv.isFinite, segment.isFinite, segment > 0 else {
+            return coarsenedSegment(u:u,v:v,du:preciseDU,dv:preciseDV,length:preciseSegment)
+        }
+        var traveled: Float = 0
+        var remaining = toNext, previousU = stampU, previousV = stampV
+        var result: [Stamp] = []
+        while result.count < Self.maxStampsPerSegment, traveled+remaining <= segment {
+            let next = traveled+remaining
+            guard next.isFinite, next > traveled else {
+                return coarsenedSegment(u:u,v:v,du:preciseDU,dv:preciseDV,length:preciseSegment)
+            }
+            traveled = next
+            let t = traveled/segment, cx = lastU+du*t, cy = lastV+dv*t
+            let stamp = Stamp(cx:cx,cy:cy,dx:cx-previousU,dy:cy-previousV)
+            guard [stamp.cx,stamp.cy,stamp.dx,stamp.dy].allSatisfy(\.isFinite) else {
+                return coarsenedSegment(u:u,v:v,du:preciseDU,dv:preciseDV,length:preciseSegment)
+            }
+            result.append(stamp)
+            previousU = cx; previousV = cy; remaining = spacing
+        }
+        // Rounding near the budget must not turn the nominal walk into an
+        // unbounded loop either. State is still untouched if we resample it.
+        if traveled+remaining <= segment {
+            return coarsenedSegment(u:u,v:v,du:preciseDU,dv:preciseDV,length:preciseSegment)
+        }
+        toNext = remaining-(segment-traveled)
+        stampU = previousU; stampV = previousV; lastU = u; lastV = v
+        return result
+    }
+    private func coarsenedSegment(u: Float,v: Float,du: Double,dv: Double,length: Double) -> [Stamp] {
+        // Keep the first responsive stamp, then spread the remaining budget
+        // across the whole path. Ending exactly at the pointer preserves the
+        // total displacement and gives the next segment a clean spacing gate.
+        let first = min(Double(toNext),length)
+        var previousU = stampU, previousV = stampV
+        var result: [Stamp] = []
+        result.reserveCapacity(Self.maxStampsPerSegment)
+        for i in 0..<Self.maxStampsPerSegment {
+            let fraction = (first+(length-first)*Double(i)/Double(Self.maxStampsPerSegment-1))/length
+            let cx = i == Self.maxStampsPerSegment-1 ? u : Float(Double(lastU)+du*fraction)
+            let cy = i == Self.maxStampsPerSegment-1 ? v : Float(Double(lastV)+dv*fraction)
+            let stamp = Stamp(cx:cx,cy:cy,dx:cx-previousU,dy:cy-previousV)
+            guard [stamp.cx,stamp.cy,stamp.dx,stamp.dy].allSatisfy(\.isFinite) else { return [] }
+            result.append(stamp)
+            previousU = cx; previousV = cy
+        }
+        stampU = u; stampV = v; lastU = u; lastV = v; toNext = spacing
         return result
     }
     public static func firstTravelFor(imageHeight: Float) -> Float {
@@ -85,13 +133,24 @@ public enum ValueNoise {
         return Float(h & 0x00FF_FFFF)/16_777_216
     }
     public static func at(x: Float, y: Float, seed: UInt32) -> Float {
-        let x0 = Int32(floor(x)), y0 = Int32(floor(y))
-        let fx = x-Float(x0), fy = y-Float(y0), sx = fx*fx*(3-2*fx), sy = fy*fy*(3-2*fy)
+        guard x.isFinite, y.isFinite else { return 0 }
+        let (x0,fx) = lattice(x), (y0,fy) = lattice(y)
+        let sx = fx*fx*(3-2*fx), sy = fy*fy*(3-2*fy)
         let a = hash(x: UInt32(bitPattern:x0),y: UInt32(bitPattern:y0),seed: seed)
         let b = hash(x: UInt32(bitPattern:x0 &+ 1),y: UInt32(bitPattern:y0),seed: seed)
         let c = hash(x: UInt32(bitPattern:x0),y: UInt32(bitPattern:y0 &+ 1),seed: seed)
         let d = hash(x: UInt32(bitPattern:x0 &+ 1),y: UInt32(bitPattern:y0 &+ 1),seed: seed)
         return (a+(b-a)*sx) + ((c+(d-c)*sx)-(a+(b-a)*sx))*sy
+    }
+    private static func lattice(_ value: Float) -> (Int32,Float) {
+        let cell = floor(value)
+        // Kotlin Float.toInt saturates; Swift's conversion traps. Outside
+        // the lattice range use that boundary cell without extrapolating
+        // smoothstep, whose fraction is only defined inside a single cell.
+        if Double(cell) > Double(Int32.max) { return (Int32.max,0) }
+        if Double(cell) < Double(Int32.min) { return (Int32.min,0) }
+        let coordinate = Int32(cell)
+        return (coordinate,value-Float(coordinate))
     }
 }
 

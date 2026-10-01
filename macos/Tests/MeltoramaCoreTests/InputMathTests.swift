@@ -2,6 +2,93 @@ import XCTest
 @testable import MeltoramaCore
 
 final class InputMathTests: XCTestCase {
+    func testLargeResamplingSegmentHasBoundedWorkAndPreservesMovement() throws {
+        let sampler = StrokeResampler(radius: 0.01, aspect: 1)
+        sampler.begin(u: 0.5, v: 0.5)
+        // About 8,000 nominal stamps: safely exposes the missing work cap
+        // without entering the Float plateau or allocating millions of stamps.
+        let stamps = sampler.extend(u: 0.5, v: 20.5)
+        XCTAssertLessThanOrEqual(stamps.count, 4096)
+        XCTAssertEqual(try XCTUnwrap(stamps.first).cy, 0.5025, accuracy: 0.000001)
+        XCTAssertEqual(try XCTUnwrap(stamps.last).cy, 20.5)
+        XCTAssertEqual(stamps.map(\.dy).reduce(0, +), 20, accuracy: 0.00001)
+        XCTAssertTrue(stamps.allSatisfy { [$0.cx, $0.cy, $0.dx, $0.dy].allSatisfy(\.isFinite) })
+        let continuation = sampler.extend(u: 0.5, v: 20.51)
+        XCTAssertEqual(try XCTUnwrap(continuation.first).dy, 0.0025, accuracy: 0.000002)
+    }
+
+    func testFloatPlateauAndOverflowSegmentsRemainFiniteAndBounded() throws {
+        let sampler = StrokeResampler(radius: 0.01, aspect: 65535)
+        sampler.begin(u: 0.5, v: 0.5)
+        // A 100-point drag on a native 65535 × 1 image at 10% Fit.
+        // The old accumulator reaches 65536, where adding .0025 stalls.
+        let endpoint: Float = 76919.516
+        let stamps = sampler.extend(u: 0.5, v: endpoint)
+        XCTAssertEqual(stamps.count, StrokeResampler.maxStampsPerSegment)
+        XCTAssertEqual(try XCTUnwrap(stamps.first).cy, 0.5025, accuracy: 0.000001)
+        XCTAssertEqual(try XCTUnwrap(stamps.last).cy, endpoint)
+        XCTAssertEqual(stamps.reduce(Double(0)) { $0 + Double($1.dy) }, Double(endpoint)-0.5, accuracy: 0.002)
+        XCTAssertTrue(stamps.allSatisfy { [$0.cx, $0.cy, $0.dx, $0.dy].allSatisfy(\.isFinite) })
+
+        let overflow = StrokeResampler(radius: 0.01, aspect: 2)
+        overflow.begin(u: -.greatestFiniteMagnitude, v: 0)
+        let extremes = overflow.extend(u: .greatestFiniteMagnitude, v: 0)
+        XCTAssertEqual(extremes.count, StrokeResampler.maxStampsPerSegment)
+        XCTAssertEqual(try XCTUnwrap(extremes.last).cx, .greatestFiniteMagnitude)
+        XCTAssertTrue(extremes.allSatisfy { [$0.cx, $0.cy, $0.dx, $0.dy].allSatisfy(\.isFinite) })
+
+        let underflow = StrokeResampler(radius: .leastNonzeroMagnitude, aspect: 1)
+        underflow.begin(u: 0, v: 0)
+        XCTAssertEqual(underflow.extend(u: 1, v: 0).count, StrokeResampler.maxStampsPerSegment)
+    }
+
+    func testCoarsenedSegmentKeepsUnstampedMovementAcrossCorner() throws {
+        let sampler = StrokeResampler(radius: 0.1, aspect: 1)
+        sampler.begin(u: 0.1, v: 0.3)
+        XCTAssertTrue(sampler.extend(u: 0.102, v: 0.3).isEmpty)
+        let stamps = sampler.extend(u: 0.102, v: 200.3)
+        let first = try XCTUnwrap(stamps.first)
+        XCTAssertEqual(first.cx, 0.102)
+        XCTAssertEqual(first.cy, 0.302, accuracy: 0.000001)
+        XCTAssertEqual(first.dx, 0.002, accuracy: 0.000001)
+        XCTAssertEqual(stamps.reduce(Double(0)) { $0 + Double($1.dx) }, 0.002, accuracy: 0.000001)
+        XCTAssertEqual(stamps.reduce(Double(0)) { $0 + Double($1.dy) }, 200, accuracy: 0.00001)
+    }
+
+    func testInvalidInputDoesNotPoisonValidResampling() {
+        let sampler = StrokeResampler(radius: 0.1, aspect: 1)
+        sampler.begin(u: .nan, v: 0)
+        XCTAssertTrue(sampler.extend(u: 0.5, v: 0.5).isEmpty)
+        sampler.begin(u: 0.1, v: 0.3)
+        sampler.begin(u: 0.9, v: .infinity)
+        XCTAssertTrue(sampler.extend(u: .infinity, v: 0.3).isEmpty)
+        let actual = sampler.extend(u: 0.3, v: 0.3)
+        let expected = StrokeResampler(radius: 0.1, aspect: 1)
+        expected.begin(u: 0.1, v: 0.3)
+        XCTAssertEqual(actual, expected.extend(u: 0.3, v: 0.3))
+    }
+
+    func testNoiseSaturatesOutOfRangeCoordinatesWithoutTrappingOrExtrapolating() {
+        // Ordinary reference values from the original Android-matching port.
+        XCTAssertEqual(ValueNoise.at(x: 0, y: 0, seed: 4), 0.7125572)
+        XCTAssertEqual(ValueNoise.at(x: 3.125, y: -2.75, seed: 4), 0.30084378)
+        XCTAssertEqual(ValueNoise.at(x: -0.2, y: 0.25, seed: 1), 0.63786006)
+        XCTAssertEqual(ValueNoise.at(x: 2_419_781_632, y: 0, seed: 4),
+                       ValueNoise.hash(x: UInt32(bitPattern: Int32.max), y: 0, seed: 4))
+        XCTAssertEqual(ValueNoise.at(x: -.greatestFiniteMagnitude, y: 0, seed: 4),
+                       ValueNoise.hash(x: UInt32(bitPattern: Int32.min), y: 0, seed: 4))
+        for coordinate: Float in [.greatestFiniteMagnitude, Float(Int32.max), Float(Int32.min)] {
+            let sample = ValueNoise.at(x: coordinate, y: -coordinate, seed: 4)
+            XCTAssertTrue(sample.isFinite)
+            XCTAssertTrue((0...1).contains(sample))
+        }
+        XCTAssertEqual(ValueNoise.at(x: .nan, y: 0, seed: 4), 0)
+        XCTAssertEqual(ValueNoise.at(x: 0, y: .infinity, seed: 4), 0)
+        let melt = PumpStamps.at(tool: .melt, u: 60_494_544, v: 0.5, tick: 100)
+        XCTAssertTrue(melt.dy.isFinite)
+        XCTAssertTrue((0.007...0.02).contains(melt.dy))
+    }
+
     func testResamplingIsIndependentOfInputEventSpacing() {
         let once = StrokeResampler(radius:0.1,aspect:1.6)
         once.begin(u:0.1,v:0.3)

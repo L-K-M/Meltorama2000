@@ -107,7 +107,8 @@ struct EditorView: View {
             Text(session.hint).lineLimit(1).truncationMode(.tail).help(session.hint).foregroundStyle(.secondary)
             Spacer(minLength:4)
             Button(L("Fit")) {session.resetView()}.buttonStyle(.borderless)
-            Text("\(Int((session.displayedZoom*100).rounded()))%").monospacedDigit().frame(width:43)
+            Text(Double(session.displayedZoom), format: .percent.precision(.fractionLength(session.displayedZoom < 0.01 ? 2 : 0)))
+                .monospacedDigit().frame(minWidth:43)
         }.font(.caption).padding(.horizontal,12).frame(height:30).background(.bar)
     }
     private var inspector: some View {

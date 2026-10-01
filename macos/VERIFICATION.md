@@ -90,7 +90,7 @@ both GIF and MP4 after rendering starts. Cancellation preserves existing
 destination bytes and removes staging files. GPU-less processes explicitly
 skip these integration checks instead of reporting encoder verification.
 
-The integrated native suite passed all 111 tests on 30 September 2026 on Apple
+The integrated native suite passed all 122 tests on 1 October 2026 on Apple
 silicon, macOS 26.7, with zero failures and zero skips. Actual GPU and encoding
 tests ran. Android's unit tests, lint, and debug assembly also passed.
 
@@ -165,6 +165,26 @@ native tabs, full screen, and appearance were exercised successfully. Saved
 Fusion source bytes matched both originals exactly. Chinese UI and VoiceOver
 were not exercised manually; localization has automated coverage.
 Physical Intel hardware and macOS 13 were not available for testing.
+
+Extreme-input regressions use real 65,535 × 1 and 1 × 65,535 PNGs accepted by
+ImageIO. At 10% Fit and 1% brush size, a 100-point off-photo drag previously
+required millions of stamps and could stall Float accumulation indefinitely.
+A safely bounded pre-fix segment reproduced the missing work limit; the exact
+plateau was established arithmetically without hanging the app. An isolated
+pre-fix core process also reproduced the out-of-Int32 noise conversion trap.
+The repaired paths preserve ordinary output bit for bit, limit oversized
+segments to 4,096 samples before copies, keep their first responsive stamp and
+endpoint, and ignore nonfinite input. Twelve core input tests pass, including
+continuation, pending movement, Float overflow/underflow, and noise bounds.
+Two native extreme-image tests verify GPU preview, 24-way symmetry, exact
+undo/redo, original image bytes, and atomic project save/reopen. Four zoom tests
+cover repeated steps, gesture bounds, invalid multipliers, and Actual Size.
+In the rebuilt app, the extreme horizontal image accepted a 100-point drag at
+minimum zoom and brush size, remained responsive, and supported keyboard
+undo/redo and Save. The saved stroke reopened successfully after relaunch.
+Thirty Zoom Out and forty Zoom In shortcuts stopped at usable bounds; Actual
+Size still reported 100%. The final minimum-zoom readout showed 0.20% with no
+clipping. Small zoom percentages now retain decimal precision.
 
 Additional regressions were observed failing before their fixes: native close
 approved an unfinished gesture without saving it; active numeric text was

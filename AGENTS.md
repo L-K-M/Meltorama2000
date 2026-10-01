@@ -226,6 +226,15 @@ lives in `engine/core` as pure JVM classes.
   Canvas zoom is fit-relative internally; its readout and Actual Size use
   `CanvasGeometry` and the window's backing scale to measure display pixels.
   Do not present the internal fit multiplier as a document zoom percentage.
+- Native pointer sampling has a 4,096-stamp budget per segment before symmetry
+  and portal copies. Extreme aspect ratios and drags outside a photo can exceed
+  millions of nominal intervals; a Float accumulator can stop advancing and
+  hang the main thread. Double preflight spreads oversized paths across the
+  budget while retaining the first responsive stamp and exact endpoint.
+  Ordinary paths keep Android's Float math, and saved stamps replay unchanged.
+  Noise lattice conversion saturates outside Int32 instead of trapping.
+  Menu zoom and gesture zoom share the 0.1...16 Fit-relative range; Actual Size
+  remains a separate pixel-scale command for large originals.
 - Canvas keys forward Command/Control combinations through AppKit's responder
   chain instead of treating them as tool letters. Brush-size brackets use the
   generated character, including Option-generated brackets on international

@@ -92,8 +92,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuItemValidation, 
     @objc func exportDocument(_ sender: Any?) { session?.document?.commitPendingEditing(); if session?.canExport == true { session?.showExport = true } }
     @objc func fit(_ sender: Any?) { session?.resetView() }
     @objc func actualSize(_ sender: Any?) { session?.actualSize() }
-    @objc func zoomIn(_ sender: Any?) { session?.zoom *= 1.25 }
-    @objc func zoomOut(_ sender: Any?) { session?.zoom /= 1.25 }
+    @objc func zoomIn(_ sender: Any?) { session?.scaleZoom(by: 1.25) }
+    @objc func zoomOut(_ sender: Any?) { session?.scaleZoom(by: 0.8) }
     @objc func toggleInspector(_ sender: Any?) { session?.showInspector.toggle() }
     @objc func toggleTimeline(_ sender: Any?) { session?.showTimeline.toggle() }
     @objc func capture(_ sender: Any?) { session?.captureKeyframe() }

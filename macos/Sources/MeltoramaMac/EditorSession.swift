@@ -313,6 +313,13 @@ final class EditorSession: ObservableObject {
                          globals: leversAt(base: globals, wobble: safe, phase: phase))
     }
     func resetView() { zoom = 1; pan = .zero; rotation = 0 }
+    func scaleZoom(by multiplier: CGFloat) {
+        guard multiplier.isFinite else { return }
+        // Menu steps and gestures share a usable Fit-relative range. Actual
+        // Size remains a separate command because large originals can need
+        // more than 16 times Fit to reach one source pixel per display pixel.
+        zoom = min(16, max(0.1, zoom * multiplier))
+    }
     var displayedZoom: CGFloat { CanvasGeometry.displayPixelScale(image: imageSize, viewport: viewportSize, zoom: zoom, backingScale: viewportBackingScale) }
     func updateViewport(size: CGSize, backingScale: CGFloat) {
         guard viewportSize != size || viewportBackingScale != backingScale else { return }
