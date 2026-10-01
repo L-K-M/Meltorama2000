@@ -244,20 +244,30 @@ lives in `engine/core` as pure JVM classes.
 - Icon-only SwiftUI controls need explicit localized accessibility labels.
   A tooltip alone leaves the accessibility name as the SF Symbol identifier.
   Reset, Fusion add, playback, and frame actions use their purpose as the name.
-- The Mac interface uses native controls and the document layout restored from
-  `v2.0.1`, retaining later correctness and installer fixes. `MacTheme.swift`
-  supplies a window tint that follows appearance: mint/aqua in Light, teal in Dark,
-  and berry for primary actions. Keep modes in the native segmented picker,
-  tools in labeled rows, and document actions in the toolbar and menus.
-  Selected tools and frames also have checkmarks. Buttons, sliders, checkboxes,
-  pickers, and buffered AppKit numeric fields keep native rendering and behavior.
-  The custom `GooChrome.swift` metal and dome styles were removed at the user's
-  request; do not reintroduce them as the Mac visual language. See decision 0007.
+- The Mac interface restores the original `v2.0.1` presentation: a narrow tool
+  palette, individual mode buttons, neutral system surfaces, standard window
+  titlebar, and the welcome view's `hand.draw` illustration. Later document,
+  recovery, numeric entry, accessibility, and responsive-layout fixes remain.
+  `MacTheme.swift` supplies a local lime accent; the whole window is not
+  tinted. Tools use labeled rows and selection backgrounds; controls retain
+  native drawing and behavior. See decision 0008, which supersedes the
+  tinted-window direction in 0007. The custom `GooChrome.swift` console styles
+  remain removed.
   Effect titles and disclosure share one button; enabling stays independent.
   Welcome and GOOvie presentation live in separate views and use the same
   document actions and retained bindings. No perpetual decorative animation.
-  The palette minimum includes a persistent scrollbar gutter; check tool
-  names in both shipped locales before narrowing it.
+  At the 142-point palette minimum, all four mode buttons remain visible with
+  persistent scrollbars. Long tool labels can truncate; retain their full
+  localized help and accessibility names.
+- GOOvie thumbnail cards use `.plain` buttons with their own background and
+  outline. Native `.bordered` styling clipped the tall thumbnail/caption label
+  in the actual app. Check frame cards at both normal and minimum window sizes
+  when changing their button style.
+- The delegate caches its Settings `NSWindow`; set `isReleasedWhenClosed` to
+  `false` so closing it does not invalidate the window used by the next Settings
+  command. Regression procedure: Command-comma, close Settings, then
+  Command-comma again. This manual regression covers the delegate's private
+  window lifetime.
 - `build-macos.sh` names its ZIP from Android's committed `versionName`.
   Before building later edits at the same version, preserve any tagged native
   bundle separately so a preview cannot replace that release's bytes.
@@ -326,16 +336,22 @@ lives in `engine/core` as pure JVM classes.
   directory. The sharing coordinator retains that output until the chosen
   service completes or fails, even if the document closes. Dismissing the
   picker before choosing a service removes only its temporary output.
-- The Mac icon fills an opaque square with a sunny landscape and glossy berry
-  curl. Its 1254-pixel master and generation/edit provenance live in
-  `macos/Artwork/`; `scripts/generate-macos-icon.swift` draws it edge to edge
-  into ten native iconset slots in sRGB. Do not add transparent margins or a
-  canvas inset: the previous freeform icon appeared small on a system backdrop.
-  Keep the master in the repository so builds need no external service. The
-  original elastic photograph and its prompt remain in Git history at `9f0f268`.
-  In a restricted filesystem sandbox, Apple's `iconutil` can report a valid
-  iconset as invalid. Verify its slots, then rerun the compiler outside that
-  sandbox before changing the artwork or packager.
+- The Mac icon is a photographic Golden Retriever portrait edited with the
+  built-in imagegen tool: enlarged nose, one eye, and a pulled smiling cheek.
+  It derives from Karen Arnold's CC0 `Golden-retriever-dog.jpg`, verified on
+  [Wikimedia Commons](https://commons.wikimedia.org/wiki/File:Golden-retriever-dog.jpg)
+  and [Public Domain Pictures](https://www.publicdomainpictures.net/en/view-image.php?image=31188&picture=golden-retriever-dog).
+  Keep both the original photograph
+  (`macos/Artwork/Sources/GoldenRetriever.jpg`) and the opaque 1254-pixel master
+  in the repository. The exact prompt, source
+  links, license, and hashes live in `macos/Artwork/README.md`.
+  `scripts/generate-macos-icon.swift` draws the master edge to edge into ten
+  native iconset slots in sRGB. The previous elastic landscape icons and their
+  prompts remain in Git history at `9f0f268` and `73160fe`.
+  If `iconutil` reports an invalid iconset, first verify slot names, dimensions,
+  and readable PNGs. A restricted filesystem sandbox can cause a false failure
+  for valid slots. Retry the same compiler invocation with the normal approval
+  mechanism before changing valid artwork or packaging code.
   Android retains its hand-authored droplet vector. Samples are the same
   repo-generated public-domain assets documented above.
 - Native user-facing copy lives in `en.lproj` and `zh-Hans.lproj`, accessed

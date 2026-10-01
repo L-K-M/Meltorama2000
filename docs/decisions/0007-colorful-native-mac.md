@@ -1,6 +1,6 @@
 # 0007: Color around native Mac controls
 
-- **Status:** accepted
+- **Status:** superseded by [0008](0008-original-native-mac.md)
 - **Date:** 2026-10-01
 
 ## Context

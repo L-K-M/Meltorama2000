@@ -1,4 +1,4 @@
-// Packages the original elastic-photograph artwork into a standard Mac iconset.
+// Packages the photographic artwork into a standard Mac iconset.
 // Usage: swift scripts/generate-macos-icon.swift OUTPUT.iconset
 import AppKit
 import ImageIO

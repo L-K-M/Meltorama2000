@@ -258,3 +258,46 @@ Legend: 🐞 bug · 🔧 improvement · ✨ idea · ⬜ open · 🟢 done · ⏸
 - **Tool-color dots and effect surfaces — declined.** Removing those materials
   is the user's requested return to native controls. Effects retain independent
   enabling/disclosure and reserve no body space when collapsed.
+
+## PR #120 review dispositions (original Mac presentation)
+
+The completed full review covered `6ebfdd2`; binary artwork was unavailable to
+the reviewer. No important correctness, build, or data-loss defect was confirmed.
+
+- **Mode width and palette scroller overlap — refuted/declined.** Actual
+  minimum-width testing with persistent scrollbars showed all four mode buttons
+  inside the 142-point palette. The restored row layout reserves horizontal
+  padding; re-adding a second 15-point gutter would reduce the available width.
+  Long labels can truncate at the minimum, with full help and accessibility
+  names retained. The inspector keeps its separate numeric-field clearance.
+- **Selection outlines — deferred.** The user explicitly requested the original
+  mode buttons and plain tool rows. Their selected backgrounds and accessibility
+  selected traits are restored. Extra palette outlines or checkmarks would
+  change that chosen reference. An Increase Contrast refinement remains a
+  worthwhile separate accessibility change; the current manual checks do not
+  establish a complete low-vision or VoiceOver pass.
+- **Light accent below 3:1 — refuted.** An AppKit harness resolved Aqua's
+  `controlBackgroundColor` to sRGB white and measured the solid light accent at
+  5.3342:1. This verifies accent text/outline contrast, not the translucent
+  selection wash; the proposed darker accent is unnecessary.
+- **Command-modifier mode shortcuts — declined.** Command-C and Command-H are
+  native Copy and Hide. Canvas B/L/C/H already route through the responder and
+  leave text entry and modified native commands intact. Do not override those
+  document commands to reproduce segmented-picker navigation.
+- **Remove full-size content layout — declined.** The window and toolbar
+  configuration match `94dc117`, and actual Light/Dark titlebar, toolbar, and
+  resizing checks passed. There is no top-edge `ignoresSafeArea` dependency.
+  Removing another baseline window flag is outside the requested restoration.
+- **Tagline lost original callout font — refuted.** At `94dc117`, the tagline
+  uses the default body font; only the sample hint uses callout. The current
+  welcome hierarchy intentionally restores that reference.
+- **Missing artwork, stale hashes, or deleted theme references — refuted.** Both
+  binaries are committed and their SHA-256 values match provenance. The icon
+  packager reads the master; it does not regenerate it. Removed theme symbols
+  have zero source references, and local/hosted native builds pass.
+- **Prominent Deal Goo — declined.** Its standard native button restores the
+  requested original interface. The user rejected the prior prominent berry
+  action alongside the rest of the tinted presentation.
+- **Prose wrapping and ADR backlink — applied.** Long prose was rewrapped and
+  decision 0008 now links back to 0007. The proposed checksum-heading expansion
+  is optional wording; the existing file paths and hashes are unambiguous.
