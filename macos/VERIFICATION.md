@@ -337,6 +337,15 @@ The standard About panel displayed the photographic icon as a full rounded
 picture without a separate plate on macOS 26.7. Dock appearance, older macOS
 icon treatment, Chinese labels, and manual VoiceOver operation remain unverified.
 
+`scripts/build.sh --install` built and installed release 2.0.7 (build 11) with
+exit status zero. The installed signature and GPU/edit/save/reopen smoke test
+passed; its real welcome window and About panel confirmed the final version
+and artwork. The universal ZIP passed its checksum and integrity checks. A
+relocated copy in a folder with spaces passed strict signature validation and
+the same smoke test on arm64 and x86_64 through Rosetta. Both slices retain a
+macOS 13 minimum deployment target. All 130 native tests passed again after
+the Settings lifetime and thumbnail fixes.
+
 ## Remaining limitations
 
 - The native app uses Apple's system frameworks and the original GLSL kernels.
