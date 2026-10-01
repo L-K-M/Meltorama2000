@@ -404,11 +404,17 @@ native surfaces. All four appearance variants pass the palette tests,
 including accent/primary-text contrast, secondary-text opacity, selected rows,
 and distinct background roles. English and Chinese localization tests pass.
 
-The final local run passed all 143 native tests with no skips (112 Mac,
+The final local run passed all 144 native tests with no skips (113 Mac,
 31 core), including GPU replay and export. All 12 installer regression tests
 passed. A new integration test verified real Foundation defaults-notification
 delivery to an existing window using an isolated suite, without a synthetic
 notification or changes to standard application preferences.
+
+A real PhotoCanvas test also confirmed that AppKit invalidates its background
+on inherited appearance changes without a SwiftUI bridge or window-theme
+controller. Actual drawing into an explicit sRGB buffer matched Candy and
+Ocean through light, dark, and light appearances. The review's stale-repaint
+concern was not reproduced, so no application redraw override was added.
 
 The first actual preview exposed content beneath the colored native titlebar.
 The regression then reproduced a 66-point overlap before correction. A retained

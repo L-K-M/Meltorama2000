@@ -342,3 +342,65 @@ confirmed; the application source remains unchanged after this review.
 - **Named test surfaces and ADR retitling — deferred.** These are diagnostic
   and editorial improvements without a current behavior defect. They do not
   justify another application change during release stabilization.
+
+## PR #122 review dispositions (coordinated Mac palettes)
+
+The completed full GLM 5.3 review covered `60646af`. All 19 main comments,
+both outside-diff comments, and both inline suggestions were inspected.
+No important defect was confirmed in this round. The corrected candidate's
+actual visual pass remains blocked by the locked Mac.
+
+- **Controller retention — refuted.** Both production construction sites store
+  controllers strongly: the app delegate's `settingsWindowTheme` and the editor
+  window controller's `windowTheme`. Weak window references and observer
+  captures intentionally avoid cycles. The live-defaults integration test also
+  exercises real Foundation notification delivery without a synthetic post.
+- **Duplicate host installation and content-view controllers — declined.** The
+  sole production installation occurs when a fresh titled editor window is
+  created. No `contentViewController` is configured. Additional guards or
+  clearing unrelated controller state would address hypothetical future paths.
+- **Missing layout helper — refuted.** `WindowThemeController.swift` defines the
+  production helper, imported by `@testable import MeltoramaMac`. Local and
+  hosted builds execute the geometry regression against that implementation.
+  A duplicate test helper would weaken the regression.
+- **Both localization-key warnings — refuted.** English and Simplified Chinese
+  are the shipped locales, and both updated keys match the `L` call. The old
+  caption key has no remaining resource references. Localization tests pass.
+- **Hue conversion and selectText deprecation — refuted.** The color helper
+  already converts to sRGB and tests fixed authored chromatic surfaces. The
+  installed Apple SDK's `NSTextField.h` declares `selectText:` without a
+  deprecation annotation; the test build emits no such warning.
+- **Export-sheet observation — declined.** The PR #121 disposition still
+  applies: independent observation of the same persisted key keeps an open
+  sheet live. Proposed future per-window overrides are outside this product.
+- **Delegate actor migration, named Classic constants, and weaker window
+  preconditions — declined.** Existing UI callbacks create the retained
+  controllers on the application thread. Broad Swift 6 migration is separate
+  from this Swift 5 target. Exact Classic values are tested. The layout guide
+  is an internal titled-window invariant, not untrusted document input; silently
+  returning would hide a configuration error.
+- **Settings resizability — declined as unconfirmed.** Captions wrap and the
+  fitted initial size includes their new content. No clipping was demonstrated
+  in the previous actual Settings pass. Corrected UI, larger text sizes, and
+  macOS 13 still need manual coverage; this is not recorded as a passed check.
+- **Role-name loops, assertion diagnostics, and Classic material comments —
+  declined as optional.** Fixed private role ordering deliberately compares
+  chrome, panels, and workspace while pinning canvas equality. File/line
+  forwarding, identity-assertion helpers, and extra comments change diagnostics
+  or wording without fixing observed behavior.
+- **Notification deduplication and secondary-text threshold — declined as
+  unnecessary.** Unchanged preferences return before updating the window.
+  The 3:1 secondary-label test includes native opacity and serves as a
+  regression floor. Neither the code nor verification claims complete WCAG AA
+  conformance for compact captions.
+- **Layout timing — declined as unconfirmed.** Local and hosted guide tests
+  pass without observed flakiness. The suggested `NSWindow.layoutIfNeeded()`
+  is not present in the installed public NSWindow API. Do not weaken geometry
+  tolerance or add an unsupported method for a hypothetical timing problem.
+- **Container invalidation and appearance repaint — refuted.**
+  `CanvasView.updateNSView` invalidates the photo view on theme updates. An
+  isolated real `PhotoCanvas`, without that bridge or the window controller,
+  also becomes dirty after inherited appearance changes. The regression
+  verifies its actual draw into an explicit sRGB buffer matches Candy and
+  Ocean through Aqua, Dark Aqua, and Aqua again. No stale background was
+  reproduced, and no application invalidation override is needed.
