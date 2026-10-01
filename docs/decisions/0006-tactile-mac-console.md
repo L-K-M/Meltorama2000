@@ -1,6 +1,6 @@
 # 0006: A tactile Mac photo-warping console
 
-- **Status:** accepted
+- **Status:** superseded by [0007](0007-colorful-native-mac.md)
 - **Date:** 2026-10-01
 
 ## Context

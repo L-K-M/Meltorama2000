@@ -14,8 +14,8 @@ android {
         applicationId = "ch.lkmc.goo"
         minSdk = 26
         targetSdk = 37
-        versionCode = 9
-        versionName = "2.0.5"
+        versionCode = 10
+        versionName = "2.0.6"
     }
 
     signingConfigs {

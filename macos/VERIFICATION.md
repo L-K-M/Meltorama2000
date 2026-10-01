@@ -257,6 +257,42 @@ before moving the old app; failed rollback retains and reports its backup.
 These tests are included in the hosted macOS CI job. They do not substitute for
 actual window/Dock appearance checks, which remain pending manual unlock.
 
+## Native controls and colorful icon, 1 October 2026
+
+The layout and native controls from `v2.0.1` were restored, with an adaptive
+mint/aqua window tint in Light appearance and teal in Dark. The custom metal
+panels, domes, and film decoration were removed. Later document, renderer,
+recovery, and installation fixes remain. Effect reset, Fusion add, and timeline
+close have explicit 24-point click targets within the compact layout.
+
+All 130 native tests passed with zero failures and zero skips outside the
+filesystem sandbox, including GPU replay, document input, and encoders. All
+twelve isolated build/install regressions passed. The shader translation check
+and `git diff --check` passed. The icon packager produced all ten exact-sized
+sRGB representations; Apple's ICNS compiler encoded and decoded them, and every
+decoded pixel was verified opaque.
+
+`scripts/build.sh --install` built the release app and installed version 2.0.6
+(build 10) in `/Applications/Meltorama.app` with exit status zero. Strict
+signature verification and the installed GPU/edit/save/reopen smoke test
+passed. The universal archive's checksum and signature passed, and a relocated
+copy in a folder with spaces passed the same smoke test on arm64 and x86_64
+through Rosetta. Both Mach-O slices retain a macOS 13 deployment target.
+
+The debug app launched with the restored controls. Its actual Dark welcome
+window and system-rendered application icon were inspected: the picture fills
+the rounded icon without the previous white surround, and the welcome divider
+reserves only its horizontal line. Accessibility exposes descriptive names for
+all four segmented modes. Further interactive checks paused when the Mac
+locked; Light appearance, editing, file dialogs, export, and resizing need a
+fresh pass on this presentation after manual unlock.
+
+The first completed PR review led to native bordered frame buttons for system
+press/focus feedback and contrast-aware selection outlines, plus stable caption
+spacing. The request to shrink the icon onto an inset legacy tile was declined
+against the user's full-picture direction. Older macOS icon corner treatment
+remains visually unverified; the artwork documentation now states that limit.
+
 ## Remaining limitations
 
 - The native app uses Apple's system frameworks and the original GLSL kernels.

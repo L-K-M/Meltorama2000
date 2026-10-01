@@ -1,34 +1,43 @@
 # Mac application artwork
 
-`MeltoramaIcon.png` is the original 1254 × 1254 RGBA master for the Mac app.
-It depicts an elastic photograph: the printed image and ivory frame stretch
-together into one glossy berry curl. Its photo silhouette, cyan image, amber
-sun, and berry tip remain distinct at small Dock sizes. There is no lettering
-or separate badge.
+`MeltoramaIcon.png` is the 1254 × 1254 opaque square master for the Mac app.
+A sunny cyan landscape and large yellow sun fill the icon, with turquoise
+water and purple hills stretching into a glossy raspberry curl at the lower
+right. A thin ivory edge preserves the elastic photograph idea without a broad
+white mat or empty surrounding tile. There is no lettering or separate badge.
 
-The artwork was created on 1 October 2026 with the built-in imagegen tool,
-using the prompt below and no reference images. No photograph or artwork from
-the user's historical examples was copied. It is distributed with the project
-under the Unlicense; see the repository's `LICENSE`.
+The artwork was created on 1 October 2026 with the built-in imagegen tool. The
+first elastic photograph was generated without reference images; this version
+was edited from that original using the prompt below. No photograph or artwork
+from the user's historical examples was copied. The original master and prompt
+remain in Git history: [master](https://github.com/L-K-M/Meltorama2000/blob/9f0f268/macos/Artwork/MeltoramaIcon.png)
+and [prompt](https://github.com/L-K-M/Meltorama2000/blob/9f0f268/macos/Artwork/README.md).
+The artwork is distributed with the project under the Unlicense; see the
+repository's `LICENSE`.
 
 `scripts/generate-macos-icon.swift` reads this checked-in master and produces
-the ten standard PNG iconset slots, in sRGB, from 16 to 1024 pixels. A 1/16
-canvas inset keeps the freeform object's Dock footprint comfortable. The build
-then packages them with Apple's `iconutil`. This process needs no network or
+the ten standard PNG iconset slots, in sRGB, from 16 to 1024 pixels. It draws
+the picture edge to edge, with no canvas inset or transparent margin. The build
+packages them with Apple's `iconutil`. This process needs no network or
 image-generation service. The Android launcher artwork is unchanged.
 
-## Final generation prompt
+The system-rendered icon was inspected on macOS 26. Corner treatment on older
+supported macOS versions has not been visually verified. The mask sentence in
+the edit prompt records the current-system composition intent, not a guarantee
+that every supported OS changes the classic ICNS outline.
+
+## Final edit prompt
 
 ```text
-Use case: stylized-concept.
-Asset type: original macOS application icon artwork for Meltorama 2000, a playful real-time photo-warping editor with a tactile satin-metal and candy-gloss interface.
-Primary request: create an exceptionally polished, memorable Delicious-generation Mac app icon: an ELASTIC PHOTOGRAPH. One thick ivory instant-photo print, with a subtle polished silver edge, occupies almost the whole square canvas. It floats at a slight counterclockwise angle in a shallow, nearly frontal three-quarter view. Its bottom-right corner is physically pulled, folded and stretched into ONE bold S-shaped glossy taffy curl. The photo border AND the printed image deform together. This is the key idea: a photograph itself becoming liquid, not a photograph with an unrelated blob sitting on it.
-Photo content: a very simple vivid landscape with a luminous cyan sky, one large warm amber sun, teal and violet hills; the image bends and stretches with the photo, and blends into saturated raspberry/magenta glossy goo at the pulled corner. Keep the white photographic border clear and substantial. The curl is sculptural, smooth, rounded, juicy, slightly translucent, with highly controlled bright specular reflections. A single elegant silver highlight and upper-left light source tie the object together. Material finish has the crafted physical charm of great 2005–2015 Mac object icons, with today's rendering quality.
-Composition: ONE large dominant object, crisp asymmetric bent silhouette, no outer tile or additional props. Square 1024x1024 composition, centered, object occupies about 85% of the canvas, generous enough transparent edge margin that no edge or shadow is cut off. The photograph must read as a photo first and liquid distortion second, even at 32px. Broad color masses and clean geometry; avoid intricate miniature scenery. High resolution, clean antialiased edges, premium restrained dimensionality, no noisy textures.
-Background: genuinely transparent alpha, no background, no checkerboard pattern. Keep only a soft restrained contact shadow closely beneath the object.
-Constraints: no text, no letters, no numbers, no watermark, no brand logos, no human faces, no camera, no paintbrush, no magic wand, no generic droplet emblem, no separate badges, no multiple drips, no outer rounded-square app tile, no mockup, no comparison sheet. Render the final icon artwork alone.
+Use case: precise-object-edit.
+Asset type: final macOS application icon for Meltorama 2000.
+Edit target: the attached original elastic-photograph icon.
+Preserve: the beautiful sunny landscape, large warm yellow sun, luminous cyan sky, purple hills, turquoise water, and glossy raspberry melting curl. Preserve the idea of a photograph itself becoming liquid.
+Change composition: the colorful melting picture must FILL the app icon. Make a bold close-up square composition, much more upright and nearly frontal. The landscape and liquid fold together occupy almost the entire square. Keep only a very thin warm ivory photo edge where it helps read the curl; eliminate the broad white photo mat. Bring the glossy magenta curl right to the lower-right edge; make it substantial and clearly part of the image.
+Background: FULL-BLEED OPAQUE color from edge to edge. Continue the luminous turquoise/cyan and raspberry color around any remaining corners so there is no empty white or gray tile and no transparency. Deliver square artwork with square outer corners: the operating system will apply its native app-icon mask.
+Mood: colorful, sunny, cheerful, juicy, happy. High-quality dimensional highlights, clear broad shapes at small Dock sizes. Let the picture be the icon, not a tiny object sitting on a background.
+Avoid: white/gray surrounding tile, blank margins, floating centered miniature, thick white border, separate drop emblem, multiple props, dark gloomy color, text, lettering, mockup, comparison sheet. Final single square icon artwork alone, at least 1024 pixels.
 ```
 
-The tool returned a 1254-pixel square master rather than the requested
-1024-pixel canvas. The packager validates and resamples it to exact native
-icon sizes while preserving its alpha channel.
+The tool returned a 1254-pixel square master. The packager validates and
+resamples it to exact native icon sizes.

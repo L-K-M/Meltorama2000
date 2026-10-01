@@ -3,7 +3,7 @@
 # GPU tests explicitly skip if no accelerated Mac context is available.
 #
 # Usage: scripts/test-macos.sh [--smoke]
-# --smoke also builds the installed bundle and exercises its GPU/save pipeline.
+# --smoke also builds the dist bundle and exercises its GPU/save pipeline.
 set -euo pipefail
 if [[ "${1:-}" == "--help" ]]; then awk 'NR==1{next} /^#/{sub(/^# ?/, ""); print; next} {exit}' "$0"; exit 0; fi
 if [[ $# -gt 1 ]] || [[ $# -eq 1 && "$1" != "--smoke" ]]; then

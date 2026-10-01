@@ -9,16 +9,13 @@ struct WelcomeView: View {
         GeometryReader { geometry in
             ScrollView {
                 VStack(spacing: 20) {
-                    VStack(spacing: 10) {
+                    VStack(spacing: 12) {
                         Image(nsImage: NSApplication.shared.applicationIconImage)
                             .resizable()
                             .interpolation(.high)
-                            .frame(width: 88, height: 88)
-                            .shadow(color: .black.opacity(0.22), radius: 7, y: 5)
+                            .frame(width: 76, height: 76)
                             .accessibilityHidden(true)
-                        GooWordmark()
-                        Text(L("Goo Your Photos"))
-                            .font(.system(.title3, design: .rounded).weight(.medium))
+                        Text(L("Goo Your Photos")).font(.largeTitle.weight(.medium))
                     }
                     Text(L("Smear, stretch, fuse, and animate.\nA little photo mischief, entirely on your Mac."))
                         .font(.callout)
@@ -26,28 +23,18 @@ struct WelcomeView: View {
                         .foregroundStyle(.secondary)
                         .fixedSize(horizontal: false, vertical: true)
 
-                    Button { (NSApp.delegate as? AppDelegate)?.openDocument(nil) } label: {
-                        Label(L("Open a Photo…"), systemImage: "photo.badge.plus")
-                            .font(.system(.body, design: .rounded).weight(.semibold))
-                            .padding(.horizontal, 6)
-                            .padding(.vertical, 3)
-                    }
-                    .buttonStyle(GooActionButtonStyle(tint: .berry))
-                    .keyboardShortcut("o")
+                    Button(L("Open a Photo…")) { (NSApp.delegate as? AppDelegate)?.openDocument(nil) }
+                        .buttonStyle(.borderedProminent)
+                        .controlSize(.large)
+                        .tint(MacTheme.berry)
+                        .keyboardShortcut("o")
 
-                    VStack(spacing: 12) {
-                        HStack(spacing: 12) {
-                            Divider()
-                            Text(L("Or try a sample")).font(.caption).foregroundStyle(.secondary).fixedSize()
-                            Divider()
-                        }
-                        HStack(spacing: 14) {
-                            sample("goo-guy", "Goo Guy", tint: .aqua)
-                            sample("candy-blobs", "Candy Blobs", tint: .berry)
-                        }
+                    Divider().frame(width: 240, height: 1).padding(.top, 4)
+                    Text(L("Or try a sample")).font(.callout).foregroundStyle(.secondary)
+                    HStack(spacing: 20) {
+                        sample("goo-guy", "Goo Guy")
+                        sample("candy-blobs", "Candy Blobs")
                     }
-                    .frame(maxWidth: 286)
-
                     Text(L("Drop a photo or project into this window."))
                         .font(.caption)
                         .multilineTextAlignment(.center)
@@ -60,7 +47,7 @@ struct WelcomeView: View {
                 .frame(maxWidth: .infinity, minHeight: geometry.size.height)
             }
         }
-        .background(GooPanelSurface(cornerRadius: 0, inset: true))
+        .background(MacTheme.welcome)
         .onDrop(of: [.fileURL], isTargeted: nil) { providers in
             guard let item = providers.first else { return false }
             item.loadItem(forTypeIdentifier: "public.file-url", options: nil) { item, _ in
@@ -72,30 +59,25 @@ struct WelcomeView: View {
         }
     }
 
-    private func sample(_ name: String, _ title: String, tint: GooTint) -> some View {
+    private func sample(_ name: String, _ title: String) -> some View {
         Button { session.loadSample(name) } label: {
-            VStack(spacing: 9) {
+            VStack(spacing: 7) {
                 if let url = ResourceBundle.url(forResource: name, withExtension: "png"),
                    let image = NSImage(contentsOf: url) {
                     Image(nsImage: image)
                         .resizable()
                         .scaledToFill()
-                        .frame(width: 110, height: 86)
+                        .frame(width: 110, height: 95)
                         .clipped()
-                        .clipShape(RoundedRectangle(cornerRadius: 4))
-                        .overlay(RoundedRectangle(cornerRadius: 4).stroke(.black.opacity(0.4), lineWidth: 1))
+                        .clipShape(RoundedRectangle(cornerRadius: 8))
                         .accessibilityHidden(true)
                 }
-                HStack(spacing: 5) {
-                    Circle().fill(tint.color).frame(width: 4, height: 4).accessibilityHidden(true)
-                    Text(L(title)).font(.callout.weight(.medium)).lineLimit(1)
-                }
+                Text(L(title)).font(.callout)
             }
-            .padding(9)
-            .frame(width: 130)
-            .contentShape(RoundedRectangle(cornerRadius: 9))
+            .contentShape(Rectangle())
         }
-        .buttonStyle(GooSampleButtonStyle(tint: tint))
+        .buttonStyle(.borderless)
+        .foregroundStyle(.primary)
         .accessibilityLabel(LF("Open %@ sample", L(title)))
     }
 
@@ -109,29 +91,5 @@ struct WelcomeView: View {
         } catch {
             session.error = localizedError(error).localizedDescription
         }
-    }
-}
-
-private struct GooSampleButtonStyle: ButtonStyle {
-    let tint: GooTint
-    @Environment(\.isEnabled) private var enabled
-    @Environment(\.isFocused) private var focused
-    @Environment(\.colorSchemeContrast) private var contrast
-
-    func makeBody(configuration: Configuration) -> some View {
-        configuration.label
-            .foregroundStyle(Color.primary)
-            .background(GooPanelSurface(cornerRadius: 9, inset: configuration.isPressed))
-            .overlay(RoundedRectangle(cornerRadius: 9)
-                .strokeBorder(tint.color.opacity(contrast == .increased ? 0.8 : 0.32), lineWidth: 1)
-                .allowsHitTesting(false))
-            .overlay(RoundedRectangle(cornerRadius: 11)
-                .strokeBorder(focused ? Color.accentColor : .clear, lineWidth: 3)
-                .padding(-2)
-                .allowsHitTesting(false))
-            .shadow(color: .black.opacity(0.16), radius: configuration.isPressed ? 1 : 4,
-                    y: configuration.isPressed ? 1 : 3)
-            .contentShape(RoundedRectangle(cornerRadius: 9))
-            .opacity(enabled ? 1 : 0.45)
     }
 }
