@@ -396,6 +396,39 @@ The same smoke tests and strict signature verification passed after relocating
 the bundle to a fresh folder with spaces outside the checkout. The installed
 icon provenance matched the checked-in artwork record.
 
+## Coordinated window palettes, 1 October 2026
+
+The 2.0.9 candidate defines separate opaque sRGB colors for chrome, panels,
+workspace, and accents in seven authored themes. Classic retains the original
+native surfaces. All four appearance variants pass the palette tests,
+including accent/primary-text contrast, secondary-text opacity, selected rows,
+and distinct background roles. English and Chinese localization tests pass.
+
+The final local run passed all 143 native tests with no skips (112 Mac,
+31 core), including GPU replay and export. All 12 installer regression tests
+passed. A new integration test verified real Foundation defaults-notification
+delivery to an existing window using an isolated suite, without a synthetic
+notification or changes to standard application preferences.
+
+The first actual preview exposed content beneath the colored native titlebar.
+The regression then reproduced a 66-point overlap before correction. A retained
+content container now constrains the editor host to `NSWindow.contentLayoutGuide`;
+the regression passes across theme changes and resizing, while retaining host,
+toolbar, document title, field draft, focus, and undo identities.
+
+`scripts/build.sh --install` installed 2.0.9 (build 13) successfully, and the
+installed signature passed strict verification. The preserved universal
+candidate passed ZIP integrity, strict signing, and GPU/edit/save/reopen/pinned
+revision smoke tests on Apple silicon and through Rosetta. Both slices declare
+minimum macOS 13. The generated dog artwork is unchanged.
+
+Final interactive checks of the corrected titlebar, all palettes, theme changes
+with a photo and field draft, save/reopen, export parity, and resizing remain
+pending. The Mac locked after the first preview and the UI tool could not unlock
+it; the user was asked to unlock it manually. No completed visual pass of the
+corrected candidate is claimed. PR #122 and the unpublished staging tag remain
+work in progress until those checks, CI, and completed review are finished.
+
 ## Remaining limitations
 
 - The native app uses Apple's system frameworks and the original GLSL kernels.

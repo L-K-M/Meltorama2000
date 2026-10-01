@@ -126,6 +126,28 @@ final class WindowThemeTests: XCTestCase {
         withExtendedLifetime(controller) {}
     }
 
+    @MainActor func testRealDefaultsWritesUpdateAnExistingWindowWithoutSyntheticNotifications() async throws {
+        let window = window()
+        defer { window.close() }
+        let defaults = try defaults()
+        defaults.set(ThemePreference.candy.rawValue, forKey: ThemePreference.storageKey)
+        let controller = WindowThemeController(window: window, defaults: defaults)
+        try assertBackground(window, theme: .candy)
+
+        defaults.set(ThemePreference.ocean.rawValue, forKey: ThemePreference.storageKey)
+        let expected = try resolve(MacTheme(preference: .ocean).chromeBackgroundColor,
+                                   in: window.effectiveAppearance)
+        // Yield the application thread so Foundation can deliver its actual
+        // defaults notification. Do not manufacture a matching notification.
+        for _ in 0..<100 {
+            if try resolve(window.backgroundColor, in: window.effectiveAppearance) == expected { break }
+            try await Task.sleep(nanoseconds: 20_000_000)
+        }
+        try assertBackground(window, theme: .ocean)
+        XCTAssertTrue(window.titlebarAppearsTransparent)
+        withExtendedLifetime(controller) {}
+    }
+
     @MainActor func testThemeNotificationsPreserveTextDraftFocusAndUndo() throws {
         let window = window()
         defer { window.close() }
