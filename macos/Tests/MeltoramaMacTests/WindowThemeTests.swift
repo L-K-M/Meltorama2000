@@ -85,6 +85,31 @@ final class WindowThemeTests: XCTestCase {
         withExtendedLifetime(controller) {}
     }
 
+    @MainActor func testNativeHeaderSeparatorRemainsVisibleAcrossThemesAndAppearances() throws {
+        let window = window()
+        defer { window.close() }
+        let defaults = try defaults()
+        let center = NotificationCenter()
+        let host = NSView()
+        installWindowContentHost(host, in: window)
+        let controller = WindowThemeController(window: window, defaults: defaults, notificationCenter: center)
+
+        for preference in ThemePreference.allCases {
+            defaults.set(preference.rawValue, forKey: ThemePreference.storageKey)
+            center.post(name: UserDefaults.didChangeNotification, object: defaults)
+            for appearanceName in [NSAppearance.Name.aqua, .darkAqua] {
+                window.appearance = try XCTUnwrap(NSAppearance(named: appearanceName))
+                window.setContentSize(NSSize(width: 700, height: 500))
+                window.contentView?.layoutSubtreeIfNeeded()
+                XCTAssertEqual(window.titlebarSeparatorStyle, .line,
+                               "The native header must remain separated from all three editor columns")
+                let hostFrame = host.convert(host.bounds, to: nil)
+                XCTAssertEqual(hostFrame.maxY, window.contentLayoutRect.maxY, accuracy: 0.5)
+            }
+        }
+        withExtendedLifetime(controller) {}
+    }
+
     @MainActor func testClassicRestoresNativeTitlebarForUnknownAndClassicPreferences() throws {
         let window = window()
         defer { window.close() }

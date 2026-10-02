@@ -464,6 +464,32 @@ defect. A mistaken documentation statement about the public
 macOS 13 runtime, larger accessibility text sizes, VoiceOver navigation, and
 an interactive Chinese-language pass remain unverified.
 
+## Interactive preview and toolbar boundary, 2 October 2026
+
+The previous preview scheduler rejected every frame superseded by a newer
+request. Deterministic completion-controlled regressions reproduced the canvas
+starvation during continuous stroke and effect input before the fix. Eight
+tests now cover progressive publication, one pending latest snapshot, animation
+progress, incompatible content transitions, same-source Revert, undo/reset,
+stale errors, and closed-session completions. The full native suite passed
+153 tests with zero failures and zero skips on this Mac, including GPU and
+export checks. The native titlebar separator regression failed before the fix
+and passes across all eight themes in light and dark appearance.
+
+Isolated optimized ARM measurements used the procedural 1200 by 900 Candy
+Blobs source with 15 committed strokes and Stretch/Spike enabled. Median
+cached rendering took about 1 ms; incremental batches of 16, 64, and 256
+stamps took about 2, 5, and 17.5 ms. Initial replay of 4000 stamps took about
+256 ms. GPU-to-CPU readback cost roughly 1 ms. These are engine measurements,
+not window FPS or a measured comparison with an Android device.
+
+An optimized benchmark using the existing Stroke, Portals, and Symmetry code
+reproduced repeated array copying when the stamp loop retained the entire
+active stroke. Appending 32000 stamps took approximately 395 ms with the old
+loop and 3.5 ms when retaining only the tool, with identical resulting strokes.
+The input loop now uses that scalar capture. Small uniform-cache and GL-state
+experiments showed no consistent benefit and were left out of the change.
+
 ## Remaining limitations
 
 - The native app uses Apple's system frameworks and the original GLSL kernels.

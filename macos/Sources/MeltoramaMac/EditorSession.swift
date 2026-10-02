@@ -6,8 +6,8 @@ import MeltoramaCore
 final class EditorSession: ObservableObject {
     weak var document: GooDocument?
     @Published var state = ProjectDocument()
-    @Published var source = Data()
-    @Published var fusion: Data?
+    @Published var source = Data() { didSet { if source != oldValue { invalidatePreview() } } }
+    @Published var fusion: Data? { didSet { if fusion != oldValue { invalidatePreview() } } }
     @Published var image: CGImage?
     @Published var error: String?
     @Published var tool: BrushTool = .smear
@@ -24,13 +24,13 @@ final class EditorSession: ObservableObject {
     @Published var holds: [CGPoint] = []
     @Published var selectedLens: Int?
     @Published var selectedKeyframe: Int?
-    @Published var live = true
+    @Published var live = true { didSet { if live != oldValue { invalidatePreview() } } }
     @Published var playing = false
     @Published var scrub: Double = 0
     @Published var showTimeline = false
     @Published var showInspector = true
     @Published var showExport = false
-    @Published var compareOriginal = false
+    @Published var compareOriginal = false { didSet { if compareOriginal != oldValue { invalidatePreview() } } }
     @Published var zoom: CGFloat = 1
     @Published var rotation: CGFloat = 0
     @Published var pan = CGPoint.zero
@@ -42,9 +42,21 @@ final class EditorSession: ObservableObject {
     private(set) var viewportBackingScale: CGFloat = 1
     private var viewportNotificationPending = false
     var recoveryURL = recoveryDirectory.appendingPathComponent(UUID().uuidString).appendingPathExtension("meltorama")
-    private let renderQueue = DispatchQueue(label: "ch.lkmc.goo.render", qos: .userInteractive)
-    private var engine: WarpEngine?
+    struct PreviewRequest {
+        let document: ProjectDocument
+        let source: Data
+        let fusion: Data?
+        let size: CGSize
+        let time: Double
+        let tween: WarpTween?
+        let activeStroke: Stroke?
+        let showFreeze: Bool
+        let compare: Bool
+    }
+    typealias PreviewRender = (PreviewRequest, @escaping (Result<CGImage, Error>) -> Void) -> Void
+    private let renderPreview: PreviewRender
     private var renderGeneration = 0
+    private var previewContentGeneration = 0
     private var renderInFlight = false
     private var renderPending = false
     private var recoveryTimer: Timer?
@@ -73,6 +85,11 @@ final class EditorSession: ObservableObject {
     private var time: Double = 0
     private var lastPlaybackTick: TimeInterval?
 
+    init(renderPreview: PreviewRender? = nil) {
+        let worker = PreviewWorker()
+        self.renderPreview = renderPreview ?? worker.render
+    }
+
     enum CanvasMode: String, CaseIterable { case brush = "Brush", lenses = "Lenses", crop = "Crop", hand = "Hand" }
     static let recoveryDirectory: URL = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0].appendingPathComponent("Meltorama/Recovery", isDirectory: true)
     var hasPhoto: Bool { !source.isEmpty }
@@ -95,6 +112,7 @@ final class EditorSession: ObservableObject {
         endContinuousEdit()
         discardGesture()
         cropRect = nil
+        invalidatePreview()
         state = package.document
         source = package.sourceData
         fusion = package.fusionData
@@ -156,6 +174,7 @@ final class EditorSession: ObservableObject {
         let before = state
         body(&state)
         guard before != state else { return }
+        if before.crop != state.crop { invalidatePreview() }
         registerUndo(before, name: name)
         live = true; playing = false
         changed()
@@ -194,6 +213,7 @@ final class EditorSession: ObservableObject {
             restored.keyframes = snapshot.keyframes
         }
         registerUndo(before, name: name)
+        invalidatePreview()
         state = restored
         selectedLens = nil
         selectedKeyframe = nil
@@ -254,15 +274,21 @@ final class EditorSession: ObservableObject {
         playbackTimer?.invalidate(); pumpTimer?.invalidate(); lastPlaybackTick = nil
         copyGeneration += 1
         copyTask?.cancel(); copyTask = nil
+        invalidatePreview()
+        renderPending = false
     }
 
+    private func invalidatePreview() { previewContentGeneration += 1 }
+
     func requestRender() {
+        dispatchPrecondition(condition: .onQueue(.main))
         guard hasPhoto else { return }
         renderGeneration += 1
         if renderInFlight { renderPending = true; return }
         renderInFlight = true
         rendering = image == nil
         let generation = renderGeneration
+        let contentGeneration = previewContentGeneration
         var state = self.state
         state.wobble = state.wobble.cappedFor(loopSeconds: previewLoopSeconds)
         let source = self.source, fusion = self.fusion, stroke = activeStroke
@@ -271,18 +297,28 @@ final class EditorSession: ObservableObject {
         let compare = compareOriginal
         let tween = previewTween()
         let frameTime = time
-        renderQueue.async { [weak self] in
-            guard let self else { return }
-            let result: Result<CGImage, Error> = Result {
-                if self.engine == nil { self.engine = try WarpEngine() }
-                if compare { return try WarpEngine.decodedImage(data: source, crop: state.crop, maxDimension: Int(max(size.width,size.height))) }
-                return try self.engine!.render(document: state, source: source, fusion: fusion, size: size, time: frameTime, tween: tween, activeStroke: stroke, showFreeze: showFreeze)
-            }
-            DispatchQueue.main.async {
+        let request = PreviewRequest(document: state, source: source, fusion: fusion, size: size,
+                                     time: frameTime, tween: tween, activeStroke: stroke,
+                                     showFreeze: showFreeze, compare: compare)
+        renderPreview(request) { [weak self] result in
+            DispatchQueue.main.async { [weak self] in
+                guard let self else { return }
                 self.renderInFlight = false
                 self.rendering = false
-                if generation == self.renderGeneration {
-                    switch result { case .success(let image): self.image = image; case .failure(let error): self.error = localizedError(error).localizedDescription }
+                let compatible = contentGeneration == self.previewContentGeneration
+                    && request.document.crop == self.state.crop
+                    && request.showFreeze == (self.mode == .brush && self.tool == .freeze)
+                if compatible {
+                    switch result {
+                    case .success(let image):
+                        // Input often arrives faster than rendering. Show each completed
+                        // compatible frame while the one pending request catches up.
+                        self.image = image
+                    case .failure(let error):
+                        if generation == self.renderGeneration {
+                            self.error = localizedError(error).localizedDescription
+                        }
+                    }
                 }
                 if self.renderPending { self.renderPending = false; self.requestRender() }
             }
@@ -354,6 +390,7 @@ final class EditorSession: ObservableObject {
             reset.log = log.snapshot(pins: reset.keyframes.map(\.revision))
             reset.globals = GlobalParams()
             reset.wobble = GlobalWobble()
+            invalidatePreview()
             edit("Reset Goo") { $0 = reset }
         } catch { self.error = localizedError(error).localizedDescription }
     }
@@ -371,7 +408,10 @@ final class EditorSession: ObservableObject {
         let pin = KeyframeRecord(revision: currentRevision, globals: state.globals, easing: state.keyframes[i].easing)
         edit("Update Frame") { $0.keyframes[i] = pin }
     }
-    func selectFrame(_ index: Int) { selectedKeyframe = index; scrub = Double(index); live = false; playing = false; requestRender() }
+    func selectFrame(_ index: Int) {
+        invalidatePreview()
+        selectedKeyframe = index; scrub = Double(index); live = false; playing = false; requestRender()
+    }
     func deleteFrame() {
         guard let i = selectedKeyframe, state.keyframes.indices.contains(i) else { return }
         edit("Delete Frame") { $0.keyframes.remove(at: i) }
@@ -616,7 +656,7 @@ final class EditorSession: ObservableObject {
             activeStroke = Stroke(tool:.pins,radius:radius,strength:strength,stamps:[],pinWarp:warp)
             markRecoveryNeeded(); requestRender(); return
         }
-        guard let stroke = activeStroke, !stroke.tool.pumped else { return }
+        guard let strokeTool = activeStroke?.tool, !strokeTool.pumped else { return }
         for var stamp in resampler?.extend(u: Float(point.x), v: Float(point.y)) ?? [] {
             if let delta = echoDelta { stamp.dx = Float(delta.x); stamp.dy = Float(delta.y) }
             appendStamp(stamp)
@@ -629,12 +669,12 @@ final class EditorSession: ObservableObject {
         requestRender()
     }
     private func appendStamp(_ stamp: Stamp) {
-        guard let stroke = activeStroke else { return }
+        guard let strokeTool = activeStroke?.tool else { return }
         let shift = portalShift.map { (Float($0.x), Float($0.y)) }
         // Portal translation happens before symmetry; rotating the translated
         // twin is different from translating an already rotated stamp.
         for copy in Portals.expand(stamp: stamp, shift: shift) {
-            activeStroke?.stamps.append(contentsOf: Symmetry.family(tool: stroke.tool, stamp: copy,
+            activeStroke?.stamps.append(contentsOf: Symmetry.family(tool: strokeTool, stamp: copy,
                 aspect: aspect, sectors: sectors, mirrored: mirrored))
         }
         markRecoveryNeeded()
@@ -779,5 +819,28 @@ extension EditorSession {
                 state.globals = deal.globals
             }
         } catch { self.error = localizedError(error).localizedDescription }
+    }
+}
+
+private final class PreviewWorker {
+    private let queue = DispatchQueue(label: "ch.lkmc.goo.render", qos: .userInteractive)
+    private var engine: WarpEngine?
+
+    func render(_ request: EditorSession.PreviewRequest,
+                completion: @escaping (Result<CGImage, Error>) -> Void) {
+        queue.async { [self] in
+            let result: Result<CGImage, Error> = Result {
+                if request.compare {
+                    return try WarpEngine.decodedImage(data: request.source, crop: request.document.crop,
+                                                       maxDimension: Int(max(request.size.width, request.size.height)))
+                }
+                if engine == nil { engine = try WarpEngine() }
+                return try engine!.render(document: request.document, source: request.source,
+                                          fusion: request.fusion, size: request.size, time: request.time,
+                                          tween: request.tween, activeStroke: request.activeStroke,
+                                          showFreeze: request.showFreeze)
+            }
+            completion(result)
+        }
     }
 }

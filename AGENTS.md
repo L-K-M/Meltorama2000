@@ -270,6 +270,9 @@ lives in `engine/core` as pure JVM classes.
   `NSConstraintBasedLayoutCoreMethods` category (macOS 10.7+), not `NSWindow.h`.
   Theme changes are application preferences, never document edits; keep
   hosting views and field coordinators stable so drafts and undo survive.
+  Transparent titlebars can omit AppKit's automatic bottom separator; set
+  `NSWindow.titlebarSeparatorStyle` to `.line` to retain the native boundary
+  across themes and appearances without custom titlebar drawing.
   Tools use labeled rows and selection backgrounds; controls retain
   native drawing and behavior. See decision 0008, which supersedes the
   tinted-window direction in 0007, decision 0009 for optional themes, and
@@ -413,6 +416,16 @@ lives in `engine/core` as pure JVM classes.
   source/crop/grid/revision identity changes, and keep a borrowed target alive
   until its stamp finishes. Counter-based GPU regressions cover bounded replay
   and cached/fresh pixel parity without depending on wall-clock timing.
+- Native preview scheduling publishes completed compatible frames while newer
+  input coalesces into one pending snapshot. Rejecting every superseded frame
+  starves the canvas during sustained drags or playback. Content replacement,
+  Revert, undo/reset/crop, source/Fusion, Original/live mode, and frame selection
+  invalidate obsolete work separately from ordinary incremental edits; only
+  the latest compatible render failure becomes a user-visible error. The
+  serialized preview worker owns its GPU context independently of the session.
+  Stamp loops retain the active tool rather than the whole value-type `Stroke`:
+  retaining its array while appending forces a copy per stamp and quadratic
+  input cost. Render snapshots still retain immutable copies for safe replay.
 
 Three workflows (details: [CICD.md](CICD.md)): `ci.yml` (tests + lint +
 debug APK on every PR/main push), `release.yml` (v* tags → verified,

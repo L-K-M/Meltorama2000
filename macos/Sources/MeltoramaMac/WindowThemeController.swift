@@ -34,6 +34,9 @@ final class WindowThemeController {
         self.window = window
         self.defaults = defaults
         self.notificationCenter = notificationCenter
+        // Automatic chrome omits this boundary with a transparent titlebar.
+        // Let AppKit draw its appearance-aware line across the entire window.
+        window.titlebarSeparatorStyle = .line
 
         preferenceObserver = notificationCenter.addObserver(
             forName: UserDefaults.didChangeNotification, object: defaults, queue: .main
