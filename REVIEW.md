@@ -438,3 +438,32 @@ application verification and latest-commit CI still apply.
   it in the Classic palette preview. Classic contextual bars intentionally
   retain the original `.bar` material while native window backgrounds retain
   `.windowBackgroundColor`; neither branch is unused.
+
+## PR #124: Responsive native preview and header divider
+
+### Completed full review at `d798095`
+
+One completed round found no confirmed important scheduler defect. Actual app
+QA subsequently caught the missing separator despite `.line` being set; the
+fix now requires an actual native separator and tests its visible geometry.
+
+- **Freeze predicate deduplication and compare equality: deferred.** Both
+  freeze expressions currently agree. Compare changes invalidate a separate
+  content generation, including changing away and back while work is queued.
+  Regression tests cover these transitions. Additional predicates are optional
+  maintainability changes rather than fixes for demonstrated stale frames.
+- **Automatic render on invalidation: declined.** Existing content-changing
+  commands request rendering after completing their mutations. Invalidation
+  also occurs during replacement and teardown, where immediately queuing an
+  incomplete or closing document is inappropriate.
+- **Availability guards: refuted.** The package requires macOS 13; the public
+  separator API is available below that deployment target. No conditional
+  compilation or runtime guard is required.
+- **Test teardown and additional queue hops: refuted as current defects.**
+  Preview requests schedule no timers. Their completions retain the session
+  weakly. Publication and the pending request execute in one main-queue block,
+  which the deterministic tests drain explicitly. Tests that perform document
+  editing stop their recovery timers.
+- **Test diagnostics, extra assertions, and historical counts: deferred.**
+  These do not correct observed product behavior. The dated record describes
+  the eight themes tested, rather than asserting a permanent theme count.
