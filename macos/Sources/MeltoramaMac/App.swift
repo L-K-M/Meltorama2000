@@ -21,6 +21,7 @@ enum MeltoramaApplication {
 final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuItemValidation, NSMenuDelegate {
     private var documentController: GooDocumentController!
     private var settingsWindow: NSWindow?
+    private var settingsWindowTheme: WindowThemeController?
     private var recentMenu: NSMenu?
     var session: EditorSession? { ((NSApp.keyWindow?.windowController?.document ?? NSApp.mainWindow?.windowController?.document) as? GooDocument)?.session }
 
@@ -111,7 +112,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuItemValidation, 
     @objc func about(_ sender: Any?) {
         NSApp.orderFrontStandardAboutPanel(options: [.applicationName: "Meltorama 2000", .credits: NSAttributedString(string: L("Goo Your Photos\nAn offline native photo playground.\n\nPublic domain under the Unlicense.\nSample artwork and warp shaders belong to this project.\nNo third-party runtime dependencies.\nEditing happens on your Mac."))])
     }
-    @objc func settings(_ sender: Any?) {
+    @MainActor @objc func settings(_ sender: Any?) {
         if settingsWindow == nil {
             let hostingView = NSHostingView(rootView: SettingsView())
             let window = NSWindow(contentRect: NSRect(origin: .zero, size: hostingView.fittingSize), styleMask: [.titled, .closable], backing: .buffered, defer: false)
@@ -120,6 +121,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuItemValidation, 
             window.contentView = hostingView
             window.center()
             settingsWindow = window
+            settingsWindowTheme = WindowThemeController(window: window)
         }
         settingsWindow?.makeKeyAndOrderFront(nil)
     }
@@ -257,7 +259,7 @@ final class GooDocument: NSDocument {
         window.minSize = NSSize(width: 870, height: 580)
         window.tabbingMode = .preferred
         window.setFrameAutosaveName("MeltoramaEditor")
-        window.contentView = NSHostingView(rootView: EditorView(session: session))
+        installWindowContentHost(NSHostingView(rootView: EditorView(session: session)), in: window)
         let controller = EditorWindowController(window: window, session: session)
         addWindowController(controller)
         window.center()
@@ -329,6 +331,7 @@ final class EditorWindow: NSWindow {
 
 final class EditorWindowController: NSWindowController, NSToolbarDelegate, NSUserInterfaceValidations {
     let session: EditorSession
+    private var windowTheme: WindowThemeController?
     init(window: NSWindow, session: EditorSession) {
         self.session = session
         super.init(window: window)
@@ -338,6 +341,7 @@ final class EditorWindowController: NSWindowController, NSToolbarDelegate, NSUse
         toolbar.allowsUserCustomization = true
         window.toolbar = toolbar
         window.toolbarStyle = .unified
+        windowTheme = WindowThemeController(window: window)
     }
     required init?(coder: NSCoder) { fatalError("Not supported") }
     func validateUserInterfaceItem(_ item: NSValidatedUserInterfaceItem) -> Bool {

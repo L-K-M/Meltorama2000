@@ -396,6 +396,74 @@ The same smoke tests and strict signature verification passed after relocating
 the bundle to a fresh folder with spaces outside the checkout. The installed
 icon provenance matched the checked-in artwork record.
 
+## Coordinated window palettes, 1 October 2026
+
+The 2.0.9 candidate defines separate opaque sRGB colors for chrome, panels,
+workspace, and accents in seven authored themes. Classic retains the original
+native surfaces. All four appearance variants pass the palette tests,
+including accent/primary-text contrast, secondary-text opacity, selected rows,
+and distinct background roles. English and Chinese localization tests pass.
+
+The final local run passed all 144 native tests with no skips (113 Mac,
+31 core), including GPU replay and export. All 12 installer regression tests
+passed. A new integration test verified real Foundation defaults-notification
+delivery to an existing window using an isolated suite, without a synthetic
+notification or changes to standard application preferences.
+
+A real PhotoCanvas test also confirmed that AppKit invalidates its background
+on inherited appearance changes without a SwiftUI bridge or window-theme
+controller. Actual drawing into an explicit sRGB buffer matched Candy and
+Ocean through light, dark, and light appearances. The review's stale-repaint
+concern was not reproduced, so no application redraw override was added.
+
+The first actual preview exposed content beneath the colored native titlebar.
+The regression then reproduced a 66-point overlap before correction. A retained
+content container now constrains the editor host to `NSWindow.contentLayoutGuide`;
+the regression passes across theme changes and resizing, while retaining host,
+toolbar, document title, field draft, focus, and undo identities.
+
+`scripts/build.sh --install` installed 2.0.9 (build 13) successfully, and the
+installed signature passed strict verification. The preserved universal
+candidate passed ZIP integrity, strict signing, and GPU/edit/save/reopen/pinned
+revision smoke tests on Apple silicon and through Rosetta. Both slices declare
+minimum macOS 13. The generated dog artwork is unchanged.
+
+On 2 October, the unlocked Mac completed the corrected installed app's visual
+and interaction pass. All eight themes were inspected in Light and Dark:
+native titles, traffic lights, aligned toolbar items, panels, workspace, and
+the original welcome hand remained visible. Settings displayed every palette
+and its three swatches, including after repeated closing and reopening.
+
+The Candy Blobs sample accepted brush edits, keyboard undo/redo, percentage
+entry committed by Tab and Return, and Command-K frame capture. Bulge's
+disclosure expanded independently of its checkbox; collapsing an enabled
+45% effect removed its body while retaining the value. The native Save panel
+wrote a new test package, and the native Open panel reopened its two stroke
+revisions, 45% Bulge, and animation pin. Brush strength resets to its normal
+session default on reopen; it is not a serialized document property.
+
+Live switching from Candy to Ocean retained the photo, effect, frame, and
+clean saved state. Full-resolution PNGs exported through the native dialogs
+under those two themes were byte-identical: 1200 by 900 pixels, 312136 bytes,
+SHA-256 `31b8ae5641df3779cc6387a1faa87fe1cf195e27c5cfa089529d48a0d0cac109`.
+The palette changes only the surrounding workspace, not exported pixels.
+
+Resizing from 1240-point width to 871 points retained the native toolbar,
+readable percentage suffixes, scrollable inspector, and complete frame card;
+the timeline placed capture actions on a second row. Creating a second
+document used native tabs. Both tabs adopted Candy/Dark without content
+overlapping the toolbar or tab bar. About reported 2.0.9 (13). The app was
+left on a clean welcome document with Candy/Dark restored, and the saved test
+package was retained. Uncommitted field-draft, focus, and undo identity during
+theme changes remain covered by the AppKit integration test rather than a
+claim that activating Settings preserves text-field focus.
+
+PR #122 completed two review rounds without a confirmed important application
+defect. A mistaken documentation statement about the public
+`NSWindow.layoutIfNeeded` category was corrected. Physical Intel hardware,
+macOS 13 runtime, larger accessibility text sizes, VoiceOver navigation, and
+an interactive Chinese-language pass remain unverified.
+
 ## Remaining limitations
 
 - The native app uses Apple's system frameworks and the original GLSL kernels.

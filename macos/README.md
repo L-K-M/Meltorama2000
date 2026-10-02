@@ -45,15 +45,19 @@ is central; contextual settings and whole-photo effects are on the right.
 The toolbar contains document and view actions. Appearance follows macOS;
 Settings also offers Light and Dark for this app, independently of its theme.
 Choose Classic, Candy, Tangerine, Ocean, Grape, Mint, Sunshine, or Cherry.
-Themes change accents and give side panels a restrained color wash; the photo
-workspace stays neutral. Your choice applies to all windows and survives
+Themes coordinate the native titlebar, side panels, photo workspace, and
+controls with separate background and accent colors. Your choice applies
+to all document windows and survives
 relaunch without changing projects or exported pixels. Standard text editing
 and keyboard focus work in inspectors.
 
 The interface restores the original native presentation preserved by `v2.0.1`:
-a narrow palette, individual mode buttons, neutral system surfaces, a standard
+a narrow palette, individual mode buttons, a standard
 titlebar, and the welcome hand illustration. Classic retains its lime accents;
-the other themes add a choice of colors.
+the other themes add complete light/dark palettes. Tangerine pairs peach with
+teal, Ocean pairs blue and seaglass with coral, and Grape pairs violet with gold.
+Settings previews each palette with three swatches. Theme colors surround the
+photo and do not tint its pixels.
 Labeled tool rows retain the original selection highlight, and effect enabling stays
 independent from disclosure. Later correctness, recovery, numeric entry,
 accessibility, responsive layout, and installer fixes remain in place.

@@ -43,7 +43,7 @@ struct WelcomeView: View {
                 .frame(maxWidth: .infinity, minHeight: geometry.size.height)
             }
         }
-        .background(Color(nsColor: .textBackgroundColor))
+        .background(theme.workspaceBackground)
         .onDrop(of: [.fileURL], isTargeted: nil) { providers in
             guard let item = providers.first else { return false }
             item.loadItem(forTypeIdentifier: "public.file-url", options: nil) { item, _ in

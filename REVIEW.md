@@ -342,3 +342,99 @@ confirmed; the application source remains unchanged after this review.
 - **Named test surfaces and ADR retitling — deferred.** These are diagnostic
   and editorial improvements without a current behavior defect. They do not
   justify another application change during release stabilization.
+
+## PR #122 review dispositions (coordinated Mac palettes)
+
+The completed full GLM 5.3 review covered `60646af`. All 19 main comments,
+both outside-diff comments, and both inline suggestions were inspected.
+No important defect was confirmed in this round. The Mac was locked during
+that review; the corrected installed candidate's actual visual and workflow
+pass subsequently completed on 2 October, recorded in `macos/VERIFICATION.md`.
+
+- **Controller retention — refuted.** Both production construction sites store
+  controllers strongly: the app delegate's `settingsWindowTheme` and the editor
+  window controller's `windowTheme`. Weak window references and observer
+  captures intentionally avoid cycles. The live-defaults integration test also
+  exercises real Foundation notification delivery without a synthetic post.
+- **Duplicate host installation and content-view controllers — declined.** The
+  sole production installation occurs when a fresh titled editor window is
+  created. No `contentViewController` is configured. Additional guards or
+  clearing unrelated controller state would address hypothetical future paths.
+- **Missing layout helper — refuted.** `WindowThemeController.swift` defines the
+  production helper, imported by `@testable import MeltoramaMac`. Local and
+  hosted builds execute the geometry regression against that implementation.
+  A duplicate test helper would weaken the regression.
+- **Both localization-key warnings — refuted.** English and Simplified Chinese
+  are the shipped locales, and both updated keys match the `L` call. The old
+  caption key has no remaining resource references. Localization tests pass.
+- **Hue conversion and selectText deprecation — refuted.** The color helper
+  already converts to sRGB and tests fixed authored chromatic surfaces. The
+  installed Apple SDK's `NSTextField.h` declares `selectText:` without a
+  deprecation annotation; the test build emits no such warning.
+- **Export-sheet observation — declined.** The PR #121 disposition still
+  applies: independent observation of the same persisted key keeps an open
+  sheet live. Proposed future per-window overrides are outside this product.
+- **Delegate actor migration, named Classic constants, and weaker window
+  preconditions — declined.** Existing UI callbacks create the retained
+  controllers on the application thread. Broad Swift 6 migration is separate
+  from this Swift 5 target. Exact Classic values are tested. The layout guide
+  is an internal titled-window invariant, not untrusted document input; silently
+  returning would hide a configuration error.
+- **Settings resizability — declined as unconfirmed.** Captions wrap and the
+  fitted initial size includes their new content. No clipping was demonstrated
+  in the previous actual Settings pass. Corrected UI, larger text sizes, and
+  macOS 13 still need manual coverage; this is not recorded as a passed check.
+- **Role-name loops, assertion diagnostics, and Classic material comments —
+  declined as optional.** Fixed private role ordering deliberately compares
+  chrome, panels, and workspace while pinning canvas equality. File/line
+  forwarding, identity-assertion helpers, and extra comments change diagnostics
+  or wording without fixing observed behavior.
+- **Notification deduplication and secondary-text threshold — declined as
+  unnecessary.** Unchanged preferences return before updating the window.
+  The 3:1 secondary-label test includes native opacity and serves as a
+  regression floor. Neither the code nor verification claims complete WCAG AA
+  conformance for compact captions.
+- **Layout timing — declined as unconfirmed.** Local and hosted guide tests
+  pass without observed flakiness. `NSWindow.layoutIfNeeded()` is public API,
+  declared in `NSLayoutConstraint.h`'s `NSConstraintBasedLayoutCoreMethods`
+  category since macOS 10.7. The decline rests on the absence of observed
+  flakiness, not API availability; no call or tolerance change is needed.
+- **Container invalidation and appearance repaint — refuted.**
+  `CanvasView.updateNSView` invalidates the photo view on theme updates. An
+  isolated real `PhotoCanvas`, without that bridge or the window controller,
+  also becomes dirty after inherited appearance changes. The regression
+  verifies its actual draw into an explicit sRGB buffer matches Candy and
+  Ocean through Aqua, Dark Aqua, and Aqua again. No stale background was
+  reproduced, and no application invalidation override is needed.
+
+### Completed hybrid follow-up at `77ed3c1`
+
+All four minor comments, the info comment, and both new inline suggestions
+were inspected. One factual documentation error was corrected; no important
+application defect was confirmed. This is the second consecutive completed
+round without important findings. Optional refactors stop; required actual
+application verification and latest-commit CI still apply.
+
+- **Layout API record: applied.** The earlier search of `NSWindow.h` and the
+  Swift overlay missed the public Objective-C category in
+  `NSLayoutConstraint.h`. The installed SDK declares `layoutIfNeeded` since
+  macOS 10.7, rather than the reviewer's stated 10.10. The timing disposition
+  now relies solely on passing local and hosted geometry tests without
+  observed flakiness. No application or test change is needed.
+- **Settings hosting path: refuted.** Settings uses only the `.titled` and
+  `.closable` style flags. `WindowThemeController` changes the background and
+  titlebar transparency without adding `.fullSizeContentView`. The editor's
+  explicit full-size layout requires the constrained host; the ordinary
+  Settings window retains its native content area below the titlebar.
+- **Export-sheet environment refactor: declined.** The recorded PR #121 and
+  first-round rationale still applies. Independent observation of the same
+  persisted key keeps an already-open sheet live. No new evidence establishes
+  drift or a need for another source change.
+- **Renamed localization key: refuted.** The source `L` call and both shipped
+  English and Simplified Chinese tables contain the same new key. No old
+  caption key remains in application resources.
+- **Unreachable Classic chrome: refuted.** `WindowThemeController` consumes
+  `chromeBackgroundColor` for Classic window backgrounds, and Settings uses
+  it in the Classic palette preview. Classic contextual bars intentionally
+  retain the original `.bar` material while native window backgrounds retain
+  `.windowBackgroundColor`; neither branch is unused.

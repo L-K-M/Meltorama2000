@@ -250,13 +250,26 @@ lives in `engine/core` as pure JVM classes.
   recovery, numeric entry, accessibility, and responsive-layout fixes remain.
   `MacTheme.swift` supplies eight optional light/dark palettes, independently
   of the System/Light/Dark preference. Classic retains the original lime
-  accent and neutral panels; other themes tint only the side panels.
-  The photo workspace and standard titlebar remain neutral.
+  accent and native surfaces. Other themes coordinate titlebar, panel, and
+  workspace backgrounds with a separate, often complementary accent.
+  The workspace color surrounds the photo; it never enters the render engine.
+  `WindowThemeController` updates native window backgrounds and titlebar
+  transparency through public AppKit APIs, retaining titles, toolbars, hosts,
+  and responder state. Classic restores the original opaque native titlebar.
+  With `fullSizeContentView`, a transparent titlebar lets a directly hosted
+  SwiftUI view extend behind native chrome. Install the editor host once in a
+  plain content container and constrain it to `NSWindow.contentLayoutGuide`.
+  That guide reserves the toolbar and tab bar during resizing; inferred
+  SwiftUI safe areas alone did not prevent a measured 66-point overlap.
+  Search all AppKit headers before declaring a window API unavailable:
+  `layoutIfNeeded` is public in `NSLayoutConstraint.h`'s
+  `NSConstraintBasedLayoutCoreMethods` category (macOS 10.7+), not `NSWindow.h`.
   Theme changes are application preferences, never document edits; keep
   hosting views and field coordinators stable so drafts and undo survive.
   Tools use labeled rows and selection backgrounds; controls retain
   native drawing and behavior. See decision 0008, which supersedes the
-  tinted-window direction in 0007, and decision 0009 for optional themes.
+  tinted-window direction in 0007, decision 0009 for optional themes, and
+  decision 0010 for their coordinated full-window palettes.
   The custom `GooChrome.swift` console styles
   remain removed.
   Effect titles and disclosure share one button; enabling stays independent.

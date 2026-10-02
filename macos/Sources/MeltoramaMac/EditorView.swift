@@ -18,7 +18,7 @@ struct EditorView: View {
                             if session.compareOriginal { Text(L("Original Photo")).font(.caption).foregroundStyle(.secondary) }
                             Spacer()
                             if session.mode == .crop { Button(L("Cancel")) { session.cropRect = nil; session.mode = .brush }; Button(L("Apply Crop")) { session.applyCrop() }.disabled(session.cropRect == nil) }
-                        }.padding(.horizontal, 16).frame(height: 40).background(.bar)
+                        }.padding(.horizontal, 16).frame(height: 40).background { barBackground }
                         Divider()
                         CanvasView(session: session).frame(maxWidth: .infinity, maxHeight: .infinity)
                         Divider()
@@ -34,6 +34,7 @@ struct EditorView: View {
             }
         }
         .tint(theme.accent)
+        .background(theme.panelBackground)
         .environment(\.macTheme, theme)
         .frame(minWidth: 820, minHeight: 500)
         .sheet(isPresented: $session.showExport) { ExportSheet(session: session) }
@@ -86,7 +87,11 @@ struct EditorView: View {
             Button(L("Fit")) {session.resetView()}.buttonStyle(.borderless)
             Text(Double(session.displayedZoom), format: .percent.precision(.fractionLength(session.displayedZoom < 0.01 ? 2 : 0)))
                 .monospacedDigit().frame(minWidth:43)
-        }.font(.caption).padding(.horizontal,12).frame(height:30).background(.bar)
+        }.font(.caption).padding(.horizontal,12).frame(height:30).background { barBackground }
+    }
+    @ViewBuilder private var barBackground: some View {
+        if theme.preference == .classic { Rectangle().fill(.bar) }
+        else { theme.chromeBackground }
     }
     private var inspector: some View {
         ScrollView {
@@ -247,6 +252,7 @@ struct EffectSection: View {
 struct ExportSheet:View {
     @ObservedObject var session:EditorSession
     @AppStorage(ThemePreference.storageKey) private var storedTheme = ThemePreference.classic.rawValue
+    private var theme: MacTheme { MacTheme(preference: ThemePreference.resolve(storedTheme)) }
     @State private var format:ExportFormat = .png
     @State private var quality=0.95
     @State private var speed:MovieSpeed = .normal
@@ -274,6 +280,6 @@ struct ExportSheet:View {
                 Button(L("Cancel")) {session.showExport=false}.keyboardShortcut(.cancelAction)
                 Button(L("Export…")) {session.export(options:options)}.keyboardShortcut(.defaultAction).disabled(!session.canExport || needsFrames)
             }
-        }.padding(24).frame(width:420).tint(MacTheme(preference: ThemePreference.resolve(storedTheme)).accent)
+        }.padding(24).frame(width:420).background(theme.panelBackground).tint(theme.accent)
     }
 }

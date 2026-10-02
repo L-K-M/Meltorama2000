@@ -45,7 +45,7 @@ struct GoovieTimelineView: View {
             }
         }
         .padding(12)
-        .background(Color(nsColor: .controlBackgroundColor))
+        .background(theme.panelBackground)
         .disabled(!session.hasPhoto)
     }
 
@@ -123,7 +123,7 @@ struct GoovieTimelineView: View {
         }
         .buttonStyle(.plain)
         .foregroundStyle(.primary)
-        .background(selected ? theme.accent.opacity(0.2) : Color(nsColor: .textBackgroundColor), in: RoundedRectangle(cornerRadius: 6))
+        .background(selected ? theme.accent.opacity(0.2) : theme.workspaceBackground, in: RoundedRectangle(cornerRadius: 6))
         .overlay(RoundedRectangle(cornerRadius: 6).strokeBorder(selected ? theme.accent : Color.secondary.opacity(0.25), lineWidth: contrast == .increased ? 3 : 2)
             .allowsHitTesting(false).accessibilityHidden(true))
         .accessibilityLabel(LF("Frame %d", index + 1))

@@ -35,3 +35,6 @@ This extends 0008's selective-accent direction without changing the native
 interaction design. Theme selection is optional and Classic remains the
 default. The previous real-photo artwork and its attribution remain in
 Git history. Android's interface and launcher artwork are unchanged.
+
+[Decision 0010](0010-coordinated-mac-palettes.md) extends these themes to
+coordinated titlebar and workspace backgrounds with separate accent colors.

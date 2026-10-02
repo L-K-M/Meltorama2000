@@ -49,15 +49,12 @@ struct SettingsView: View {
                 Picker(L("Theme"), selection: themeSelection) {
                     ForEach(ThemePreference.allCases) { preference in
                         HStack(spacing: 8) {
-                            Circle().fill(MacTheme(preference: preference).accent)
-                                .frame(width: 12, height: 12)
-                                .overlay(Circle().strokeBorder(.primary.opacity(0.2), lineWidth: 1))
-                                .accessibilityHidden(true)
+                            palettePreview(preference).accessibilityHidden(true)
                             Text(L(preference.title))
                         }.tag(preference)
                     }
                 }.pickerStyle(.radioGroup).labelsHidden()
-                Text(L("Themes color the panels and controls. Your photos keep their original colors."))
+                Text(L("Themes coordinate the titlebar, panels, workspace, and accents. Your photos keep their original colors."))
                     .font(.caption).foregroundStyle(.secondary)
                     .fixedSize(horizontal: false, vertical: true)
             }
@@ -66,7 +63,22 @@ struct SettingsView: View {
                 .font(.callout).foregroundStyle(.secondary)
                 .fixedSize(horizontal: false, vertical: true)
         }.padding(24).frame(width: 410)
+            .background(theme.panelBackground)
             .tint(theme.accent)
             .onChange(of: appearance) { preference in preference.apply() }
+    }
+
+    private func palettePreview(_ preference: ThemePreference) -> some View {
+        let palette = MacTheme(preference: preference)
+        return HStack(spacing: -4) {
+            swatch(palette.workspaceBackground)
+            swatch(palette.chromeBackground)
+            swatch(palette.accent)
+        }
+    }
+
+    private func swatch(_ color: Color) -> some View {
+        Circle().fill(color).frame(width: 14, height: 14)
+            .overlay(Circle().strokeBorder(.primary.opacity(0.2), lineWidth: 1))
     }
 }
