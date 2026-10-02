@@ -1,9 +1,13 @@
 import AppKit
 
+private final class WindowContentContainer: NSView {
+    let headerSeparator = NSBox()
+}
+
 /// Installs a retained host below the native titlebar and toolbar once per window.
 @MainActor
 func installWindowContentHost(_ host: NSView, in window: NSWindow) {
-    let container = NSView(frame: window.contentView?.frame ?? .zero)
+    let container = WindowContentContainer(frame: window.contentView?.frame ?? .zero)
     window.contentView = container
     host.translatesAutoresizingMaskIntoConstraints = false
     container.addSubview(host)
@@ -17,6 +21,17 @@ func installWindowContentHost(_ host: NSView, in window: NSWindow) {
         NSLayoutConstraint(item: host, attribute: attribute, relatedBy: .equal,
                            toItem: guide, attribute: attribute, multiplier: 1, constant: 0)
     })
+    // AppKit's titlebar line is omitted for transparent titlebars on some
+    // macOS versions. A native separator at the content guide shares that
+    // boundary without replacing chrome or changing the retained host's size.
+    let separator = container.headerSeparator
+    separator.boxType = .separator
+    separator.translatesAutoresizingMaskIntoConstraints = false
+    container.addSubview(separator)
+    NSLayoutConstraint.activate([.leading, .trailing, .top].map { attribute in
+        NSLayoutConstraint(item: separator, attribute: attribute, relatedBy: .equal,
+                           toItem: guide, attribute: attribute, multiplier: 1, constant: 0)
+    } + [separator.heightAnchor.constraint(equalToConstant: 1)])
 }
 
 /// Owns native chrome updates without replacing the content host or touching editing.
@@ -34,10 +49,6 @@ final class WindowThemeController {
         self.window = window
         self.defaults = defaults
         self.notificationCenter = notificationCenter
-        // Automatic chrome omits this boundary with a transparent titlebar.
-        // Let AppKit draw its appearance-aware line across the entire window.
-        window.titlebarSeparatorStyle = .line
-
         preferenceObserver = notificationCenter.addObserver(
             forName: UserDefaults.didChangeNotification, object: defaults, queue: .main
         ) { [weak self] _ in
@@ -65,12 +76,17 @@ final class WindowThemeController {
         // A transparent titlebar exposes the window's background behind the
         // existing native title and toolbar. Keep their layout and safe area.
         window.titlebarAppearsTransparent = preference != .classic
+        // The content separator owns this boundary for themed editor windows.
+        // Suppress a second native line on systems that draw transparent chrome.
+        let hasContentSeparator = window.contentView is WindowContentContainer
+        window.titlebarSeparatorStyle = hasContentSeparator && preference != .classic ? .none : .line
         refreshBackground()
     }
 
     private func refreshBackground() {
         guard let window, let appliedPreference else { return }
         window.backgroundColor = MacTheme(preference: appliedPreference).chromeBackgroundColor
+        (window.contentView as? WindowContentContainer)?.headerSeparator.isHidden = appliedPreference == .classic
         window.contentView?.needsDisplay = true
     }
 }

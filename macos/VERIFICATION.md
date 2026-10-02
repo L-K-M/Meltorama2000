@@ -476,6 +476,12 @@ stale errors, and closed-session completions. The full native suite passed
 export checks. The native titlebar separator regression failed before the fix
 and passes across all eight themes in light and dark appearance.
 
+Actual application inspection showed that an explicit `.line` titlebar style
+still did not draw beneath transparent themed chrome on this Mac. The revised
+regression requires a visible native NSBox separator contained at the content
+guide's upper edge, with one-point alignment height and unchanged host bounds.
+Themed editors use this retained separator; Classic uses the titlebar's line.
+
 Isolated optimized ARM measurements used the procedural 1200 by 900 Candy
 Blobs source with 15 committed strokes and Stretch/Spike enabled. Median
 cached rendering took about 1 ms; incremental batches of 16, 64, and 256

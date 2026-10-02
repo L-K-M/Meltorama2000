@@ -40,11 +40,13 @@ final class WindowThemeTests: XCTestCase {
         let controller = WindowThemeController(window: window, defaults: defaults, notificationCenter: center)
 
         XCTAssertTrue(window.titlebarAppearsTransparent)
+        XCTAssertEqual(window.titlebarSeparatorStyle, .line)
         try assertBackground(window, theme: .candy)
         XCTAssertNil(defaults.string(forKey: ThemePreference.storageKey))
         defaults.set(ThemePreference.ocean.rawValue, forKey: ThemePreference.storageKey)
         center.post(name: UserDefaults.didChangeNotification, object: defaults)
         XCTAssertTrue(window.titlebarAppearsTransparent)
+        XCTAssertEqual(window.titlebarSeparatorStyle, .line)
         try assertBackground(window, theme: .ocean)
         XCTAssertEqual(window.title, "Saved Photo")
         XCTAssertEqual(window.frame, frame)
@@ -85,13 +87,16 @@ final class WindowThemeTests: XCTestCase {
         withExtendedLifetime(controller) {}
     }
 
-    @MainActor func testNativeHeaderSeparatorRemainsVisibleAcrossThemesAndAppearances() throws {
+    @MainActor func testNativeHeaderSeparatorStaysAtContentBoundaryAcrossThemesAndAppearances() throws {
         let window = window()
         defer { window.close() }
         let defaults = try defaults()
         let center = NotificationCenter()
         let host = NSView()
         installWindowContentHost(host, in: window)
+        let container = try XCTUnwrap(window.contentView)
+        let separator = try XCTUnwrap(container.subviews.compactMap { $0 as? NSBox }.first)
+        XCTAssertEqual(separator.boxType, .separator)
         let controller = WindowThemeController(window: window, defaults: defaults, notificationCenter: center)
 
         for preference in ThemePreference.allCases {
@@ -101,8 +106,19 @@ final class WindowThemeTests: XCTestCase {
                 window.appearance = try XCTUnwrap(NSAppearance(named: appearanceName))
                 window.setContentSize(NSSize(width: 700, height: 500))
                 window.contentView?.layoutSubtreeIfNeeded()
-                XCTAssertEqual(window.titlebarSeparatorStyle, .line,
-                               "The native header must remain separated from all three editor columns")
+                XCTAssertEqual(window.titlebarSeparatorStyle, preference == .classic ? .line : .none,
+                               "Only one separator should own the header boundary")
+                XCTAssertEqual(separator.isHidden, preference == .classic,
+                               "Transparent themed chrome needs an explicit visible separator")
+                XCTAssertTrue(window.contentView === container)
+                XCTAssertTrue(host.superview === container)
+                // NSBox includes drawing insets around its alignment rect.
+                // Layout pins the native line, not that larger view frame.
+                let separatorFrame = container.convert(separator.alignmentRect(forFrame: separator.frame), to: nil)
+                XCTAssertEqual(separatorFrame.minX, window.contentLayoutRect.minX, accuracy: 0.5)
+                XCTAssertEqual(separatorFrame.maxX, window.contentLayoutRect.maxX, accuracy: 0.5)
+                XCTAssertEqual(separatorFrame.maxY, window.contentLayoutRect.maxY, accuracy: 0.5)
+                XCTAssertEqual(separatorFrame.height, 1, accuracy: 0.01)
                 let hostFrame = host.convert(host.bounds, to: nil)
                 XCTAssertEqual(hostFrame.maxY, window.contentLayoutRect.maxY, accuracy: 0.5)
             }
