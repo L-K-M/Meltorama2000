@@ -428,12 +428,41 @@ candidate passed ZIP integrity, strict signing, and GPU/edit/save/reopen/pinned
 revision smoke tests on Apple silicon and through Rosetta. Both slices declare
 minimum macOS 13. The generated dog artwork is unchanged.
 
-Final interactive checks of the corrected titlebar, all palettes, theme changes
-with a photo and field draft, save/reopen, export parity, and resizing remain
-pending. The Mac locked after the first preview and the UI tool could not unlock
-it; the user was asked to unlock it manually. No completed visual pass of the
-corrected candidate is claimed. PR #122 and the unpublished staging tag remain
-work in progress until those checks, CI, and completed review are finished.
+On 2 October, the unlocked Mac completed the corrected installed app's visual
+and interaction pass. All eight themes were inspected in Light and Dark:
+native titles, traffic lights, aligned toolbar items, panels, workspace, and
+the original welcome hand remained visible. Settings displayed every palette
+and its three swatches, including after repeated closing and reopening.
+
+The Candy Blobs sample accepted brush edits, keyboard undo/redo, percentage
+entry committed by Tab and Return, and Command-K frame capture. Bulge's
+disclosure expanded independently of its checkbox; collapsing an enabled
+45% effect removed its body while retaining the value. The native Save panel
+wrote a new test package, and the native Open panel reopened its two stroke
+revisions, 45% Bulge, and animation pin. Brush strength resets to its normal
+session default on reopen; it is not a serialized document property.
+
+Live switching from Candy to Ocean retained the photo, effect, frame, and
+clean saved state. Full-resolution PNGs exported through the native dialogs
+under those two themes were byte-identical: 1200 by 900 pixels, 312136 bytes,
+SHA-256 `31b8ae5641df3779cc6387a1faa87fe1cf195e27c5cfa089529d48a0d0cac109`.
+The palette changes only the surrounding workspace, not exported pixels.
+
+Resizing from 1240-point width to 871 points retained the native toolbar,
+readable percentage suffixes, scrollable inspector, and complete frame card;
+the timeline placed capture actions on a second row. Creating a second
+document used native tabs. Both tabs adopted Candy/Dark without content
+overlapping the toolbar or tab bar. About reported 2.0.9 (13). The app was
+left on a clean welcome document with Candy/Dark restored, and the saved test
+package was retained. Uncommitted field-draft, focus, and undo identity during
+theme changes remain covered by the AppKit integration test rather than a
+claim that activating Settings preserves text-field focus.
+
+PR #122 completed two review rounds without a confirmed important application
+defect. A mistaken documentation statement about the public
+`NSWindow.layoutIfNeeded` category was corrected. Physical Intel hardware,
+macOS 13 runtime, larger accessibility text sizes, VoiceOver navigation, and
+an interactive Chinese-language pass remain unverified.
 
 ## Remaining limitations
 

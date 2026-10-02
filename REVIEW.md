@@ -347,8 +347,9 @@ confirmed; the application source remains unchanged after this review.
 
 The completed full GLM 5.3 review covered `60646af`. All 19 main comments,
 both outside-diff comments, and both inline suggestions were inspected.
-No important defect was confirmed in this round. The corrected candidate's
-actual visual pass remains blocked by the locked Mac.
+No important defect was confirmed in this round. The Mac was locked during
+that review; the corrected installed candidate's actual visual and workflow
+pass subsequently completed on 2 October, recorded in `macos/VERIFICATION.md`.
 
 - **Controller retention — refuted.** Both production construction sites store
   controllers strongly: the app delegate's `settingsWindowTheme` and the editor
@@ -394,9 +395,10 @@ actual visual pass remains blocked by the locked Mac.
   regression floor. Neither the code nor verification claims complete WCAG AA
   conformance for compact captions.
 - **Layout timing — declined as unconfirmed.** Local and hosted guide tests
-  pass without observed flakiness. The suggested `NSWindow.layoutIfNeeded()`
-  is not present in the installed public NSWindow API. Do not weaken geometry
-  tolerance or add an unsupported method for a hypothetical timing problem.
+  pass without observed flakiness. `NSWindow.layoutIfNeeded()` is public API,
+  declared in `NSLayoutConstraint.h`'s `NSConstraintBasedLayoutCoreMethods`
+  category since macOS 10.7. The decline rests on the absence of observed
+  flakiness, not API availability; no call or tolerance change is needed.
 - **Container invalidation and appearance repaint — refuted.**
   `CanvasView.updateNSView` invalidates the photo view on theme updates. An
   isolated real `PhotoCanvas`, without that bridge or the window controller,
@@ -404,3 +406,35 @@ actual visual pass remains blocked by the locked Mac.
   verifies its actual draw into an explicit sRGB buffer matches Candy and
   Ocean through Aqua, Dark Aqua, and Aqua again. No stale background was
   reproduced, and no application invalidation override is needed.
+
+### Completed hybrid follow-up at `77ed3c1`
+
+All four minor comments, the info comment, and both new inline suggestions
+were inspected. One factual documentation error was corrected; no important
+application defect was confirmed. This is the second consecutive completed
+round without important findings. Optional refactors stop; required actual
+application verification and latest-commit CI still apply.
+
+- **Layout API record: applied.** The earlier search of `NSWindow.h` and the
+  Swift overlay missed the public Objective-C category in
+  `NSLayoutConstraint.h`. The installed SDK declares `layoutIfNeeded` since
+  macOS 10.7, rather than the reviewer's stated 10.10. The timing disposition
+  now relies solely on passing local and hosted geometry tests without
+  observed flakiness. No application or test change is needed.
+- **Settings hosting path: refuted.** Settings uses only the `.titled` and
+  `.closable` style flags. `WindowThemeController` changes the background and
+  titlebar transparency without adding `.fullSizeContentView`. The editor's
+  explicit full-size layout requires the constrained host; the ordinary
+  Settings window retains its native content area below the titlebar.
+- **Export-sheet environment refactor: declined.** The recorded PR #121 and
+  first-round rationale still applies. Independent observation of the same
+  persisted key keeps an already-open sheet live. No new evidence establishes
+  drift or a need for another source change.
+- **Renamed localization key: refuted.** The source `L` call and both shipped
+  English and Simplified Chinese tables contain the same new key. No old
+  caption key remains in application resources.
+- **Unreachable Classic chrome: refuted.** `WindowThemeController` consumes
+  `chromeBackgroundColor` for Classic window backgrounds, and Settings uses
+  it in the Classic palette preview. Classic contextual bars intentionally
+  retain the original `.bar` material while native window backgrounds retain
+  `.windowBackgroundColor`; neither branch is unused.

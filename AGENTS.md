@@ -261,6 +261,9 @@ lives in `engine/core` as pure JVM classes.
   plain content container and constrain it to `NSWindow.contentLayoutGuide`.
   That guide reserves the toolbar and tab bar during resizing; inferred
   SwiftUI safe areas alone did not prevent a measured 66-point overlap.
+  Search all AppKit headers before declaring a window API unavailable:
+  `layoutIfNeeded` is public in `NSLayoutConstraint.h`'s
+  `NSConstraintBasedLayoutCoreMethods` category (macOS 10.7+), not `NSWindow.h`.
   Theme changes are application preferences, never document edits; keep
   hosting views and field coordinators stable so drafts and undo survive.
   Tools use labeled rows and selection backgrounds; controls retain
