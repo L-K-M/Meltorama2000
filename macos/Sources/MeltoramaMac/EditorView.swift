@@ -4,7 +4,7 @@ import MeltoramaCore
 
 struct EditorView: View {
     @ObservedObject var session: EditorSession
-    @AppStorage(ThemePreference.storageKey) private var storedTheme = ThemePreference.classic.rawValue
+    @AppStorage(ThemePreference.storageKey) private var storedTheme = ThemePreference.defaultPreference.rawValue
     private var theme: MacTheme { MacTheme(preference: ThemePreference.resolve(storedTheme)) }
     var body: some View {
         VStack(spacing: 0) {
@@ -251,7 +251,7 @@ struct EffectSection: View {
 
 struct ExportSheet:View {
     @ObservedObject var session:EditorSession
-    @AppStorage(ThemePreference.storageKey) private var storedTheme = ThemePreference.classic.rawValue
+    @AppStorage(ThemePreference.storageKey) private var storedTheme = ThemePreference.defaultPreference.rawValue
     private var theme: MacTheme { MacTheme(preference: ThemePreference.resolve(storedTheme)) }
     @State private var format:ExportFormat = .png
     @State private var quality=0.95

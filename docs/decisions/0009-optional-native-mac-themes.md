@@ -38,3 +38,8 @@ Git history. Android's interface and launcher artwork are unchanged.
 
 [Decision 0010](0010-coordinated-mac-palettes.md) extends these themes to
 coordinated titlebar and workspace backgrounds with separate accent colors.
+
+On 2 October 2026, the user selected Candy as the default for builds with no
+saved theme preference. This supersedes the original Classic default above;
+explicit choices are preserved, and unknown stored identifiers still fall
+back to Classic without being overwritten.
