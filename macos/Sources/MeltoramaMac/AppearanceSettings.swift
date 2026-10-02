@@ -29,7 +29,7 @@ enum AppearancePreference: String, CaseIterable, Identifiable {
 
 struct SettingsView: View {
     @AppStorage(AppearancePreference.storageKey) private var appearance: AppearancePreference = .system
-    @AppStorage(ThemePreference.storageKey) private var storedTheme = ThemePreference.classic.rawValue
+    @AppStorage(ThemePreference.storageKey) private var storedTheme = ThemePreference.defaultPreference.rawValue
     @AppStorage("hideBrushCursor") private var hideBrushCursor = false
     private var theme: MacTheme { MacTheme(preference: ThemePreference.resolve(storedTheme)) }
     private var themeSelection: Binding<ThemePreference> {

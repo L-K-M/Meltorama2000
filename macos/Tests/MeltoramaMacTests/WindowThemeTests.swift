@@ -37,11 +37,11 @@ final class WindowThemeTests: XCTestCase {
         let frame = window.frame
         let style = window.styleMask
         let toolbar = window.toolbar
-        defaults.set(ThemePreference.candy.rawValue, forKey: ThemePreference.storageKey)
         let controller = WindowThemeController(window: window, defaults: defaults, notificationCenter: center)
 
         XCTAssertTrue(window.titlebarAppearsTransparent)
         try assertBackground(window, theme: .candy)
+        XCTAssertNil(defaults.string(forKey: ThemePreference.storageKey))
         defaults.set(ThemePreference.ocean.rawValue, forKey: ThemePreference.storageKey)
         center.post(name: UserDefaults.didChangeNotification, object: defaults)
         XCTAssertTrue(window.titlebarAppearsTransparent)

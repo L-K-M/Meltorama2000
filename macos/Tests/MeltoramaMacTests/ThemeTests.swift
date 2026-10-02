@@ -1,4 +1,5 @@
 import AppKit
+import SwiftUI
 import XCTest
 @testable import MeltoramaMac
 
@@ -8,7 +9,9 @@ final class ThemeTests: XCTestCase {
         let defaults = try XCTUnwrap(UserDefaults(suiteName: suite))
         defer { defaults.removePersistentDomain(forName: suite) }
 
-        XCTAssertEqual(ThemePreference.resolve(defaults.string(forKey: ThemePreference.storageKey)), .classic)
+        XCTAssertEqual(ThemePreference.resolve(defaults.string(forKey: ThemePreference.storageKey)), .candy)
+        XCTAssertNil(defaults.string(forKey: ThemePreference.storageKey))
+        XCTAssertEqual(EnvironmentValues().macTheme.preference, .candy)
         defaults.set("theme-from-a-newer-version", forKey: ThemePreference.storageKey)
         XCTAssertEqual(ThemePreference.resolve(defaults.string(forKey: ThemePreference.storageKey)), .classic)
         XCTAssertEqual(defaults.string(forKey: ThemePreference.storageKey), "theme-from-a-newer-version")

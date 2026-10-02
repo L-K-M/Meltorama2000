@@ -252,6 +252,10 @@ lives in `engine/core` as pure JVM classes.
   of the System/Light/Dark preference. Classic retains the original lime
   accent and native surfaces. Other themes coordinate titlebar, panel, and
   workspace backgrounds with a separate, often complementary accent.
+  Candy is the default when no theme preference is stored. Share
+  `ThemePreference.defaultPreference` across AppStorage, the environment,
+  and window resolution; never migrate explicit choices. Unrecognized stored
+  identifiers still fall back to Classic without replacing their value.
   The workspace color surrounds the photo; it never enters the render engine.
   `WindowThemeController` updates native window backgrounds and titlebar
   transparency through public AppKit APIs, retaining titles, toolbars, hosts,

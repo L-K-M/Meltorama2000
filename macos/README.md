@@ -45,6 +45,8 @@ is central; contextual settings and whole-photo effects are on the right.
 The toolbar contains document and view actions. Appearance follows macOS;
 Settings also offers Light and Dark for this app, independently of its theme.
 Choose Classic, Candy, Tangerine, Ocean, Grape, Mint, Sunshine, or Cherry.
+Candy is selected by default when no preference has been saved. Existing
+theme choices are preserved.
 Themes coordinate the native titlebar, side panels, photo workspace, and
 controls with separate background and accent colors. Your choice applies
 to all document windows and survives

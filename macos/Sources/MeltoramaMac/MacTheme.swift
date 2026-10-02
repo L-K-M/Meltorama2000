@@ -5,6 +5,7 @@ enum ThemePreference: String, CaseIterable, Identifiable {
     case classic, candy, tangerine, ocean, grape, mint, sunshine, cherry
 
     static let storageKey = "themePreference"
+    static let defaultPreference: Self = .candy
     var id: Self { self }
     var title: String {
         switch self {
@@ -20,7 +21,8 @@ enum ThemePreference: String, CaseIterable, Identifiable {
     }
 
     static func resolve(_ storedValue: String?) -> Self {
-        storedValue.flatMap(Self.init(rawValue:)) ?? .classic
+        guard let storedValue else { return defaultPreference }
+        return Self(rawValue: storedValue) ?? .classic
     }
 }
 
@@ -143,7 +145,7 @@ struct MacTheme {
 }
 
 private struct MacThemeKey: EnvironmentKey {
-    static let defaultValue = MacTheme(preference: .classic)
+    static let defaultValue = MacTheme(preference: ThemePreference.defaultPreference)
 }
 
 extension EnvironmentValues {
