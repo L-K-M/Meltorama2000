@@ -11,6 +11,13 @@
 
 Latest release: v<!-- version -->2.0.10<!-- /version --> · [Download](https://github.com/L-K-M/Meltorama2000/releases/latest)
 
+The macOS build is ad-hoc signed and not notarized. After moving **Meltorama**
+to Applications, run:
+
+```bash
+xattr -dr com.apple.quarantine "/Applications/Meltorama.app"
+```
+
 </div>
 
 <div align="center">
