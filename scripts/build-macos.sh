@@ -11,10 +11,11 @@ cd "$REPO_DIR"
 CONFIG=release
 LAUNCH=false
 ARCH_ARGS=()
+ARCH_TAG="$(uname -m)"
 for arg in "$@"; do
   case "$arg" in
     --debug) CONFIG=debug ;;
-    --universal) ARCH_ARGS=(--arch arm64 --arch x86_64) ;;
+    --universal) ARCH_ARGS=(--arch arm64 --arch x86_64); ARCH_TAG=universal ;;
     --launch) LAUNCH=true ;;
     *) echo "!! unknown option: $arg" >&2; exit 1 ;;
   esac
@@ -50,8 +51,8 @@ fi
 codesign --verify --strict "$STAGE_DIR/Meltorama.app"
 rm -rf "$APP_DIR"
 mv "$STAGE_DIR/Meltorama.app" "$APP_DIR"
-ditto -c -k --sequesterRsrc --keepParent "$APP_DIR" "dist/meltorama-macos-$VERSION.zip"
-shasum -a 256 "dist/meltorama-macos-$VERSION.zip" > "dist/meltorama-macos-$VERSION.zip.sha256"
+ditto -c -k --sequesterRsrc --keepParent "$APP_DIR" "dist/meltorama-$VERSION-macos-$ARCH_TAG.zip"
+shasum -a 256 "dist/meltorama-$VERSION-macos-$ARCH_TAG.zip" > "dist/meltorama-$VERSION-macos-$ARCH_TAG.zip.sha256"
 echo "-- app: $APP_DIR"
-echo "-- zip: $REPO_DIR/dist/meltorama-macos-$VERSION.zip"
+echo "-- zip: $REPO_DIR/dist/meltorama-$VERSION-macos-$ARCH_TAG.zip"
 if $LAUNCH; then open "$APP_DIR"; fi

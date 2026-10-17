@@ -73,7 +73,7 @@ jobs:
         with:
           name: meltorama-macos-${{ github.sha }}
           path: |
-            dist/meltorama-macos-*.zip
-            dist/meltorama-macos-*.zip.sha256
+            dist/meltorama-*-macos-*.zip
+            dist/meltorama-*-macos-*.zip.sha256
           if-no-files-found: error
           retention-days: 14
