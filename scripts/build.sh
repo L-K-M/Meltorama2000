@@ -22,7 +22,7 @@
 # "$HOME/Applications". The default is /Applications.
 #
 # Produced artifacts land in dist/ — goo-v<version>-*.apk and
-# meltorama-macos-<version>.zip plus Meltorama.app itself.
+# meltorama-<version>-macos-<arch>.zip plus Meltorama.app itself.
 #
 # The lkm-build engine (https://github.com/L-K-M/release-tool) has no Gradle
 # kind, so this is a self-contained orchestrator in the family house style;
@@ -271,7 +271,7 @@ build_app() {
     local command="scripts/build-macos.sh"
     [[ "$PROFILE" == debug ]] && command="$command --debug"
     echo "-- would run: $command"
-    echo "-- would stage: dist/Meltorama.app + dist/meltorama-macos-$VERSION.zip"
+    echo "-- would stage: dist/Meltorama.app + dist/meltorama-$VERSION-macos-<arch>.zip"
     $INSTALL && echo "-- would install: ${MELTORAMA_INSTALL_DIR:-/Applications}/Meltorama.app"
     record "app: checked (would build $PROFILE)"
     return 0
@@ -301,7 +301,9 @@ build_app() {
     echo "!! app: build-macos.sh failed" >&2
     record "app: FAILED (build)"; return 1
   fi
-  record "app: built ($PROFILE) -> dist/Meltorama.app + dist/meltorama-macos-$VERSION.zip"
+  arch_tag="$(uname -m)"
+  case " ${args[*]:-} " in *" --universal "*) arch_tag=universal ;; esac
+  record "app: built ($PROFILE) -> dist/Meltorama.app + dist/meltorama-$VERSION-macos-$arch_tag.zip"
   STAGED=$((STAGED + 1))
 
   if $INSTALL; then
