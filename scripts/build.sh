@@ -301,7 +301,9 @@ build_app() {
     echo "!! app: build-macos.sh failed" >&2
     record "app: FAILED (build)"; return 1
   fi
-  record "app: built ($PROFILE) -> dist/Meltorama.app + dist/meltorama-$VERSION-macos-$(uname -m).zip"
+  arch_tag="$(uname -m)"
+  case " ${args[*]:-} " in *" --universal "*) arch_tag=universal ;; esac
+  record "app: built ($PROFILE) -> dist/Meltorama.app + dist/meltorama-$VERSION-macos-$arch_tag.zip"
   STAGED=$((STAGED + 1))
 
   if $INSTALL; then
