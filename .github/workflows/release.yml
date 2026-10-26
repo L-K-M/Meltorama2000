@@ -61,9 +61,9 @@ jobs:
       - name: Check license statements
         run: |
           status=0
-          grep -q 'own code is public domain (Unlicense)' app/src/main/res/values/strings.xml \
+          grep 'name="about_body"' app/src/main/res/values/strings.xml | grep -q 'own code is public domain (Unlicense)' \
             || { echo "::error file=app/src/main/res/values/strings.xml::about_body must scope the Unlicense to the app's own code"; status=1; }
-          grep -q '自身的代码属于公共领域（Unlicense）' app/src/main/res/values-b+zh+Hans/strings.xml \
+          grep 'name="about_body"' app/src/main/res/values-b+zh+Hans/strings.xml | grep -q '自身的代码属于公共领域（Unlicense）' \
             || { echo "::error file=app/src/main/res/values-b+zh+Hans/strings.xml::about_body must scope the Unlicense to the app's own code"; status=1; }
           grep -q 'Open-source licenses' macos/THIRD_PARTY_NOTICES.txt \
             || { echo "::error file=macos/THIRD_PARTY_NOTICES.txt::must say where the Android notices ship"; status=1; }
