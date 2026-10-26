@@ -322,8 +322,9 @@ lives in `engine/core` as pure JVM classes.
 - `build-macos.sh` names its ZIP from Android's committed `versionName`.
   Before building later edits at the same version, preserve any tagged native
   bundle separately so a preview cannot replace that release's bytes.
-  `release.yml` publishes Android artifacts; attach the matching verified
-  native ZIP and checksum separately to the GitHub Release.
+  `release.yml` builds the universal native ZIP from the tag, checks its
+  notices, and publishes it and its checksum next to the APK. Do not attach
+  a hand-built ZIP to the GitHub Release.
 - The Mac renderer's GOOvie endpoint cache must touch a cached A before
   materializing B. Otherwise a FIFO eviction can delete A while the current
   draw still holds it, corrupting nonadjacent or reordered frame previews.
@@ -454,8 +455,8 @@ lives in `engine/core` as pure JVM classes.
 
 Three workflows (details: [CICD.md](CICD.md)): `ci.yml` (tests + lint +
 debug APK on every PR/main push), `release.yml` (v* tags → verified,
-published APK), `zai-code-review.yml` (GLM 5.3 reviews every PR; respond
-per [CLAUDE.md](CLAUDE.md)). Family contract on every workflow:
+published APK and Mac zip), `zai-code-review.yml` (GLM 5.3 reviews every
+PR; respond per [CLAUDE.md](CLAUDE.md)). Family contract on every workflow:
 least-privilege permissions, explicit concurrency, timeouts, wrapper
 validation.
 

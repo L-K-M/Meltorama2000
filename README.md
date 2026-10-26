@@ -52,7 +52,8 @@ upgrade-compatible APKs (a deliberate sideload-only decision — see
 ## Releasing
 
 `scripts/release.sh X.Y.Z --push` — never hand-edit `versionCode`, never
-create a `v*` tag by hand. CI publishes the APK to GitHub Releases.
+create a `v*` tag by hand. CI publishes the APK and the universal Mac zip to
+GitHub Releases.
 
 ## License
 

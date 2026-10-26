@@ -13,9 +13,11 @@ an explicit `concurrency:` group, `timeout-minutes:` on every job, and
 - **Concurrency:** `ci-${{ github.ref }}`; cancels superseded **PR** runs
   only — never an in-progress `main` run, because a permanently "cancelled"
   main commit masks breakage and breaks bisection.
-- **Job `android`** (45 min cap): checkout → wrapper-validation → Temurin
-  JDK 17 → setup-gradle → `./gradlew testDebugUnitTest lintDebug
-  assembleDebug` → upload `goo-debug-<sha>` APK artifact (14-day retention,
+- **Job `android`** (45 min cap): checkout → license statement greps →
+  wrapper-validation → Temurin JDK 17 → setup-gradle → `./gradlew
+  testDebugUnitTest lintDebug assembleDebug` → third-party notices check on
+  the APK (`scripts/android_notices.py check` and `scan`) → upload
+  `goo-debug-<sha>` APK artifact (14-day retention,
   `if-no-files-found: error`).
 - No Android SDK install step: the ubuntu runner image ships the SDK, and
   AGP resolves `compileSdk android-37.0` against it (paired with
@@ -27,11 +29,16 @@ an explicit `concurrency:` group, `timeout-minutes:` on every job, and
   only the publish job receives `contents: write`.
 - **Concurrency:** no cancellation — a half-cancelled publish is worse than
   a slow one.
-- Two-job trust split: a read-only build job checks out without persisted
-  credentials, validates the wrapper, enforces the tag↔versionName gate,
-  re-proves `testDebugUnitTest lintDebug`, runs `assembleRelease`, and uploads
-  `dist/meltorama-vX.Y.Z.apk` + `.sha256`. A separate write-capable publish job
-  downloads only those artifacts and creates the GitHub Release, titled
+- Trust split: read-only build jobs check out without persisted
+  credentials. The Android job validates the wrapper, enforces the
+  tag↔versionName gate, re-proves the license statements and
+  `testDebugUnitTest lintDebug`, runs `assembleRelease`, checks the APK's
+  third-party notices, and uploads `dist/meltorama-vX.Y.Z.apk` + `.sha256`.
+  The `macos` job runs `scripts/test-macos.sh` and `scripts/build-macos.sh
+  --universal`, checks `LICENSE` and `THIRD_PARTY_NOTICES.txt` inside the app
+  and zip, and uploads `dist/meltorama-X.Y.Z-macos-universal.zip` +
+  `.sha256`. A separate write-capable publish job waits for both, downloads
+  only those artifacts and creates the GitHub Release, titled
   `Meltorama vX.Y.Z`, with generated notes. Every action in this privileged
   workflow is pinned to a verified immutable commit. `vX.Y.Z-rc.1`-style tags auto-mark as pre-release.
 - **Signing:** both build types use the checked-in `app/debug.keystore`
@@ -77,7 +84,8 @@ this workflow.
 `ci.yml` also runs a `macos` job on the hosted Mac runner. It verifies the
 mechanical GLSL translation, runs Swift document/input/session/renderer/export
 tests, checks the build/install CLI in isolated temporary fixtures, and builds
-an independent ad-hoc-signed application zip. GPU tests
+an independent ad-hoc-signed application zip, then checks that the app and
+zip carry `LICENSE` and `THIRD_PARTY_NOTICES.txt`. GPU tests
 explicitly skip when the runner has no accelerated display context; actual
 Mac smoke checks are recorded in `macos/VERIFICATION.md`. The native zip and
 SHA-256 sidecar are uploaded as PR/main artifacts. Local Developer ID signing
