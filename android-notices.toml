@@ -1,0 +1,20 @@
+# Overrides for scripts/android_notices.py, which checks the third-party notices
+# inside Meltorama's APKs (ci.yml and release.yml). Claims tie APK content that
+# dependency metadata cannot describe to the notice entries that cover it.
+
+# Entries that must always be listed: one per component family the README names,
+# so an empty or stale definitions file fails.
+require = [
+    "androidx.core:core",
+    "androidx.compose.material3:material3",
+    "androidx.compose.material:material-icons-extended",
+    "com.google.dagger:dagger",
+    "org.jetbrains.kotlinx:kotlinx-coroutines-core",
+    "org.jetbrains.kotlinx:kotlinx-serialization-json",
+    "org.jetbrains.kotlin:kotlin-stdlib",
+]
+
+[[claim]]
+paths = ["lib/*/libandroidx.graphics.path.so"]
+requires = ["androidx.graphics:graphics-path"]
+reason = "Native part of the AndroidX graphics-path AAR"

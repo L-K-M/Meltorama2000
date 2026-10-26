@@ -56,11 +56,35 @@ jobs:
           fi
 
       # Re-prove the tagged commit: a tag can land on a commit CI never saw.
+      # Same license statement checks as ci.yml.
+      - name: Check license statements
+        run: |
+          status=0
+          grep -q 'own code is public domain (Unlicense)' app/src/main/res/values/strings.xml \
+            || { echo "::error file=app/src/main/res/values/strings.xml::about_body must scope the Unlicense to the app's own code"; status=1; }
+          grep -q '自身的代码属于公共领域（Unlicense）' app/src/main/res/values-b+zh+Hans/strings.xml \
+            || { echo "::error file=app/src/main/res/values-b+zh+Hans/strings.xml::about_body must scope the Unlicense to the app's own code"; status=1; }
+          grep -q 'Open-source licenses' macos/THIRD_PARTY_NOTICES.txt \
+            || { echo "::error file=macos/THIRD_PARTY_NOTICES.txt::must say where the Android notices ship"; status=1; }
+          { grep -q 'THIRD_PARTY_NOTICES.txt' README.md && grep -q 'Open-source licenses' README.md; } \
+            || { echo "::error file=README.md::the License section must say where the third-party notices ship"; status=1; }
+          exit "$status"
+
       - name: Test and lint
         run: ./gradlew testDebugUnitTest lintDebug
 
       - name: Build release APK
         run: ./gradlew assembleRelease
+
+      # The APK we publish must carry its third-party notices (see ci.yml).
+      # R8 may shorten res/raw/aboutlibraries.json's path; `check` finds it.
+      - name: Check third-party notices in the APK
+        run: |
+          APK=app/build/outputs/apk/release/app-release.apk
+          python3 -I scripts/android_notices.py check "$APK" --config android-notices.toml
+          python3 -I scripts/android_notices.py scan "$APK" --config android-notices.toml \
+            --fetch-from https://dl.google.com/dl/android/maven2 \
+            --fetch-from https://repo.maven.apache.org/maven2
 
       - name: Stage release artifacts
         run: |
