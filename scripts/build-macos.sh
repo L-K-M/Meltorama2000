@@ -52,7 +52,9 @@ codesign --verify --strict "$STAGE_DIR/Meltorama.app"
 rm -rf "$APP_DIR"
 mv "$STAGE_DIR/Meltorama.app" "$APP_DIR"
 ditto -c -k --sequesterRsrc --keepParent "$APP_DIR" "dist/meltorama-$VERSION-macos-$ARCH_TAG.zip"
-shasum -a 256 "dist/meltorama-$VERSION-macos-$ARCH_TAG.zip" > "dist/meltorama-$VERSION-macos-$ARCH_TAG.zip.sha256"
+# Bare file name, as in the APK's checksum: release.yml publishes this file, and
+# `shasum -c` must work in the folder the zip was downloaded to.
+(cd dist && shasum -a 256 "meltorama-$VERSION-macos-$ARCH_TAG.zip" > "meltorama-$VERSION-macos-$ARCH_TAG.zip.sha256")
 echo "-- app: $APP_DIR"
 echo "-- zip: $REPO_DIR/dist/meltorama-$VERSION-macos-$ARCH_TAG.zip"
 if $LAUNCH; then open "$APP_DIR"; fi
