@@ -505,3 +505,13 @@ against this repo's use of it.
   open: declined.** The screen parses a 65 KB file once, the theme has no
   action bar, Back returns to the About dialog on purpose, and the file
   matches the recipe copy other repos ship.
+
+Round 2 (hybrid, `3cccfcd` to `259ac4a`) raised two minor points and no
+important one; steady state.
+
+- **Match a wrapped `about_body`: declined.** A wrapped string makes the
+  step fail with an `about_body` error rather than pass, so it cannot hide
+  a wrong statement; the strings files keep each string on one line.
+- **Apache-2.0 appendix: declined (raised in round 1).** The text is
+  byte-identical to AndroidX's `LICENSE.txt`, which ends at "END OF TERMS
+  AND CONDITIONS"; the appendix is instructions, not license terms.
