@@ -42,6 +42,30 @@ scripts/install.sh             # build + install + launch on a device
 - Versions are pinned ONLY in `gradle/libs.versions.toml`. Never add an
   ad-hoc version to a build file; never restate catalog versions in docs.
 
+## Licensing
+
+- Meltorama's own code is released under the Unlicense (`LICENSE`); bundled
+  third-party code keeps its own licenses. Keep the About text,
+  `macos/THIRD_PARTY_NOTICES.txt` and the README saying so; the "Check
+  license statements" step in both workflows greps for it.
+- Before adding a dependency, vendored file or bundled asset (fonts, images,
+  icons, data), confirm its license allows redistribution in the APK or the
+  Mac app. Never vendor third-party code without its license file.
+- The AboutLibraries plugin writes `res/raw/aboutlibraries.json` from each
+  variant's resolved graph, offline and strict: a dependency without a
+  license, or with one outside `allowedLicenses` in `app/build.gradle.kts`,
+  fails the build. The About dialog's Open-source licenses button lists it
+  (`LicensesActivity`). License texts and NOTICE files live in
+  `app/config/licenses` and `app/config/libraries`, each with a `_comment`
+  naming its source. `scripts/android_notices.py check` and `scan` run on the
+  built APK in both workflows: `scan` fails when a new dependency embeds a
+  NOTICE file and prints the `stub` command that adds it, and a native
+  library needs a `[[claim]]` in `android-notices.toml`.
+- The Mac app bundles no third-party code. `build-macos.sh` copies `LICENSE`
+  and `THIRD_PARTY_NOTICES.txt` into `Contents/Resources`, and CI checks both
+  in the built app and zip. A Swift package dependency would need its own
+  notices there.
+
 ## Toolchain quirks — don't "fix" these
 
 - `compileSdkVersion("android-37.0")` (string form) is deliberately paired

@@ -1,0 +1,7 @@
+{
+  "_comment": "NOTICE.md inside jakarta.inject-api 2.0.1 (via Dagger); AGP keeps only one META-INF/NOTICE.md and users cannot see it",
+  "uniqueId": "jakarta.inject:jakarta.inject-api",
+  "licenses": [
+    "Apache-2.0-jakarta.inject-api-NOTICE"
+  ]
+}
