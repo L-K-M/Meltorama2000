@@ -17,5 +17,7 @@ It uses Apple's AppKit, SwiftUI, ImageIO, OpenGL,
 AVFoundation, and the Swift standard library supplied by the operating system.
 SF Symbols are displayed through Apple's system APIs under Apple's terms.
 
-The Android application has its own dependency notices. Its runtime libraries
-are not included in the macOS application.
+The Android application bundles open-source libraries under their own
+licenses; their notices ship inside the APK and appear in the app under
+About > Open-source licenses. None of them is included in the macOS
+application.

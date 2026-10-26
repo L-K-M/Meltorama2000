@@ -1,4 +1,5 @@
-# Release: a pushed v* tag builds, verifies, and publishes the release APK.
+# Release: a pushed v* tag builds, verifies, and publishes the release APK and
+# the universal native Mac zip.
 #
 # Signing: BOTH build types are signed with the checked-in app/debug.keystore —
 # zero secrets, reproducible by anyone, deliberately sideload-only
@@ -56,11 +57,35 @@ jobs:
           fi
 
       # Re-prove the tagged commit: a tag can land on a commit CI never saw.
+      # Same license statement checks as ci.yml.
+      - name: Check license statements
+        run: |
+          status=0
+          grep 'name="about_body"' app/src/main/res/values/strings.xml | grep -q 'own code is public domain (Unlicense)' \
+            || { echo "::error file=app/src/main/res/values/strings.xml::about_body must scope the Unlicense to the app's own code"; status=1; }
+          grep 'name="about_body"' app/src/main/res/values-b+zh+Hans/strings.xml | grep -q '自身的代码属于公共领域（Unlicense）' \
+            || { echo "::error file=app/src/main/res/values-b+zh+Hans/strings.xml::about_body must scope the Unlicense to the app's own code"; status=1; }
+          grep -q 'Open-source licenses' macos/THIRD_PARTY_NOTICES.txt \
+            || { echo "::error file=macos/THIRD_PARTY_NOTICES.txt::must say where the Android notices ship"; status=1; }
+          { grep -q 'THIRD_PARTY_NOTICES.txt' README.md && grep -q 'Open-source licenses' README.md; } \
+            || { echo "::error file=README.md::the License section must say where the third-party notices ship"; status=1; }
+          exit "$status"
+
       - name: Test and lint
         run: ./gradlew testDebugUnitTest lintDebug
 
       - name: Build release APK
         run: ./gradlew assembleRelease
+
+      # The APK we publish must carry its third-party notices (see ci.yml).
+      # R8 may shorten res/raw/aboutlibraries.json's path; `check` finds it.
+      - name: Check third-party notices in the APK
+        run: |
+          APK=app/build/outputs/apk/release/app-release.apk
+          python3 -I scripts/android_notices.py check "$APK" --config android-notices.toml
+          python3 -I scripts/android_notices.py scan "$APK" --config android-notices.toml \
+            --fetch-from https://dl.google.com/dl/android/maven2 \
+            --fetch-from https://repo.maven.apache.org/maven2
 
       - name: Stage release artifacts
         run: |
@@ -76,9 +101,47 @@ jobs:
           if-no-files-found: error
           retention-days: 1
 
+  # The Mac zip comes from the tagged commit through the same checks as CI,
+  # not from a hand upload, so the published bytes are the verified ones.
+  macos:
+    name: Build release Mac app
+    runs-on: macos-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Verify shared shaders and native tests
+        run: scripts/test-macos.sh
+
+      - name: Build universal Mac application
+        run: scripts/build-macos.sh --universal
+
+      # Same notice checks as ci.yml, on the zip that gets published.
+      - name: Check notices in the native application
+        run: |
+          RES=Meltorama.app/Contents/Resources
+          test -s "dist/$RES/LICENSE"
+          test -s "dist/$RES/THIRD_PARTY_NOTICES.txt"
+          for zip in dist/meltorama-*-macos-*.zip; do
+            unzip -p "$zip" "$RES/LICENSE" | grep -q 'released into the public domain'
+            unzip -p "$zip" "$RES/THIRD_PARTY_NOTICES.txt" | grep -q 'no third-party runtime libraries'
+          done
+
+      - name: Upload verified Mac zip
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: meltorama-release-macos-${{ github.sha }}
+          path: |
+            dist/meltorama-*-macos-*.zip
+            dist/meltorama-*-macos-*.zip.sha256
+          if-no-files-found: error
+          retention-days: 1
+
   publish:
-    name: Publish release APK
-    needs: build
+    name: Publish release
+    needs: [build, macos]
     runs-on: ubuntu-latest
     timeout-minutes: 10
     permissions:
@@ -88,6 +151,12 @@ jobs:
         uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
         with:
           name: meltorama-release-${{ github.sha }}
+          path: dist
+
+      - name: Download verified Mac zip
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: meltorama-release-macos-${{ github.sha }}
           path: dist
 
       - name: Create GitHub Release
@@ -103,4 +172,5 @@ jobs:
           fail_on_unmatched_files: true
           files: |
             dist/*.apk
+            dist/*.zip
             dist/*.sha256

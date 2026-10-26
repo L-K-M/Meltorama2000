@@ -4,6 +4,7 @@ plugins {
     alias(libs.plugins.kotlin.serialization)
     alias(libs.plugins.ksp)
     alias(libs.plugins.hilt)
+    alias(libs.plugins.aboutlibraries.android)
 }
 
 android {
@@ -70,6 +71,26 @@ kotlin {
             "androidx.compose.material3.ExperimentalMaterial3Api",
             "androidx.compose.foundation.ExperimentalFoundationApi",
         )
+    }
+}
+
+// Third-party notices (res/raw/aboutlibraries.json, shown by LicensesActivity):
+// generated offline from each variant's resolved graph plus config/libraries
+// and config/licenses. The build fails on a dependency without a license or
+// with one outside the allow-list.
+aboutLibraries {
+    offlineMode = true
+    collect {
+        configPath = file("config")
+        fetchRemoteLicense = false
+        fetchRemoteFunding = false
+    }
+    library {
+        requireLicense = true
+    }
+    license {
+        strictMode = com.mikepenz.aboutlibraries.plugin.StrictMode.FAIL
+        allowedLicenses.addAll("Apache-2.0")
     }
 }
 

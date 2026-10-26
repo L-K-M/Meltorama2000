@@ -52,13 +52,26 @@ upgrade-compatible APKs (a deliberate sideload-only decision — see
 ## Releasing
 
 `scripts/release.sh X.Y.Z --push` — never hand-edit `versionCode`, never
-create a `v*` tag by hand. CI publishes the APK to GitHub Releases.
+create a `v*` tag by hand. CI publishes the APK and the universal Mac zip to
+GitHub Releases.
 
 ## License
 
-[Unlicense](LICENSE) — public domain. "Kai's Power Goo" and "KPT" are
-referenced as historical inspiration only; this project is unaffiliated
-with their past or present rights holders.
+Meltorama's own code is released into the public domain under the
+[Unlicense](LICENSE). The Android app bundles AndroidX, Jetpack Compose
+(including Material icons), Dagger and Hilt, kotlinx-coroutines,
+kotlinx-serialization and the Kotlin standard library, which keep their own
+licenses (Apache License 2.0). Their license texts and notices ship inside
+the APK and appear in the app under About > Open-source licenses. The macOS
+app bundles no third-party code; it ships `LICENSE` and
+`THIRD_PARTY_NOTICES.txt` in `Meltorama.app/Contents/Resources`.
+
+The Unlicense covers Meltorama's own code only. The Gradle wrapper
+(`gradlew`, `gradlew.bat`, `gradle/wrapper/gradle-wrapper.jar`) is Gradle's,
+under the Apache License 2.0.
+
+"Kai's Power Goo" and "KPT" are referenced as historical inspiration only;
+this project is unaffiliated with their past or present rights holders.
 
 ## Native macOS application
 

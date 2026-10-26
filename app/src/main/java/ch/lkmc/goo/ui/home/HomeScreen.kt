@@ -1,5 +1,6 @@
 package ch.lkmc.goo.ui.home
 
+import android.content.Intent
 import android.graphics.BitmapFactory
 import android.net.Uri
 import android.text.format.DateUtils
@@ -78,6 +79,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.LifecycleResumeEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import ch.lkmc.goo.BuildConfig
+import ch.lkmc.goo.LicensesActivity
 import ch.lkmc.goo.R
 import ch.lkmc.goo.data.CameraCapture
 import ch.lkmc.goo.data.ProjectStore
@@ -166,6 +168,12 @@ fun HomeScreen(
             confirmButton = {
                 TextButton(onClick = { showAbout = false }) {
                     Text(stringResource(R.string.about_close))
+                }
+            },
+            // The bundled libraries' license texts and NOTICEs (Apache-2.0 4(a), 4(d)).
+            dismissButton = {
+                TextButton(onClick = { context.startActivity(Intent(context, LicensesActivity::class.java)) }) {
+                    Text(stringResource(R.string.open_source_licenses))
                 }
             },
         )

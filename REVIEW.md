@@ -467,3 +467,51 @@ fix now requires an actual native separator and tests its visible geometry.
 - **Test diagnostics, extra assertions, and historical counts: deferred.**
   These do not correct observed product behavior. The dated record describes
   the eight themes tested, rather than asserting a permanent theme count.
+
+## PR #133 review dispositions (third-party license notices)
+
+The completed full GLM 5.3 review covered `3cccfcd` (16 major, 26 minor
+and 7 info comments). `scripts/android_notices.py` is vendored byte for
+byte from the shared Android notices recipe; its comments were checked
+against this repo's use of it.
+
+- **About text greps scoped to `about_body`: applied.** The check named
+  `about_body` but matched the whole file.
+- **Mac zip checksum path: applied (found while checking the release
+  path).** `build-macos.sh` wrote `dist/` into the `.sha256` that
+  `release.yml` now publishes, so `shasum -c` failed next to the download.
+- **Job permissions: refuted.** Both workflows set `permissions: contents:
+  read` at the top level, which every job without its own block inherits.
+- **License texts missing offline, JSON vs XML output, `_comment` and `hash`
+  keys, strict mode and the Jakarta entry: refuted.** The CI APK carries
+  `res/raw/aboutlibraries.json` with 93 libraries; the Apache-2.0 entry is
+  byte-identical to AndroidX's `LICENSE.txt` (which has no appendix), the
+  Jakarta entry carries its NOTICE, and `check` fails on a license without
+  text. AboutLibraries keys licenses by `hash` and ignores unknown keys.
+- **`Html.fromHtml` needs API 24: refuted.** minSdk is 26; lint passes.
+- **Shared check scripts instead of inline steps: declined.** The notice
+  work keeps CI checks inline, as the other repos do; both copies are
+  identical and AGENTS.md names them.
+- **`require` jakarta.inject, fatal unmatched claims: declined.** `scan`
+  already fails when the Jakarta jar is resolved and its NOTICE is missing;
+  a claim for a removed library needs no notice.
+- **`android_notices.py` hardening (AAB prefixes, duplicate entries, nested
+  jar size, coordinate and `--extract` paths, fetch fallback, input type
+  checks): declined.** No AAB is built, the inputs are this build's own
+  APK and Gradle cache, and extensionless `LICENSE`/`NOTICE` names are
+  already in `TEXT_SUFFIXES`. Changes belong in the shared recipe, not a
+  local fork.
+- **LicensesActivity threading, `keys!!`, Up navigation, About dialog left
+  open: declined.** The screen parses a 65 KB file once, the theme has no
+  action bar, Back returns to the About dialog on purpose, and the file
+  matches the recipe copy other repos ship.
+
+Round 2 (hybrid, `3cccfcd` to `259ac4a`) raised two minor points and no
+important one; steady state.
+
+- **Match a wrapped `about_body`: declined.** A wrapped string makes the
+  step fail with an `about_body` error rather than pass, so it cannot hide
+  a wrong statement; the strings files keep each string on one line.
+- **Apache-2.0 appendix: declined (raised in round 1).** The text is
+  byte-identical to AndroidX's `LICENSE.txt`, which ends at "END OF TERMS
+  AND CONDITIONS"; the appendix is instructions, not license terms.

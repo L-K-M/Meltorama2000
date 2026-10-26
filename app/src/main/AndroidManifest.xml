@@ -47,6 +47,12 @@
             </intent-filter>
         </activity>
 
+        <!-- Open-source licenses, opened from the About dialog. Lists the
+             AboutLibraries definitions generated at build time. -->
+        <activity
+            android:name=".LicensesActivity"
+            android:exported="false" />
+
         <!-- Serves the share cache to the apps the user picks in the share
              sheet; nothing else is exported (see xml/file_paths.xml). -->
         <provider

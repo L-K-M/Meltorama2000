@@ -29,6 +29,21 @@ jobs:
     steps:
       - uses: actions/checkout@v7
 
+      # License statements must agree with LICENSE (the Unlicense) and scope it
+      # to Meltorama's own code: one check per statement that has been wrong.
+      - name: Check license statements
+        run: |
+          status=0
+          grep 'name="about_body"' app/src/main/res/values/strings.xml | grep -q 'own code is public domain (Unlicense)' \
+            || { echo "::error file=app/src/main/res/values/strings.xml::about_body must scope the Unlicense to the app's own code"; status=1; }
+          grep 'name="about_body"' app/src/main/res/values-b+zh+Hans/strings.xml | grep -q '自身的代码属于公共领域（Unlicense）' \
+            || { echo "::error file=app/src/main/res/values-b+zh+Hans/strings.xml::about_body must scope the Unlicense to the app's own code"; status=1; }
+          grep -q 'Open-source licenses' macos/THIRD_PARTY_NOTICES.txt \
+            || { echo "::error file=macos/THIRD_PARTY_NOTICES.txt::must say where the Android notices ship"; status=1; }
+          { grep -q 'THIRD_PARTY_NOTICES.txt' README.md && grep -q 'Open-source licenses' README.md; } \
+            || { echo "::error file=README.md::the License section must say where the third-party notices ship"; status=1; }
+          exit "$status"
+
       # Supply-chain gate: reject a tampered gradle-wrapper.jar.
       - uses: gradle/actions/wrapper-validation@v5
 
@@ -44,6 +59,19 @@ jobs:
 
       - name: Test, lint, and assemble
         run: ./gradlew testDebugUnitTest lintDebug assembleDebug
+
+      # The APK must carry its third-party notices: AboutLibraries definitions
+      # with every component's license text, a claim for every native library
+      # (android-notices.toml), and the NOTICE files the resolved AARs and jars
+      # embed. `scan` reads those from the Gradle cache, so it runs in the job
+      # that built the APK.
+      - name: Check third-party notices in the APK
+        run: |
+          APK=app/build/outputs/apk/debug/app-debug.apk
+          python3 -I scripts/android_notices.py check "$APK" --config android-notices.toml
+          python3 -I scripts/android_notices.py scan "$APK" --config android-notices.toml \
+            --fetch-from https://dl.google.com/dl/android/maven2 \
+            --fetch-from https://repo.maven.apache.org/maven2
 
       - name: Upload debug APK
         uses: actions/upload-artifact@v7
@@ -67,6 +95,18 @@ jobs:
 
       - name: Build independent native application
         run: scripts/build-macos.sh --universal
+
+      # The app and the zip must carry LICENSE and THIRD_PARTY_NOTICES.txt;
+      # build-macos.sh copies them, but cp accepts an empty file.
+      - name: Check notices in the native application
+        run: |
+          RES=Meltorama.app/Contents/Resources
+          test -s "dist/$RES/LICENSE"
+          test -s "dist/$RES/THIRD_PARTY_NOTICES.txt"
+          for zip in dist/meltorama-*-macos-*.zip; do
+            unzip -p "$zip" "$RES/LICENSE" | grep -q 'released into the public domain'
+            unzip -p "$zip" "$RES/THIRD_PARTY_NOTICES.txt" | grep -q 'no third-party runtime libraries'
+          done
 
       - name: Upload native Mac application
         uses: actions/upload-artifact@v7
