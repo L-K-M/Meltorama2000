@@ -2,7 +2,7 @@
 # Check AGP/Gradle compatibility when updating either pin.
 # Single pin point for every dependency; no ad-hoc versions in build files.
 
-agp = "9.4.1"
+agp = "9.5.1"
 kotlin = "2.4.20"
 ksp = "2.3.12"
 composeBom = "2026.09.00"
